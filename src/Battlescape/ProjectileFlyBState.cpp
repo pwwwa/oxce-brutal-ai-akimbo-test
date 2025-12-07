@@ -107,17 +107,29 @@ void ProjectileFlyBState::init()
 
 	if (_action.type == BA_AKIMBOSHOT)
 	{
+		if (_action.weapon !=_action.actor->getActiveHand(_action.actor->getLeftHandWeapon(), _action.actor->getRightHandWeapon()))
+		{
+			if (_action.actor->getActiveHand(_action.actor->getLeftHandWeapon(), _action.actor->getRightHandWeapon()) == _action.actor->getLeftHandWeapon())
+			{
+				_action.actor->setActiveRightHand();
+			}
+			else
+			{
+				_action.actor->setActiveLeftHand();
+			}
+
+		}
 		_ammo = _action.weapon->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
-		if (!_unit->getOpositeHandWeapon())
+		if (!_unit->getOppositeHandWeapon()) // avoid nullptr issue (?)
 		{
 			_parent->popState();
 			return;
 		}
 		else
 		{
-			_ammoOp = _unit->getOpositeHandWeapon()->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
+			_ammoOp = _unit->getOppositeHandWeapon()->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
 			{
-				if (!_ammo || !_ammoOp)
+				if (!_ammo || !_ammoOp) // no ammo - no honey (for each weapon)
 				{
 					_parent->popState();
 					return;
@@ -171,10 +183,10 @@ void ProjectileFlyBState::init()
 	case BA_AKIMBOSHOT:
 		// Additional handling for akimbo reaction shot behaviour
 		if ((_action.actor->getTimeUnits() < (_action.actor->getActionTUs(BA_AKIMBOSHOT, _action.weapon).Time
-			+ _action.actor->getActionTUs(BA_AKIMBOSHOT, _action.actor->getOpositeHandWeapon()).Time)
+			+ _action.actor->getActionTUs(BA_AKIMBOSHOT, _action.actor->getOppositeHandWeapon()).Time)
 			&& _action.autoShotCounter == 0)
 			|| !_action.actor->getActionTUs(BA_AKIMBOSHOT, _action.weapon).Time
-			|| !_action.actor->getActionTUs(BA_AKIMBOSHOT, _action.actor->getOpositeHandWeapon()).Time)
+			|| !_action.actor->getActionTUs(BA_AKIMBOSHOT, _action.actor->getOppositeHandWeapon()).Time)
 		{
 			_action.result = "STR_NOT_ENOUGH_TIME_UNITS";
 			_parent->popState();
@@ -426,6 +438,15 @@ void ProjectileFlyBState::init()
 			_parent->getMap()->setFollowProjectile(false);
 		}
 		if (_range == 0) _action.spendTU();
+		// Spend TU from opposite Weapon`s stats
+		if (_action.type == BA_AKIMBOSHOT)
+		{
+			_action.weapon = _action.actor->getOppositeHandWeapon();
+			_action.updateTU();
+			_action.spendTU();
+			_action.updateTU();
+		}
+
 		_parent->getMap()->setCursorType(CT_NONE);
 		_parent->getMap()->getCamera()->stopMouseScrolling();
 		_parent->getMap()->disableObstacles();
@@ -446,73 +467,55 @@ bool ProjectileFlyBState::createNewProjectile()
 {
 	++_action.autoShotCounter;
 
-	// AKIMBO SHOT SECTION
+	/*********************** 
+	 * AKIMBO SHOT SECTION *
+	 ***********************/
 	if (_action.type == BA_AKIMBOSHOT)
 	{
-		BattleItem* deopWeapon = const_cast<BattleItem*>(_action.actor->getActiveHand(_action.actor->getLeftHandWeapon(), _action.actor->getRightHandWeapon())); // remember current weapon address
+		BattleItem* deopWeapon = const_cast<BattleItem*>(_action.actor->getActiveHand(_action.actor->getLeftHandWeapon(), _action.actor->getRightHandWeapon()));
 		BattleItem* deopAmmo = deopWeapon->getAmmoForAction(_action.type, nullptr ? 0 : &_action.result);
-		; // remember ActiveHand _ammo address
 
-		if (_action.autoShotCounter == 1)
-		{
-			_action.weapon = _action.actor->getOpositeHandWeapon(); // force spending of TU from second hand weapon cost
-			_action.updateTU();
-			_action.spendTU();
-			_action.weapon = deopWeapon;
-			_action.updateTU();
-		}
-
-		if ((!deopAmmo) || deopAmmo->getAmmoQuantity() == 0) // additional avoiding of nulptr
+		if ((!deopAmmo) || !deopAmmo->haveAnyAmmo())
 		{
 			_action.autoShotCounter += (deopWeapon->getActionConf(_action.type)->shots - _action.actWeaponCounter);
 		}
 
-		if (_ammoOp->getAmmoQuantity() == 0)
+		if (!_ammoOp->haveAnyAmmo())
 		{
-			_action.autoShotCounter += (_action.actor->getOpositeHandWeapon()->getActionConf(_action.type)->shots - _action.opWeaponCounter);
+			_action.autoShotCounter += (_action.actor->getOppositeHandWeapon()->getActionConf(_action.type)->shots
+			- _action.opWeaponCounter);
 		}
 
-		if (_action.autoShotCounter >= deopWeapon->getActionConf(_action.type)->shots + _action.actor->getOpositeHandWeapon()->getActionConf(_action.type)->shots + 1)
+		if (_action.autoShotCounter >= deopWeapon->getActionConf(_action.type)->shots
+	    + _action.actor->getOppositeHandWeapon()->getActionConf(_action.type)->shots + 1)
 		{
-			return false;
+			_parent->popState();
 		}
 
 		if (_action.actWeaponCounter <= _action.opWeaponCounter
-			&&_ammo->getAmmoQuantity() > 0
 			&& _action.actWeaponCounter < deopWeapon->getActionConf(_action.type)->shots
-			&& (deopAmmo) && deopAmmo->getAmmoQuantity() != 0) // additional avoiding nullptr
+			&& (deopAmmo) && deopAmmo->haveAnyAmmo())
 		{
 			++_action.actWeaponCounter;
 			if (_action.autoShotCounter > 1)
 			{
 				_action.weapon = deopWeapon;
 				_ammo = deopAmmo;
-				/**
-				if (_action.weapon == _action.actor->getLeftHandWeapon())
-				{
-					_action.weapon = _action.actor->getRightHandWeapon();
-					_ammo = _action.actor->getRightHandWeapon()->getAmmoForAction(_action.type, &_action.result);
-				}
-				else
-				{
-					_action.weapon = _action.actor->getLeftHandWeapon();
-					_ammo = _action.actor->getLeftHandWeapon()->getAmmoForAction(_action.type, &_action.result);
-				}
-				**/
 			}
 		}
 		else if ((_action.actWeaponCounter > _action.opWeaponCounter
-			&& (_action.opWeaponCounter < _action.actor->getOpositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots) && _ammoOp->getAmmoQuantity() > 0)
-			||  (deopAmmo) &&  deopAmmo->getAmmoQuantity() == 0)
+			&& (_action.opWeaponCounter < _action.actor->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots)
+			&& _ammoOp->haveAnyAmmo())
+			||  (deopAmmo) &&  !deopAmmo->haveAnyAmmo())
 		{
 			++_action.opWeaponCounter;
-			_action.weapon = _action.actor->getOpositeHandWeapon();
-			_ammo = _ammoOp; // wrong projectile impact fix
+			_action.weapon = _action.actor->getOppositeHandWeapon();
+			_ammo = _ammoOp;									// wrong projectile impact fix
 		}
 
 		if (_action.sprayTargeting && _parent->getSave()->isAltPressed())
 		{
-			_action.waypoints.reverse(); // let bring some random during spread shooting, if Alt button is pressed
+			_action.waypoints.reverse(); // let bring option for player random during spread shooting, if Alt button is pressed (for gameplay variety / fun)
 		}
 	}
 

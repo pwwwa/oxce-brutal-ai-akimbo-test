@@ -144,7 +144,7 @@ public:
 	/// Attempts to fire at an enemy we can see.
 	void projectileAction();
 	/// Chooses a firing mode for the AI based on expected number of hits per turn
-	void extendedFireModeChoice(BattleActionCost& costAuto, BattleActionCost& costSnap, BattleActionCost& costAimed, BattleActionCost& costThrow, bool checkLOF = false);
+	void extendedFireModeChoice(BattleActionCost& costAuto, BattleActionCost& costAkimbo,BattleActionCost& costSnap, BattleActionCost& costAimed, BattleActionCost& costThrow, bool checkLOF = false);
 	/// Attempts to throw a grenade at an enemy (or group of enemies) we can see.
 	void grenadeAction();
 	/// Performs a psionic attack.
@@ -184,7 +184,7 @@ public:
 	/// Performs a psionic attack but allow multiple per turn and take success-chance into consideration
 	bool brutalPsiAction();
 	/// Chooses a firing mode for the AI based on expected damage dealt
-	float brutalExtendedFireModeChoice(BattleActionCost &costAuto, BattleActionCost &costSnap, BattleActionCost &costAimed, BattleActionCost &costThrow, BattleActionCost &costHit, bool checkLOF = false, float previousHighScore = 0);
+	float brutalExtendedFireModeChoice(BattleActionCost &costAuto, BattleActionCost &costAkimbo, BattleActionCost &costSnap, BattleActionCost &costAimed, BattleActionCost &costThrow, BattleActionCost &costHit, bool checkLOF = false, float previousHighScore = 0);
 	/// Scores a firing mode action based on distance to target, accuracy and overall Damage dealt, also supports melee-hits
 	float brutalScoreFiringMode(BattleAction *action, BattleUnit *target, bool checkLOF, bool reactionCheck = false);
 	/// Used as multiplier for the throw-action in brutalScoreFiringMode

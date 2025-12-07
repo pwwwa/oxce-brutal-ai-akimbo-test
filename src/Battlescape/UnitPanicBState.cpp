@@ -76,11 +76,14 @@ void UnitPanicBState::think()
 
 				if (!canShoot)
 				{
-					ba.weapon = const_cast<BattleItem*>(_unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon())); // getMainHandWeapon neq getActiveHand. temporal fix for correct berserk akimbo shooting.
+				// what do you think about dual-hand shooting ?
 					ba.type = BA_AKIMBOSHOT; 
 					ba.updateTU();
-					canShoot = ba.haveTU() && _parent->getSave()->canUseWeapon(_unit->getRightHandWeapon(), ba.actor, _berserking, ba.type) && _parent->getSave()->canUseWeapon(_unit->getLeftHandWeapon(), ba.actor, _berserking, ba.type);
-				    //&& _unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time + _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time);
+					canShoot = ba.haveTU()
+						&& (_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time
+						+ _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
+						&& _parent->getSave()->canUseWeapon(_unit->getRightHandWeapon(), ba.actor, _berserking, ba.type)
+						&& _parent->getSave()->canUseWeapon(_unit->getLeftHandWeapon(), ba.actor, _berserking, ba.type);
 				}
 
 				if (!canShoot)

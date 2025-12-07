@@ -682,7 +682,7 @@ void AIModule::think(BattleAction *action)
 		{
 			action->waypoints = _attackAction.waypoints;
 		}
-		else if (action->type == BA_AIMEDSHOT || action->type == BA_AUTOSHOT)
+		else if (action->type == BA_AIMEDSHOT || action->type == BA_AUTOSHOT || action->type == BA_AKIMBOSHOT)
 		{
 			action->kneel = _unit->getArmor()->allowsKneeling(false);
 		}
@@ -1641,6 +1641,7 @@ bool AIModule::selectSpottedUnitForSniper()
 
 	// Get the TU costs for each available attack type
 	BattleActionCost costAuto(BA_AUTOSHOT, _attackAction.actor, _attackAction.weapon);
+	BattleActionCost costAkimbo(BA_AKIMBOSHOT, _attackAction.actor, _attackAction.weapon);
 	BattleActionCost costSnap(BA_SNAPSHOT, _attackAction.actor, _attackAction.weapon);
 	BattleActionCost costAimed(BA_AIMEDSHOT, _attackAction.actor, _attackAction.weapon);
 
@@ -1668,7 +1669,7 @@ bool AIModule::selectSpottedUnitForSniper()
 			_aggroTarget = bu;
 			_attackAction.type = BA_RETHINK;
 			_attackAction.target = bu->getPosition();
-			extendedFireModeChoice(costAuto, costSnap, costAimed, costThrow, true);
+			extendedFireModeChoice(costAuto, costAkimbo, costSnap, costAimed, costThrow, true);
 
 			BattleAction chosenAction = _attackAction;
 			if (chosenAction.type == BA_THROW)
@@ -1760,6 +1761,13 @@ int AIModule::scoreFiringMode(BattleAction *action, BattleUnit *target, bool che
 	else if (action->type == BA_AUTOSHOT)
 	{
 		numberOfShots = weapon->getConfigAuto()->shots;
+	}
+	else if (action->type == BA_AKIMBOSHOT)
+	{
+		if (_unit->getLeftHandWeapon() && _unit->getRightHandWeapon())
+		numberOfShots = _unit->getLeftHandWeapon()->getRules()->getConfigAkimbo()->shots + _unit->getRightHandWeapon()->getRules()->getConfigAkimbo()->shots;
+		else
+		numberOfShots = weapon->getConfigAkimbo()->shots;
 	}
 
 	int tuCost = _unit->getActionTUs(action->type, action->weapon).Time;
@@ -2503,10 +2511,12 @@ void AIModule::projectileAction()
 	int distance = Position::distance2d(_unit->getPosition(), _attackAction.target);
 	_attackAction.type = BA_RETHINK;
 
+	BattleActionCost costAkimbo(BA_AKIMBOSHOT, _attackAction.actor, _attackAction.weapon);
 	BattleActionCost costAuto(BA_AUTOSHOT, _attackAction.actor, _attackAction.weapon);
 	BattleActionCost costSnap(BA_SNAPSHOT, _attackAction.actor, _attackAction.weapon);
 	BattleActionCost costAimed(BA_AIMEDSHOT, _attackAction.actor, _attackAction.weapon);
 
+	testEffect(costAkimbo);
 	testEffect(costAuto);
 	testEffect(costSnap);
 	testEffect(costAimed);
@@ -2520,7 +2530,7 @@ void AIModule::projectileAction()
 	{
 		// Note: this will also check for the weapon's max range
 		BattleActionCost costThrow; // Not actually checked here, just passed to extendedFireModeChoice as a necessary argument
-		extendedFireModeChoice(costAuto, costSnap, costAimed, costThrow, false);
+		extendedFireModeChoice(costAuto, costAkimbo, costSnap, costAimed, costThrow, false);
 		return;
 	}
 
@@ -2538,7 +2548,16 @@ void AIModule::projectileAction()
 
 	// vanilla
 	if (distance < 4)
+	
 	{
+		if (_unit->getLeftHandWeapon() && _unit->getRightHandWeapon() && costAkimbo.haveTU()
+			&& _unit->getOppositeHandWeapon()->haveAnyAmmo()
+			&& _unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time
+			+ _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
+		{
+			_attackAction.type = BA_AKIMBOSHOT;
+			return;
+		}
 		if (costAuto.haveTU())
 		{
 			_attackAction.type = BA_AUTOSHOT;
@@ -2571,6 +2590,14 @@ void AIModule::projectileAction()
 		}
 	}
 
+	if (_unit->getLeftHandWeapon() && _unit->getRightHandWeapon() && costAkimbo.haveTU()
+		&& _unit->getOppositeHandWeapon()->haveAnyAmmo()
+		&& _unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time
+		+ _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
+	{
+		_attackAction.type = BA_AKIMBOSHOT;
+		return;
+	}
 	if (costSnap.haveTU())
 	{
 		_attackAction.type = BA_SNAPSHOT;
@@ -2587,12 +2614,19 @@ void AIModule::projectileAction()
 	}
 }
 
-void AIModule::extendedFireModeChoice(BattleActionCost& costAuto, BattleActionCost& costSnap, BattleActionCost& costAimed, BattleActionCost& costThrow, bool checkLOF)
+void AIModule::extendedFireModeChoice(BattleActionCost& costAuto, BattleActionCost& costAkimbo, BattleActionCost& costSnap, BattleActionCost& costAimed, BattleActionCost& costThrow, bool checkLOF)
 {
 	std::vector<BattleActionType> attackOptions = { };
 	if (costAimed.haveTU())
 	{
 		attackOptions.push_back(BA_AIMEDSHOT);
+	}
+	if (_unit->getLeftHandWeapon() && _unit->getRightHandWeapon() && costAkimbo.haveTU()
+		&& _unit->getOppositeHandWeapon()->haveAnyAmmo()
+		&& _unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time
+		+ _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time)) 
+	{
+		attackOptions.push_back(BA_AKIMBOSHOT);
 	}
 	if (costAuto.haveTU())
 	{
@@ -2638,7 +2672,7 @@ void AIModule::extendedFireModeChoice(BattleActionCost& costAuto, BattleActionCo
 
 		// More aggressive units get a modifier to the score for auto shots
 		// Aggression = 0 lowers the score, aggro = 1 is no modifier, aggro > 1 bumps up the score by 5% (configurable) for each increment over 1
-		if (i == BA_AUTOSHOT)
+		if (i == BA_AUTOSHOT || i == BA_AKIMBOSHOT)
 		{
 			newScore = newScore * (100 + (_unit->getAggression() - 1) * _save->getMod()->getAIFireChoiceAggroCoeff()) / 100;
 		}
@@ -2890,6 +2924,7 @@ bool AIModule::psiAction()
 		{
 			BattleActionType actions[] = {
 				BA_AIMEDSHOT,
+				BA_AKIMBOSHOT,
 				BA_AUTOSHOT,
 				BA_SNAPSHOT,
 				BA_HIT,
@@ -3522,7 +3557,7 @@ void AIModule::brutalThink(BattleAction* action)
 			{
 				action->waypoints = _attackAction.waypoints;
 			}
-			else if (action->type == BA_AIMEDSHOT || action->type == BA_AUTOSHOT)
+			else if (action->type == BA_AIMEDSHOT || action->type == BA_AUTOSHOT|| action->type == BA_AKIMBOSHOT)
 			{
 				if (_unit->getTimeUnits() >= _unit->getKneelDownCost() + action->Time + (_tuCostToReachClosestPositionToBreakLos > 0 ? (_tuCostToReachClosestPositionToBreakLos + _unit->getKneelUpCost()) : 0))
 					action->kneel = _unit->getArmor()->allowsKneeling(_unit->getType() == "SOLDIER") && !_unit->isFloating();
@@ -4734,6 +4769,7 @@ bool AIModule::brutalSelectSpottedUnitForSniper()
 				_attackAction.type = BA_RETHINK;
 				_attackAction.target = (*i)->getPosition();
 				BattleActionCost costAuto(BA_AUTOSHOT, _attackAction.actor,weapon);
+				BattleActionCost costAkimbo(BA_AKIMBOSHOT, _attackAction.actor,weapon);
 				BattleActionCost costSnap(BA_SNAPSHOT, _attackAction.actor, weapon);
 				BattleActionCost costAimed(BA_AIMEDSHOT, _attackAction.actor, weapon);
 				BattleActionCost costHit(BA_HIT, _attackAction.actor, weapon);
@@ -4743,6 +4779,8 @@ bool AIModule::brutalSelectSpottedUnitForSniper()
 					costThrow.Energy += _energyCostToReachClosestPositionToBreakLos;
 					costAuto.Time += _tuCostToReachClosestPositionToBreakLos;
 					costAuto.Energy += _energyCostToReachClosestPositionToBreakLos;
+					costAkimbo.Time += _tuCostToReachClosestPositionToBreakLos;
+					costAkimbo.Energy += _energyCostToReachClosestPositionToBreakLos;
 					costSnap.Time += _tuCostToReachClosestPositionToBreakLos;
 					costSnap.Energy += _energyCostToReachClosestPositionToBreakLos;
 					costAimed.Time += _tuCostToReachClosestPositionToBreakLos;
@@ -4750,7 +4788,7 @@ bool AIModule::brutalSelectSpottedUnitForSniper()
 					costHit.Time += _tuCostToReachClosestPositionToBreakLos;
 					costHit.Energy += _energyCostToReachClosestPositionToBreakLos;
 				}
-				float score = brutalExtendedFireModeChoice(costAuto, costSnap, costAimed, costThrow, costHit, true, bestScore);
+				float score = brutalExtendedFireModeChoice(costAuto, costAkimbo, costSnap, costAimed, costThrow, costHit, true, bestScore);
 				if (score > bestScore)
 				{
 					bestScore = score;
@@ -5154,12 +5192,19 @@ bool AIModule::brutalPsiAction()
 	return false;
 }
 
-float AIModule::brutalExtendedFireModeChoice(BattleActionCost &costAuto, BattleActionCost &costSnap, BattleActionCost &costAimed, BattleActionCost &costThrow, BattleActionCost &costHit, bool checkLOF, float previousHighScore)
+float AIModule::brutalExtendedFireModeChoice(BattleActionCost &costAuto, BattleActionCost &costAkimbo, BattleActionCost &costSnap, BattleActionCost &costAimed, BattleActionCost &costThrow, BattleActionCost &costHit, bool checkLOF, float previousHighScore)
 {
 	std::vector<BattleActionType> attackOptions = {};
 	if (costAimed.haveTU())
 	{
 		attackOptions.push_back(BA_AIMEDSHOT);
+	}
+	if (_unit->getLeftHandWeapon() && _unit->getRightHandWeapon() && costAkimbo.haveTU()
+		&& _unit->getOppositeHandWeapon()->haveAnyAmmo()
+		&& _unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time
+		+ _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time)) 
+	{
+		attackOptions.push_back(BA_AKIMBOSHOT);
 	}
 	if (costAuto.haveTU())
 	{
@@ -5235,6 +5280,10 @@ float AIModule::brutalScoreFiringMode(BattleAction* action, BattleUnit* target, 
 		if (action->type == BA_AIMEDSHOT)
 		{
 			upperLimit = action->weapon->getRules()->getAimRange();
+		}
+		else if (action->type == BA_AKIMBOSHOT)
+		{
+			upperLimit = action->weapon->getRules()->getAkimboRange();
 		}
 		else if (action->type == BA_AUTOSHOT)
 		{
@@ -5316,6 +5365,14 @@ float AIModule::brutalScoreFiringMode(BattleAction* action, BattleUnit* target, 
 	else if (action->type == BA_AUTOSHOT)
 	{
 		numberOfShots = action->weapon->getRules()->getConfigAuto()->shots;
+	}
+	else if (action->type == BA_AKIMBOSHOT)
+	{
+		if (_unit->getLeftHandWeapon() && _unit->getRightHandWeapon())
+			numberOfShots = _unit->getLeftHandWeapon()->getRules()->getConfigAkimbo()->shots
+			+ _unit->getRightHandWeapon()->getRules()->getConfigAkimbo()->shots;
+		else
+		numberOfShots = action->weapon->getRules()->getConfigAkimbo()->shots; 
 	}
 	else if (action->type == BA_HIT)
 	{
@@ -5831,7 +5888,7 @@ void AIModule::brutalBlaster()
 					if (wpPosition.z != targetNode->getPrevNode()->getPosition().z)
 						zChange = true;
 					bool losBreak = false;
-					if (!hasTileSight(targetNode->getPrevNode()->getPosition(), _attackAction.waypoints.front()))
+					if (!hasTileSight(targetNode->getPrevNode()->getPosition(), _attackAction.waypoints.back()))
 						losBreak = true;
 					//If we have unlimited way-points for our blaster, we might as well put a way-point on every single node along the path
 					if (_attackAction.weapon->getCurrentWaypoints() == -1)
@@ -6048,10 +6105,11 @@ void AIModule::blindFire()
 				// Get the TU costs for each available attack type
 				_attackAction.weapon = weapon;
 				BattleActionCost costAuto(BA_AUTOSHOT, _attackAction.actor, weapon);
+				BattleActionCost costAkimbo(BA_AKIMBOSHOT, _attackAction.actor, weapon);
 				BattleActionCost costSnap(BA_SNAPSHOT, _attackAction.actor, weapon);
 				BattleActionCost costAimed(BA_AIMEDSHOT, _attackAction.actor, weapon);
 				BattleActionCost costHit(BA_HIT, _attackAction.actor, weapon);
-				brutalExtendedFireModeChoice(costAuto, costSnap, costAimed, costThrow, costHit, false);
+				brutalExtendedFireModeChoice(costAuto, costAkimbo, costSnap, costAimed, costThrow, costHit, false);
 
 				BattleAction chosenAction = _attackAction;
 				if (_attackAction.type != BA_RETHINK)
@@ -6239,7 +6297,7 @@ Position AIModule::closestPositionEnemyCouldReach(BattleUnit *enemy)
 int AIModule::maxExtenderRangeWith(BattleUnit *unit, int tus)
 {
 	BattleItem *weapon = unit->getMainHandWeapon();
-	if (!weapon)
+	if (weapon == NULL)
 		return 0;
 	if (!Options::battleUFOExtenderAccuracy)
 	{
@@ -6253,6 +6311,7 @@ int AIModule::maxExtenderRangeWith(BattleUnit *unit, int tus)
 	if (weapon->getRules()->getCostSnap().Time > 0 && unit->getActionTUs(BA_SNAPSHOT, weapon).Time < tus)
 		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, weapon->getRules()->getSnapRange());
 	if (weapon->getRules()->getCostAkimbo().Time > 0 && unit->getActionTUs(BA_AKIMBOSHOT, weapon).Time < tus)
+	//if (unit->getLeftHandWeapon() && unit->getRightHandWeapon() && ((unit->getActionTUs(BA_AKIMBOSHOT, unit->getLeftHandWeapon()).Time + unit->getActionTUs(BA_AKIMBOSHOT, unit->getRightHandWeapon()).Time) < tus) )
 		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, weapon->getRules()->getAkimboRange());
 	if (weapon->getRules()->getCostAuto().Time > 0 && unit->getActionTUs(BA_AUTOSHOT, weapon).Time < tus)
 		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, weapon->getRules()->getAutoRange());
@@ -7127,6 +7186,10 @@ float AIModule::damagePotential(Position pos, BattleUnit* target, int tuTotal, i
 				{
 					upperLimit = weapon->getRules()->getAimRange();
 				}
+				else if (bat == BA_AKIMBOSHOT)
+				{
+					upperLimit = weapon->getRules()->getAkimboRange();
+				}
 				else if (bat == BA_AUTOSHOT)
 				{
 					upperLimit = weapon->getRules()->getAutoRange();
@@ -7202,6 +7265,15 @@ float AIModule::damagePotential(Position pos, BattleUnit* target, int tuTotal, i
 			{
 				numberOfShots = weapon->getRules()->getConfigSnap()->shots;
 			}
+			else if (bat == BA_AKIMBOSHOT)
+			{
+				if (_unit->getOppositeHandWeapon())
+					numberOfShots = _unit->getLeftHandWeapon()->getRules()->getConfigAkimbo()->shots
+					+ _unit->getRightHandWeapon()->getRules()->getConfigAkimbo()->shots;
+				else
+					numberOfShots = weapon->getRules()->getConfigAkimbo()->shots;
+			}
+
 			else if (bat == BA_AUTOSHOT)
 			{
 				numberOfShots = weapon->getRules()->getConfigAuto()->shots;
