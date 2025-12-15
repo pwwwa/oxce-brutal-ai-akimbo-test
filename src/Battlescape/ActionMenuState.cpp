@@ -116,13 +116,10 @@ ActionMenuState::ActionMenuState(BattleAction *action, int x, int y) : _action(a
 
 	if (weapon->getBattleType() == BT_FIREARM)
 	{
-		bool bLeftAkimbo = false, bRightAkimbo = false;
+		bool isAkimbo = false;
 
-		if (_action->actor->getLeftHandWeapon())
-			bLeftAkimbo = _action->actor->getLeftHandWeapon()->getRules()->getCostAkimbo().Time;
-
-		if (_action->actor->getRightHandWeapon())
-			bRightAkimbo = _action->actor->getRightHandWeapon()->getRules()->getCostAkimbo().Time;
+		if (_action->actor->getLeftHandWeapon() && _action->actor->getRightHandWeapon())
+			isAkimbo = _action->actor->getLeftHandWeapon()->getRules()->getCostAkimbo().Time && _action->actor->getRightHandWeapon()->getRules()->getCostAkimbo().Time;
 
 		auto isLauncher = _action->weapon->getCurrentWaypoints() != 0;
 		auto slotLauncher = _action->weapon->getActionConf(BA_LAUNCH)->ammoSlot;
@@ -147,7 +144,7 @@ ActionMenuState::ActionMenuState(BattleAction *action, int x, int y) : _action(a
 		{
 			addItem(BA_AIMEDSHOT,  weapon->getConfigAimed()->name, &id, Options::keyBattleActionItem1);
 		}
-		if (bLeftAkimbo && bRightAkimbo)
+		if (isAkimbo)
 		{
 			addItem(BA_AKIMBOSHOT, weapon->getConfigAkimbo()->name, &id, Options::keyBattleActionItem6);
 		}

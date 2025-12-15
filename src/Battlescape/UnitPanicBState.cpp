@@ -68,22 +68,20 @@ void UnitPanicBState::think()
 			ba.actor = _unit;
 			ba.weapon = _unit->getMainHandWeapon();
 			{
-			// make autoshots if possible.
-			ba.type = BA_AUTOSHOT;
-			ba.updateTU();
-			bool canShoot = ba.haveTU() && _parent->getSave()->canUseWeapon(ba.weapon, ba.actor, _berserking, ba.type)
-				&& ba.weapon->getRules()->getCostAuto().Time;
+				// make akimbo shot, if possible *carefully avoid null ptr to opposite hand*
+				ba.type = BA_AKIMBOSHOT;
+				ba.updateTU();
+				bool canShoot = ba.haveTU() && _unit->getLeftHandWeapon() && _unit->getRightHandWeapon()
+					&& (_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time + _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
+					&& _parent->getSave()->canUseWeapon(_unit->getLeftHandWeapon(), ba.actor, _berserking, ba.type)
+					&& _parent->getSave()->canUseWeapon(_unit->getRightHandWeapon(), ba.actor, _berserking, ba.type);
 
 				if (!canShoot)
 				{
-				// what do you think about dual-hand shooting ?
-					ba.type = BA_AKIMBOSHOT; 
+					// make autoshots if possible.
+					ba.type = BA_AUTOSHOT;
 					ba.updateTU();
-					canShoot = ba.haveTU()
-						&& (_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time
-						+ _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
-						&& _parent->getSave()->canUseWeapon(_unit->getRightHandWeapon(), ba.actor, _berserking, ba.type)
-						&& _parent->getSave()->canUseWeapon(_unit->getLeftHandWeapon(), ba.actor, _berserking, ba.type);
+					canShoot = ba.haveTU() && _parent->getSave()->canUseWeapon(ba.weapon, ba.actor, _berserking, ba.type) && ba.weapon->getRules()->getCostAuto().Time;
 				}
 
 				if (!canShoot)
