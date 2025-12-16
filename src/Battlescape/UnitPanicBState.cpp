@@ -72,10 +72,11 @@ void UnitPanicBState::think()
 				// make akimbo shot, if possible *carefully avoid null ptr to opposite hand*
 				ba.type = BA_AKIMBOSHOT;
 				ba.updateTU();
-				bool canShoot = ba.haveTU() && _unit->getLeftHandWeapon() && _unit->getRightHandWeapon()
-					&& (_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time + _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
-					&& _parent->getSave()->canUseWeapon(_unit->getLeftHandWeapon(), ba.actor, _berserking, ba.type)
-					&& _parent->getSave()->canUseWeapon(_unit->getRightHandWeapon(), ba.actor, _berserking, ba.type);
+				bool canShoot = ba.haveTU() &&
+								_parent->getSave()->canUseWeapon(_unit->getLeftHandWeapon(), ba.actor, _berserking, ba.type) &&
+								_parent->getSave()->canUseWeapon(_unit->getRightHandWeapon(), ba.actor, _berserking, ba.type) &&
+								_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time && _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time &&
+								(_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time + _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time));
 
 				if (!canShoot)
 				{
