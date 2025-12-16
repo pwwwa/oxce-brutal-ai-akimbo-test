@@ -2483,30 +2483,12 @@ bool BattleUnit::spendEnergy(int energy)
  */
 void BattleUnit::spendCost(const RuleItemUseCost& cost)
 {
-	/***
-		BattleActionType *actionType;
-	if (actionType == BA_AKIMBOSHOT)
-	{
-		Log(LOG_DEBUG) << "Do SpendCost for Akimbo work ?" << actionType;
-		_tu -= (getLeftHandWeapon()->getRules()->getCostAkimbo().Time + getRightHandWeapon()->getRules()->getCostAkimbo().Time);
-		_energy -= getLeftHandWeapon()->getRules()->getCostAkimbo().Energy + getRightHandWeapon()->getRules()->getCostAkimbo().Energy;
-		_morale -= getLeftHandWeapon()->getRules()->getCostAkimbo().Morale + getRightHandWeapon()->getRules()->getCostAkimbo().Morale;
-		_health -= getLeftHandWeapon()->getRules()->getCostAkimbo().Health + getRightHandWeapon()->getRules()->getCostAkimbo().Health;
-		_stunlevel -= getLeftHandWeapon()->getRules()->getCostAkimbo().Stun + getRightHandWeapon()->getRules()->getCostAkimbo().Stun;
-		_mana -= getLeftHandWeapon()->getRules()->getCostAkimbo().Mana + getRightHandWeapon()->getRules()->getCostAkimbo().Mana;
-	}
-	else
-	{
-
-		Log(LOG_DEBUG) << "SpendCost is not AKimbo" << actionType;
-***/
-		_tu -= cost.Time;
-		_energy -= cost.Energy;
-		_morale -= cost.Morale;
-		_health -= cost.Health;
-		_stunlevel += cost.Stun;
-		_mana -= cost.Mana;
-	//}
+	_tu -= cost.Time;
+	_energy -= cost.Energy;
+	_morale -= cost.Morale;
+	_health -= cost.Health;
+	_stunlevel += cost.Stun;
+	_mana -= cost.Mana;
 }
 
 /**
@@ -6388,7 +6370,7 @@ bool BattleUnit::wasMaxTusOfUpdate()
 
 bool BattleUnit::isLeeroyJenkins() const
 {
-	return _isLeeroyJenkins;
+	return _isLeeroyJenkins || (_faction == FACTION_HOSTILE && Options::brutalAI == 2) || (_faction == FACTION_HOSTILE && Options::brutalCivilians == 2);
 }
 
 float BattleUnit::getAggressiveness(std::string missionType) const

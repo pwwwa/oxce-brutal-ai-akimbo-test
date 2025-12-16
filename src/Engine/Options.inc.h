@@ -36,7 +36,7 @@ OPT PathPreview battleNewPreviewPath;
 OPT int shootingSpreadMode, battleRealisticShotDispersion, battleRealisticCoverEfficiency, battleScrollSpeed, battleDragScrollButton, battleFireSpeed, battleXcomSpeed, battleAlienSpeed, battleExplosionHeight, battlescapeScale, battleTerrainSquishyness, preprimeGrenades, battleThrownSpeed, moraleAttackSuccessNotify;
 OPT bool traceAI, battleInstantGrenade, battleNotifyDeath, battleTooltips, battleHairBleach, battleAutoEnd,
 	strafe, forceFire, showMoreStatsInInventoryView, allowPsionicCapture, skipNextTurnScreen, disableAutoEquip, battleDragScrollInvert,
-	battleUFOExtenderAccuracy, useChanceToHit, battleRealisticAccuracy, battleRealisticImprovedAimed, battleRealisticImprovedLof, battleRealisticDisplayRolls, battleAltGrenades, battleConfirmFireMode, battleSmoothCamera, noAlienPanicMessages, alienBleeding, instantPrime, strictBlockedChecking, updateTurnsSinceSeenByClue;
+	battleUFOExtenderAccuracy, useChanceToHit, battleRealisticAccuracy, battleRealisticImprovedAimed, battleRealisticImprovedLof, battleRealisticDisplayRolls, battleRealisticDisplayOthersRolls, battleAltGrenades, battleConfirmFireMode, battleSmoothCamera, noAlienPanicMessages, alienBleeding, instantPrime, strictBlockedChecking, updateTurnsSinceSeenByClue;
 OPT SDLKey keyBattleLeft, keyBattleRight, keyBattleUp, keyBattleDown, keyBattleLevelUp, keyBattleLevelDown, keyBattleCenterUnit, keyBattlePrevUnit, keyBattleNextUnit, keyBattleDeselectUnit,
 keyBattleUseLeftHand, keyBattleUseRightHand, keyBattleInventory, keyBattleMap, keyBattleOptions, keyBattleEndTurn, keyBattleAbort, keyBattleStats, keyBattleKneel,
 	keyBattleReserveKneel, keyBattleReload, keyBattlePersonalLighting, keyBattleReserveNone, keyBattleReserveSnap, keyBattleReserveAkimbo, keyBattleReserveAimed, keyBattleReserveAuto,
@@ -44,8 +44,8 @@ keyBattleUseLeftHand, keyBattleUseRightHand, keyBattleInventory, keyBattleMap, k
 keyBattleCenterEnemy9, keyBattleCenterEnemy10, keyBattleVoxelView, keyBattleZeroTUs, keyInvCreateTemplate, keyInvApplyTemplate, keyInvClear, keyInvAutoEquip;
 
 // AI options
-OPT bool sneakyAI, brutalAI, brutalCivilians, ignoreDelay, allowPreprime, autoCombat, aiPerformanceOptimization, avoidMines;
-OPT int aiCheatMode;
+OPT bool sneakyAI, ignoreDelay, allowPreprime, autoCombat, aiPerformanceOptimization, avoidMines;
+OPT int aiCheatMode, brutalAI, brutalCivilians;
 OPT bool autoCombatEachCombat, autoCombatEachTurn, autoCombatControlPerUnit;
 OPT bool autoCombatDefaultSoldier, autoCombatDefaultHWP, autoCombatDefaultMindControl, autoCombatDefaultRemain;
 
@@ -84,6 +84,7 @@ OPT bool oxceBattleTouchButtonsEnabled;
 OPT bool oxceQuickSearchButton;
 OPT bool oxceHighlightNewTopics;
 OPT bool oxcePediaShowClipSize;
+OPT int oxcePediaSortResistances; // hidden, unhide if becomes popular?
 
 OPT int oxceInterceptTableSize;
 OPT bool oxceEnableSlackingIndicator;
@@ -212,3 +213,4 @@ OPT SDLKey keyReadyMedikit;
 OPT SDLKey keyClearLeftHand;
 
 OPT int battleXcomSpeedOrig;
+OPT int battleAlienSpeedOrig;

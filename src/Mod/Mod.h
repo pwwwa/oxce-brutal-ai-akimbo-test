@@ -155,6 +155,7 @@ public:
 
     struct AccuracyModConfig // Real Accuracy mod configuration
     {
+		int peekDistance = 25;
         int suicideProtectionDistance = 50;
 
         // Deviation in voxels per 10 tiles of shot trajectory
@@ -468,6 +469,7 @@ public:
 	static int EXTENDED_MOVEMENT_COST_ROUNDING;
 	static bool EXTENDED_HWP_LOAD_ORDER;
 	static int EXTENDED_SPOT_ON_HIT_FOR_SNIPING;
+	static int EXTENDED_BERSERK_WITH_AIMED;
 	static int EXTENDED_MELEE_REACTIONS;
 	static int EXTENDED_TERRAIN_MELEE;
 	static int EXTENDED_UNDERWATER_THROW_FACTOR;

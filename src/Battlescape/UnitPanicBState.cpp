@@ -25,6 +25,7 @@
 #include "../Savegame/SavedBattleGame.h"
 #include "../Engine/RNG.h"
 #include "BattlescapeGame.h"
+#include "../Mod/Mod.h"
 
 namespace OpenXcom
 {
@@ -71,10 +72,11 @@ void UnitPanicBState::think()
 				// make akimbo shot, if possible *carefully avoid null ptr to opposite hand*
 				ba.type = BA_AKIMBOSHOT;
 				ba.updateTU();
-				bool canShoot = ba.haveTU() && _unit->getLeftHandWeapon() && _unit->getRightHandWeapon()
-					&& (_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time + _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
-					&& _parent->getSave()->canUseWeapon(_unit->getLeftHandWeapon(), ba.actor, _berserking, ba.type)
-					&& _parent->getSave()->canUseWeapon(_unit->getRightHandWeapon(), ba.actor, _berserking, ba.type);
+				bool canShoot = ba.haveTU() &&
+								_parent->getSave()->canUseWeapon(_unit->getLeftHandWeapon(), ba.actor, _berserking, ba.type) &&
+								_parent->getSave()->canUseWeapon(_unit->getRightHandWeapon(), ba.actor, _berserking, ba.type) &&
+								_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time && _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time &&
+								(_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time + _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time));
 
 				if (!canShoot)
 				{
@@ -91,11 +93,18 @@ void UnitPanicBState::think()
 					canShoot = ba.haveTU() && _parent->getSave()->canUseWeapon(ba.weapon, ba.actor, _berserking, ba.type);
 				}
 
-				if (!canShoot)
+				if (!canShoot && Mod::EXTENDED_BERSERK_WITH_AIMED > 0)
 				{
-					ba.type = BA_AIMEDSHOT;
-					ba.updateTU();
-					canShoot = ba.haveTU() && _parent->getSave()->canUseWeapon(ba.weapon, ba.actor, _berserking, ba.type);
+					if (Mod::EXTENDED_BERSERK_WITH_AIMED == 1 && ba.weapon->getCurrentWaypoints() != 0)
+					{
+						// can use BA_AIMEDSHOT, but cannot use BA_LAUNCH
+					}
+					else
+					{
+						ba.type = BA_AIMEDSHOT;
+						ba.updateTU();
+						canShoot = ba.haveTU() && _parent->getSave()->canUseWeapon(ba.weapon, ba.actor, _berserking, ba.type);
+					}
 				}
 
 				if (canShoot)
