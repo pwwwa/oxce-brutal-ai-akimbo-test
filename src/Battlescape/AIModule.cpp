@@ -6309,7 +6309,7 @@ int AIModule::maxExtenderRangeWith(BattleUnit *unit, int tus)
 	if (weapon->getRules()->getCostSnap().Time > 0 && unit->getActionTUs(BA_SNAPSHOT, weapon).Time < tus)
 		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, weapon->getRules()->getSnapRange());
 	//if (weapon->getRules()->getCostAkimbo().Time > 0 && unit->getActionTUs(BA_AKIMBOSHOT, weapon).Time < tus)
-	if (unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time && unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time &&
+	if (unit->getLeftHandWeapon() && unit->getRightHandWeapon() && unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time && unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time &&
 	 ((unit->getActionTUs(BA_AKIMBOSHOT, unit->getLeftHandWeapon()).Time + 
 	  unit->getActionTUs(BA_AKIMBOSHOT, unit->getRightHandWeapon()).Time) <= tus))
 		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, std::max(unit->getLeftHandWeapon()->getRules()->getAkimboRange(),
