@@ -481,7 +481,7 @@ bool ProjectileFlyBState::createNewProjectile()
 	{
 		BattleItem* deopWeapon = const_cast<BattleItem*>(_action.actor->getActiveHand(_action.actor->getLeftHandWeapon(), _action.actor->getRightHandWeapon()));
 		BattleItem* deopAmmo = deopWeapon->getAmmoForAction(_action.type, 0 ? nullptr : &_action.result);
-		Log(LOG_DEBUG) << "Akimbo shot !";
+
 		if (_action.actWeaponCounter >= deopWeapon->getActionConf(_action.type)->shots
 			&& _action.opWeaponCounter >= _action.actor->getOppositeHandWeapon()->getActionConf(_action.type)->shots)
 		{
