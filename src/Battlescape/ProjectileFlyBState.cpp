@@ -480,24 +480,33 @@ bool ProjectileFlyBState::createNewProjectile()
 	if (_action.type == BA_AKIMBOSHOT)
 	{
 		BattleItem* deopWeapon = const_cast<BattleItem*>(_action.actor->getActiveHand(_action.actor->getLeftHandWeapon(), _action.actor->getRightHandWeapon()));
-		BattleItem* deopAmmo = deopWeapon->getAmmoForAction(_action.type, 0 ? nullptr : &_action.result);
-		Log(LOG_DEBUG) << "Akimbo shot !";
-		if (_action.actWeaponCounter >= deopWeapon->getActionConf(_action.type)->shots
-			&& _action.opWeaponCounter >= _action.actor->getOppositeHandWeapon()->getActionConf(_action.type)->shots)
+		BattleItem* deopAmmo = deopWeapon->getAmmoForAction(BA_AKIMBOSHOT, 0 ? nullptr : &_action.result);
+
+		if (!deopWeapon->haveAnyAmmo())
+		{
+			_action.actWeaponCounter = deopWeapon->getActionConf(BA_AKIMBOSHOT)->shots;
+		}
+
+		if (!_action.actor->getOppositeHandWeapon()->haveAnyAmmo())
+		{
+			_action.opWeaponCounter = _action.actor->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots;
+		}
+
+		if (_action.actWeaponCounter >= deopWeapon->getActionConf(BA_AKIMBOSHOT)->shots
+			&& _action.opWeaponCounter >= _action.actor->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots)
 		{
 			return false;
 			_parent->popState();
 		}
-
+		// Let switch armed hands per each shot, if everything fine
 		if ((_action.actWeaponCounter == _action.opWeaponCounter
-			&& _action.actWeaponCounter < deopWeapon->getActionConf(_action.type)->shots
+			&& _action.actWeaponCounter < deopWeapon->getActionConf(BA_AKIMBOSHOT)->shots
 			&& deopAmmo && deopWeapon->haveAnyAmmo()) || !_action.actor->getOppositeHandWeapon()->haveAnyAmmo())
 		{
 			++_action.actWeaponCounter;
 			_action.weapon = deopWeapon;
-			_ammo = deopAmmo;
+			_ammo = deopAmmo; //correct projectile impact (equal to projectile parent)
 		}
-
 		else if ((_action.actWeaponCounter > _action.opWeaponCounter
 			&& _action.opWeaponCounter < _action.actor->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots
 			&& _action.actor->getOppositeHandWeapon()->haveAnyAmmo()) || !deopWeapon->haveAnyAmmo())
@@ -506,20 +515,10 @@ bool ProjectileFlyBState::createNewProjectile()
 			_action.weapon = _action.actor->getOppositeHandWeapon();
 			_ammo = _ammoOp; //wrong projectile impact fix
 		}
-
-		if (!deopWeapon->haveAnyAmmo())
-		{
-			_action.actWeaponCounter += (deopWeapon->getActionConf(_action.type)->shots - _action.actWeaponCounter);
-		}
-
-		if (!_action.actor->getOppositeHandWeapon()->haveAnyAmmo())
-		{
-			_action.opWeaponCounter += (_action.actor->getOppositeHandWeapon()->getActionConf(_action.type)->shots - _action.opWeaponCounter);
-		}
-		
+	
 		if (_action.sprayTargeting && _parent->getSave()->isAltPressed())
 		{
-			_action.waypoints.reverse(); //  random during spread shooting, if Alt button is pressed (for gameplay variety / fun)
+			_action.waypoints.reverse(); //  reversed order of waypoint aiming during spread shooting, if Alt button is pressed (for gameplay variety / fun)
 		}
 	}
 
