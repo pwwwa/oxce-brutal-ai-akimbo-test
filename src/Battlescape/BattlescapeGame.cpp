@@ -1889,7 +1889,7 @@ void BattlescapeGame::primaryAction(Position pos)
 				getMap()->getWaypoints()->push_back(pos);
 			}
 		}
-		else if (((_currentAction.type == BA_AUTOSHOT && _currentAction.weapon->getRules()->getSprayWaypoints() > 0) ||
+		else if ( ( (_currentAction.type == BA_AUTOSHOT && _currentAction.weapon->getRules()->getSprayWaypoints() > 0) ||
 			(_currentAction.type == BA_AKIMBOSHOT && _currentAction.actor->getLeftHandWeapon()->getRules()->getSprayWaypoints() > 0 &&
 			_currentAction.actor->getRightHandWeapon()->getRules()->getSprayWaypoints() > 0) ) &&
 			_save->isCtrlPressed(true) &&

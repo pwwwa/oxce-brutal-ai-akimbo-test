@@ -106,7 +106,7 @@ void ProjectileFlyBState::init()
 	}
 
 	if (_action.type == BA_AKIMBOSHOT)
-	{	// Align Active Hand to Main hand for proper weapon switching process
+	{	// Align Active Hand to "Main" hand address for proper weapon switching process during AI activity, reaction shot and berserk state 
 		if (_action.weapon !=_action.actor->getActiveHand(_action.actor->getLeftHandWeapon(), _action.actor->getRightHandWeapon()))
 		{
 			if (_action.actor->getActiveHand(_action.actor->getLeftHandWeapon(), _action.actor->getRightHandWeapon()) == _action.actor->getLeftHandWeapon())
@@ -121,9 +121,12 @@ void ProjectileFlyBState::init()
 
 		_ammo = _action.weapon->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
 		_ammoOp = _unit->getOppositeHandWeapon()->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
-		
+		_action.actWeaponShotQnty = _action.weapon->getActionConf(BA_AKIMBOSHOT)->shots;
+		_action.opWeaponShotQnty = _unit->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots;
+		// if either weapon is out of ammo, there is no no point to arrange akimbo
 		if (!_ammo || !_ammoOp)
 		{
+			_action.result = "STR_NO_ROUNDS_LEFT";
 			_parent->popState();
 			return;
 		}
@@ -447,12 +450,14 @@ void ProjectileFlyBState::init()
 			_parent->getMap()->setFollowProjectile(false);
 		}
 		if (_range == 0) _action.spendTU();
-		// Spend TU from opposite Weapon`s stats
-		if (_action.type == BA_AKIMBOSHOT)
+		
+		if (_action.type == BA_AKIMBOSHOT) // Spend TU from opposite weapon`s stats (temp solution ?)
 		{
-			_action.weapon = _action.actor->getOppositeHandWeapon();
+			BattleItem* origWeapon = _action.weapon;
+			_action.weapon = _unit->getOppositeHandWeapon();
 			_action.updateTU();
 			_action.spendTU();
+			_action.weapon = origWeapon;
 		}
 		_parent->getMap()->setCursorType(CT_NONE);
 		_parent->getMap()->getCamera()->stopMouseScrolling();
@@ -473,52 +478,61 @@ void ProjectileFlyBState::init()
 bool ProjectileFlyBState::createNewProjectile()
 {
 	++_action.autoShotCounter;
-
-	/*********************** 
-	 * AKIMBO SHOT SECTION *
-	 ***********************/
-	if (_action.type == BA_AKIMBOSHOT)
+	/***********************\ 
+	*  AKIMBO SHOT SECTION  *
+	\***********************/
+	if ( _action.type == BA_AKIMBOSHOT )
 	{
-		BattleItem* deopWeapon = const_cast<BattleItem*>(_action.actor->getActiveHand(_action.actor->getLeftHandWeapon(), _action.actor->getRightHandWeapon()));
-		BattleItem* deopAmmo = deopWeapon->getAmmoForAction(BA_AKIMBOSHOT, 0 ? nullptr : &_action.result);
-
-		if (!deopWeapon->haveAnyAmmo())
+		BattleItem *deopWeapon = const_cast<BattleItem*>(_unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()));
+		BattleItem *deopAmmo = deopWeapon ? deopWeapon->getAmmoForAction(_action.type) : 0; 
+		// make possible last shots (if it supposes) during forced switching to active hand mechaism caused by dissarearing weapons 
+		if (deopWeapon && deopAmmo && !_unit->getOppositeHandWeapon() && _action.opWeaponCounter < _action.actWeaponShotQnty)
 		{
-			_action.actWeaponCounter = deopWeapon->getActionConf(BA_AKIMBOSHOT)->shots;
+			_action.actWeaponCounter = _action.opWeaponCounter;
 		}
-
-		if (!_action.actor->getOppositeHandWeapon()->haveAnyAmmo())
+		// prevent switching to active hand, if no weapon / no ammo
+		if (!deopWeapon || !deopAmmo || deopAmmo->getAmmoQuantity() == 0)
 		{
-			_action.opWeaponCounter = _action.actor->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots;
+			_action.actWeaponCounter = _action.actWeaponShotQnty;
 		}
-
-		if (_action.actWeaponCounter >= deopWeapon->getActionConf(BA_AKIMBOSHOT)->shots
-			&& _action.opWeaponCounter >= _action.actor->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots)
+		// prevent switching to opposite hand, if no weapon / no ammo
+		if (!_unit->getOppositeHandWeapon() || !_ammoOp || _ammoOp->getAmmoQuantity() == 0)
 		{
-			return false;
+			_action.opWeaponCounter = _action.opWeaponShotQnty;
+		}
+		// stop shooting
+		if (_action.actWeaponCounter >= _action.actWeaponShotQnty &&
+			_action.opWeaponCounter >= _action.opWeaponShotQnty)
+		{
 			_parent->popState();
+			if (!deopWeapon || !_unit->getOppositeHandWeapon())
+			{
+				_parent->cancelCurrentAction();
+				_parent->setupCursor();
+			}
+			return false;
 		}
-		// Let switch armed hands per each shot, if everything fine
-		if ((_action.actWeaponCounter == _action.opWeaponCounter
-			&& _action.actWeaponCounter < deopWeapon->getActionConf(BA_AKIMBOSHOT)->shots
-			&& deopAmmo && deopWeapon->haveAnyAmmo()) || !_action.actor->getOppositeHandWeapon()->haveAnyAmmo())
+		// hand switch mechanic of proper hand (and ammo) each shot, if everything fine
+		if ( _action.actWeaponCounter < _action.actWeaponShotQnty &&
+			(_action.actWeaponCounter == _action.opWeaponCounter || _action.opWeaponCounter >= _action.opWeaponShotQnty) )
 		{
 			++_action.actWeaponCounter;
 			_action.weapon = deopWeapon;
-			_ammo = deopAmmo; //correct projectile impact (equal to projectile parent)
+			_ammo = deopAmmo;
+			_action.updateTU();
 		}
-		else if ((_action.actWeaponCounter > _action.opWeaponCounter
-			&& _action.opWeaponCounter < _action.actor->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots
-			&& _action.actor->getOppositeHandWeapon()->haveAnyAmmo()) || !deopWeapon->haveAnyAmmo())
+		else if ( _action.opWeaponCounter < _action.opWeaponShotQnty &&
+			     (_action.actWeaponCounter > _action.opWeaponCounter || _action.actWeaponCounter >= _action.actWeaponShotQnty) )
 		{
 			++_action.opWeaponCounter;
-			_action.weapon = _action.actor->getOppositeHandWeapon();
-			_ammo = _ammoOp; //wrong projectile impact fix
+			_action.weapon = _unit->getOppositeHandWeapon();
+			_ammo = _ammoOp;
+			_action.updateTU();
 		}
-	
-		if (_action.sprayTargeting && _parent->getSave()->isAltPressed())
+		// allow player dynamically to reverse "spread" sequence with pressed "Alt" button
+		if ( _action.sprayTargeting && _parent->getSave()->isAltPressed() )
 		{
-			_action.waypoints.reverse(); //  reversed order of waypoint aiming during spread shooting, if Alt button is pressed (for gameplay variety / fun)
+			_action.waypoints.reverse();
 		}
 	}
 
@@ -711,7 +725,7 @@ void ProjectileFlyBState::deinit()
 void ProjectileFlyBState::think()
 {
 	/// checks if a weapon has any more shots to fire.
-	auto noMoreShotsToShoot = [this]() { return !_action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter) || !_action.weapon->getAmmoForAction(_action.type); };
+	auto noMoreShotsToShoot = [this]() { return !_action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter) || !_action.weapon->getAmmoForAction(_action.type); };		
 
 	_parent->getSave()->getBattleState()->clearMouseScrollingState();
 	/* TODO refactoring : store the projectile in this state, instead of getting it from the map each time? */
@@ -719,22 +733,11 @@ void ProjectileFlyBState::think()
 	{
 		bool hasFloor = _action.actor->haveNoFloorBelow() == false;
 		bool unitCanFly = _action.actor->getMovementType() == MT_FLY;
+		bool isAkimbo = _action.type == BA_AKIMBOSHOT;
 
-		if (_action.type == BA_AKIMBOSHOT
-			&& _action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter)
-			&& !_action.actor->isOut() 
-			&& (_action.actor->getLeftHandWeapon()->haveAnyAmmo() || _action.actor->getRightHandWeapon()->haveAnyAmmo())
-			&& (hasFloor || unitCanFly))
-		{
-			createNewProjectile();
-			if (_action.cameraPosition.z != -1)
-			{
-				_parent->getMap()->getCamera()->setMapOffset(_action.cameraPosition);
-				_parent->getMap()->invalidate();
-			}
-		}
-		else if (_action.type != BA_AKIMBOSHOT && _action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter) && !_action.actor->isOut() 
-			 && _ammo->getAmmoQuantity() != 0 && (hasFloor || unitCanFly))
+		if ( ( (!isAkimbo && _action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter)
+			&& _ammo->getAmmoQuantity() != 0) || isAkimbo )
+			&& !_action.actor->isOut() && (hasFloor || unitCanFly) )
 		{
 			createNewProjectile();
 			if (_action.cameraPosition.z != -1)

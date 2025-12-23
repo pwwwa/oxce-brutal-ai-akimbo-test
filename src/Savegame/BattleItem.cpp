@@ -964,14 +964,7 @@ bool BattleItem::haveNextShotsForAction(BattleActionType action, int shotCount) 
 	auto conf = getActionConf(action);
 	if (conf)
 	{
-		if (action != BA_AKIMBOSHOT)
-		{
 			return shotCount < conf->shots;	
-		}
-		else if (action == BA_AKIMBOSHOT && _owner->getRightHandWeapon() && _owner->getLeftHandWeapon())
-		{
-			return shotCount < (_owner->getLeftHandWeapon()->getActionConf(action)->shots + _owner->getRightHandWeapon()->getActionConf(action)->shots);
-		}
 	}
 	return false;
 }
