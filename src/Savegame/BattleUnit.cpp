@@ -4015,18 +4015,18 @@ BattleItem *BattleUnit::getLeftHandWeapon() const
 }
 /**
  *  Gets the item from inactive hand.
- * @return Item in inactive hand. Needs for Akimbo operation possibility
+ * @return Item in inactive hand. Akimbo hands switching.
  * thanks to aka Kever.
  */
 
 BattleItem* BattleUnit::getOppositeHandWeapon() const
 {
 	BattleItem* activeHand = const_cast<BattleItem*>(getActiveHand(getLeftHandWeapon(), getRightHandWeapon())); 
-	if (activeHand == getLeftHandWeapon())
+	if (activeHand == getLeftHandWeapon() && getRightHandWeapon())
 	{
 		return getRightHandWeapon();
 	}
-	else if (activeHand == getRightHandWeapon())
+	else if (activeHand == getRightHandWeapon() && getLeftHandWeapon())
 	{
 		return getLeftHandWeapon();
 	}

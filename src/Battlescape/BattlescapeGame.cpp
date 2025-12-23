@@ -1470,8 +1470,7 @@ bool BattlescapeGame::checkReservedTU(BattleUnit *bu, int tu, int energy, bool j
 		{
 		case BA_AKIMBOSHOT:
 			cost.Time += _currentAction.actor->getActionTUs(BA_AKIMBOSHOT, _currentAction.actor->getOppositeHandWeapon()).Time
-				+ (bu->getBaseStats()->tu / 2);
-			break; // ~50%
+				+ (bu->getBaseStats()->tu / 2);	break; // ~50%
 		case BA_SNAPSHOT: cost.Time += (bu->getBaseStats()->tu / 3); break; // 33%
 		case BA_AUTOSHOT: cost.Time += ((bu->getBaseStats()->tu / 5)*2); break; // 40%
 		case BA_AIMEDSHOT: cost.Time += (bu->getBaseStats()->tu / 2); break; // 50%
@@ -1890,7 +1889,7 @@ void BattlescapeGame::primaryAction(Position pos)
 				getMap()->getWaypoints()->push_back(pos);
 			}
 		}
-		else if (((_currentAction.type == BA_AUTOSHOT && _currentAction.weapon->getRules()->getSprayWaypoints() > 0) ||
+		else if ( ( (_currentAction.type == BA_AUTOSHOT && _currentAction.weapon->getRules()->getSprayWaypoints() > 0) ||
 			(_currentAction.type == BA_AKIMBOSHOT && _currentAction.actor->getLeftHandWeapon()->getRules()->getSprayWaypoints() > 0 &&
 			_currentAction.actor->getRightHandWeapon()->getRules()->getSprayWaypoints() > 0) ) &&
 			_save->isCtrlPressed(true) &&

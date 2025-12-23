@@ -83,6 +83,8 @@ struct BattleAction : BattleActionCost
 	int autoShotCounter;
 	int actWeaponCounter;
 	int opWeaponCounter;
+	int actWeaponShotQnty;
+	int opWeaponShotQnty;
 	Position cameraPosition;
 	bool desperate; // ignoring newly-spotted units
 	int finalFacing;
