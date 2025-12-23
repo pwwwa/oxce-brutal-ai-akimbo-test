@@ -119,10 +119,10 @@ void ProjectileFlyBState::init()
 			}
 		}
 
-		_ammo = _action.weapon->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
-		_ammoOp = _unit->getOppositeHandWeapon()->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
-		_action.actWeaponShotQnty = _action.weapon->getActionConf(BA_AKIMBOSHOT)->shots;
-		_action.opWeaponShotQnty = _unit->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots;
+		_ammo = _action.weapon ? _action.weapon->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result) : 0;
+		_ammoOp = _unit->getOppositeHandWeapon() ? _unit->getOppositeHandWeapon()->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result) : 0;
+		_action.actWeaponShotQnty = _action.weapon ? _action.weapon->getActionConf(BA_AKIMBOSHOT)->shots : 0;
+		_action.opWeaponShotQnty = _unit->getOppositeHandWeapon() ? _unit->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots : 0;
 		// if either weapon is out of ammo, there is no no point to arrange akimbo
 		if (!_ammo || !_ammoOp)
 		{
