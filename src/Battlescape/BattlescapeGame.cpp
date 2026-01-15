@@ -2000,7 +2000,7 @@ void BattlescapeGame::primaryAction(Position pos)
 			_currentAction.waypoints.push_back(pos);
 			getMap()->getWaypoints()->clear();
 			getMap()->getWaypoints()->push_back(pos);
-		}		
+		}
 		else
 		{
 			_currentAction.target = pos;
