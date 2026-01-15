@@ -752,7 +752,7 @@ bool BattleItem::isWeaponWithAmmo() const
  */
 bool BattleItem::haveAnyAmmo() const
 {
-	if (!_isWeaponWithAmmo)
+	if (!_isWeaponWithAmmo && !_rules->isAmmoRechargeable())
 	{
 		return true;
 	}
@@ -875,7 +875,7 @@ const BattleItem *BattleItem::getAmmoForAction(BattleActionType action) const
 	}
 
 	auto* ammo = getAmmoForSlot(conf->ammoSlot);
-	if (ammo && ammo->getAmmoQuantity() == 0 && !ammo->getRules()->isAmmoRechargeable())
+	if (ammo && ammo->getAmmoQuantity() == 0) // && !ammo->getRules()->isAmmoRechargeable())
 	{
 		return nullptr;
 	}
