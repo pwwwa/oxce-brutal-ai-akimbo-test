@@ -2548,7 +2548,6 @@ void AIModule::projectileAction()
 
 	// vanilla
 	if (distance < 4)
-	
 	{
 		if (_unit->getLeftHandWeapon() && _unit->getRightHandWeapon())
 		{
