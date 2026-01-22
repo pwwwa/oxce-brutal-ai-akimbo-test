@@ -984,8 +984,10 @@ void ProjectileFlyBState::cancel()
 	}
 	if (_parent->areAllEnemiesNeutralized())
 	{
-		// stop autoshots when battle auto-ends
+		// stop autoshots and akimbo shot when battle auto-ends
 		_action.autoShotCounter = 1000;
+		_action.actWeaponCounter = 1000;
+		_action.opWeaponCounter = 1000;
 
 		// Rationale: if there are any fatally wounded soldiers
 		// the game still allows the player to resume playing the current turn (and heal them)

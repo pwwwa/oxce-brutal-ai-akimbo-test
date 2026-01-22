@@ -765,7 +765,8 @@ bool BattleItem::haveAnyAmmo() const
 	{
 		return getAmmoForAction(BA_AIMEDSHOT) ||
 			getAmmoForAction(BA_AUTOSHOT) ||
-			   getAmmoForAction(BA_SNAPSHOT) || getAmmoForAction(BA_AKIMBOSHOT);
+			   getAmmoForAction(BA_SNAPSHOT) ||
+			getAmmoForAction(BA_AKIMBOSHOT);
 	}
 }
 
