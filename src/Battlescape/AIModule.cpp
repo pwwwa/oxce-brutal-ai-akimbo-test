@@ -2554,9 +2554,9 @@ void AIModule::projectileAction()
 			if (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time &&
 				_unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time &&
 				costAkimbo.haveTU() &&
-				_unit->getOppositeHandWeapon()->haveAnyAmmo()
-				&& _unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
-											 _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
+				_unit->getOppositeHandWeapon()->haveAnyAmmo() &&
+				_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
+									      _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
 			{
 				_attackAction.type = BA_AKIMBOSHOT;
 				return;

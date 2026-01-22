@@ -497,12 +497,13 @@ void ActionMenuState::handleAction()
 		}
 		else if (_action->type == BA_HIT)
 		{
+			bool isForcedMeleeToFloor = _game->isCtrlPressed() && _game->getSavedGame()->getSavedBattle()->getSide() == FACTION_PLAYER && _action->actor->getFaction() == FACTION_PLAYER;
 			// check beforehand if we have enough time units
 			if (!_action->haveTU(&_action->result))
 			{
 				//nothing
 			}
-			else if (!_game->getSavedGame()->getSavedBattle()->getTileEngine()->validMeleeRange(
+			else if (!isForcedMeleeToFloor && !_game->getSavedGame()->getSavedBattle()->getTileEngine()->validMeleeRange(
 				_action->actor->getPosition(),
 				_action->actor->getDirection(),
 				_action->actor,

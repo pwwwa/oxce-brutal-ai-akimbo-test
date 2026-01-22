@@ -106,7 +106,7 @@ void ProjectileFlyBState::init()
 	}
 
 	if (_action.type == BA_AKIMBOSHOT)
-	{	// Align Active Hand to "Main" hand address for proper weapon switching process during AI activity, reaction shot and berserk state 
+	{	// Align Active Hand to "Main Hand" address for proper weapon switching process during AI activity, reaction shot and berserk state 
 		if (_action.weapon !=_action.actor->getActiveHand(_action.actor->getLeftHandWeapon(), _action.actor->getRightHandWeapon()))
 		{
 			if (_action.actor->getActiveHand(_action.actor->getLeftHandWeapon(), _action.actor->getRightHandWeapon()) == _action.actor->getLeftHandWeapon())
@@ -123,14 +123,14 @@ void ProjectileFlyBState::init()
 		_ammoOp = _unit->getOppositeHandWeapon() ? _unit->getOppositeHandWeapon()->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result) : 0;
 		_action.actWeaponShotQnty = _action.weapon ? _action.weapon->getActionConf(BA_AKIMBOSHOT)->shots : 0;
 		_action.opWeaponShotQnty = _unit->getOppositeHandWeapon() ? _unit->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots : 0;
-		// if either weapon is out of ammo, there is no no point to arrange akimbo
+		// if either weapon is out of ammo, there is no point to arrange akimbo
 		if (!_ammo || !_ammoOp)
 		{
 			_action.result = "STR_NO_ROUNDS_LEFT";
 			_parent->popState();
 			return;
 		}
-		// temp solution due HaveTU function doesn`t consider both weapons parameters
+		// temp solution due HaveTU() function doesn`t consider both weapons parameters
 		if (_action.actor->getTimeUnits() < (_action.actor->getActionTUs(BA_AKIMBOSHOT, _action.weapon).Time
 			+ _action.actor->getActionTUs(BA_AKIMBOSHOT, _action.actor->getOppositeHandWeapon()).Time))
 		{
@@ -478,11 +478,12 @@ void ProjectileFlyBState::init()
 bool ProjectileFlyBState::createNewProjectile()
 {
 	++_action.autoShotCounter;
+
 	/***********************\ 
 	*  AKIMBO SHOT SECTION  *
 	\***********************/
 	if ( _action.type == BA_AKIMBOSHOT )
-	{
+	{	// Remember original Active Hand weapon and ammo for hand iteration mechanism (ammo address need for projectile and impact "alignment")
 		BattleItem *deopWeapon = const_cast<BattleItem*>(_unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()));
 		BattleItem *deopAmmo = deopWeapon ? deopWeapon->getAmmoForAction(_action.type) : 0; 
 		// make possible last shots (if it supposes) during forced switching to active hand mechaism caused by dissarearing weapons 
@@ -490,29 +491,31 @@ bool ProjectileFlyBState::createNewProjectile()
 		{
 			_action.actWeaponCounter = _action.opWeaponCounter;
 		}
-		// prevent switching to active hand, if no weapon / no ammo
+		// Prevent switching to active hand, if no weapon / no ammo
 		if (!deopWeapon || !deopAmmo || deopAmmo->getAmmoQuantity() == 0)
 		{
 			_action.actWeaponCounter = _action.actWeaponShotQnty;
 		}
-		// prevent switching to opposite hand, if no weapon / no ammo
+		// Prevent switching to opposite hand, if no weapon / no ammo
 		if (!_unit->getOppositeHandWeapon() || !_ammoOp || _ammoOp->getAmmoQuantity() == 0)
 		{
 			_action.opWeaponCounter = _action.opWeaponShotQnty;
 		}
-		// stop shooting
+		// Stop shooting
 		if (_action.actWeaponCounter >= _action.actWeaponShotQnty &&
 			_action.opWeaponCounter >= _action.opWeaponShotQnty)
 		{
 			_parent->popState();
+		// Player helper (?) and nullptr avoider in past (already fixed with checking hands for null at battleSacpeGame spreadWaypoint section)	
 			if (!deopWeapon || !_unit->getOppositeHandWeapon())
 			{
 				_parent->cancelCurrentAction();
 				_parent->setupCursor();
 			}
+			
 			return false;
 		}
-		// hand switch mechanic of proper hand (and ammo) each shot, if everything fine
+		// Hand switch mechanic of proper hand (and ammo) each shot, if everything fine
 		if ( _action.actWeaponCounter < _action.actWeaponShotQnty &&
 			(_action.actWeaponCounter == _action.opWeaponCounter || _action.opWeaponCounter >= _action.opWeaponShotQnty) )
 		{
@@ -529,7 +532,7 @@ bool ProjectileFlyBState::createNewProjectile()
 			_ammo = _ammoOp;
 			_action.updateTU();
 		}
-		// allow player dynamically to reverse "spread" sequence with pressed "Alt" button
+		// allow player to reverse "spread" sequence with pressed "Alt" button (dynamic).
 		if ( _action.sprayTargeting && _parent->getSave()->isAltPressed() )
 		{
 			_action.waypoints.reverse();
@@ -725,7 +728,7 @@ void ProjectileFlyBState::deinit()
 void ProjectileFlyBState::think()
 {
 	/// checks if a weapon has any more shots to fire.
-	auto noMoreShotsToShoot = [this]() { return !_action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter) || !_action.weapon->getAmmoForAction(_action.type); };
+	auto noMoreShotsToShoot = [this]() { return !_action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter) || !_action.weapon->getAmmoForAction(_action.type); };		
 
 	_parent->getSave()->getBattleState()->clearMouseScrollingState();
 	/* TODO refactoring : store the projectile in this state, instead of getting it from the map each time? */
@@ -981,8 +984,10 @@ void ProjectileFlyBState::cancel()
 	}
 	if (_parent->areAllEnemiesNeutralized())
 	{
-		// stop autoshots when battle auto-ends
+		// stop autoshots and akimbo shot when battle auto-ends
 		_action.autoShotCounter = 1000;
+		_action.actWeaponCounter = 1000;
+		_action.opWeaponCounter = 1000;
 
 		// Rationale: if there are any fatally wounded soldiers
 		// the game still allows the player to resume playing the current turn (and heal them)
