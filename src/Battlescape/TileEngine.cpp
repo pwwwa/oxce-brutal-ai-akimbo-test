@@ -6117,20 +6117,20 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			neighbouringTile2 = _save->getTile(pos + Position(1, 0, 0));
 			neighbouringTile3 = _save->getTile(pos + Position(0, -1, 0));
 
-			if (setTarget(originTile, O_NORTHWALL, action) ||
+			if (size < 2 && (setTarget(originTile, O_NORTHWALL, action) ||
 				setTarget(neighbouringTile2, O_WESTWALL, action) ||
 				setTarget(neighbouringTile, O_WESTWALL, action) ||
-				setTarget(neighbouringTile2, O_NORTHWALL, action))
+				setTarget(neighbouringTile2, O_NORTHWALL, action)))
 			return true;
 		}
 		else if (direction == 3)
 		{	// South-East: targeting
 			neighbouringTile2 = _save->getTile(pos + Position(0, 1, 0));
 			neighbouringTile3 = _save->getTile(pos + Position(1, 0, 0));
-			if (setTarget(neighbouringTile2, O_NORTHWALL, action) ||
+			if (size < 2 && (setTarget(neighbouringTile2, O_NORTHWALL, action) ||
 				setTarget(neighbouringTile3, O_WESTWALL, action) ||
 				setTarget(neighbouringTile, O_WESTWALL, action) ||
-				setTarget(neighbouringTile, O_NORTHWALL, action))
+				setTarget(neighbouringTile, O_NORTHWALL, action)))
 			return true;
 		}
 		else if (direction == 5)
@@ -6138,10 +6138,10 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			neighbouringTile2 = _save->getTile(pos + Position(0, 1, 0));
 			neighbouringTile3 = _save->getTile(pos + Position(-1, 0, 0));
 
-			if (setTarget(neighbouringTile2, O_NORTHWALL, action) ||
+			if (size < 2 && (setTarget(neighbouringTile2, O_NORTHWALL, action) ||
 				setTarget(originTile, O_WESTWALL, action) ||
 				setTarget(neighbouringTile2, O_WESTWALL, action) ||
-				setTarget(neighbouringTile, O_NORTHWALL, action))
+				setTarget(neighbouringTile, O_NORTHWALL, action)))
 			return true;
 		}
 		else if (direction == 7)
@@ -6162,12 +6162,12 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 				// North
 				return true;
 			}
-			else if (direction == 2 && (setTarget(neighbouringTile2, O_WESTWALL, action) || setTarget(neighbouringTile2, O_WESTWALL, action)))
+			else if (direction == 2 && (setTarget(neighbouringTile2, O_WESTWALL, action) || setTarget(neighbouringTile2, O_NORTHWALL, action)))
 			{
 				// East
 				return true;
 			}
-			else if (direction == 4 && setTarget(neighbouringTile2, O_NORTHWALL, action))
+			else if (direction == 4 && (setTarget(neighbouringTile2, O_NORTHWALL, action) || setTarget(neighbouringTile2, O_WESTWALL, action)))
 			{
 				// South
 				return true;
@@ -6186,7 +6186,6 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 
 				if (setTarget(originTile, O_NORTHWALL, action) ||
 					setTarget(neighbouringTile3, O_WESTWALL, action) ||
-					setTarget(neighbouringTile2, O_WESTWALL, action) ||
 					setTarget(neighbouringTile, O_WESTWALL, action) ||
 					setTarget(neighbouringTile3, O_NORTHWALL, action))
 				return true;
@@ -6200,7 +6199,6 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 
 				if (setTarget(neighbouringTile2, O_NORTHWALL, action) ||
 					setTarget(neighbouringTile3, O_WESTWALL, action) ||
-					setTarget(neighbouringTile2, O_WESTWALL, action) ||
 					setTarget(neighbouringTile, O_WESTWALL, action) ||
 					setTarget(neighbouringTile, O_NORTHWALL, action))
 				return true;
@@ -6215,7 +6213,6 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 				if (setTarget(originTile, O_WESTWALL, action) ||
 					setTarget(neighbouringTile3, O_NORTHWALL, action) ||
 					setTarget(neighbouringTile3, O_WESTWALL, action) ||
-					setTarget(neighbouringTile2, O_NORTHWALL, action) ||
 					setTarget(neighbouringTile, O_NORTHWALL, action))
 				return true;
 			}
@@ -6226,7 +6223,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			// All directions: target the object on the neighbouring tile
 			return true;
 		}
-		if (size > 1)
+		if (size > 1 && direction % 2 == 0)
 		{
 			if (setTarget(neighbouringTile2, O_OBJECT, action))
 			{
