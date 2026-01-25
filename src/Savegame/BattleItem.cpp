@@ -965,7 +965,7 @@ bool BattleItem::haveNextShotsForAction(BattleActionType action, int shotCount) 
 	auto conf = getActionConf(action);
 	if (conf)
 	{
-			return shotCount < conf->shots;	
+		return shotCount < conf->shots;
 	}
 	return false;
 }
