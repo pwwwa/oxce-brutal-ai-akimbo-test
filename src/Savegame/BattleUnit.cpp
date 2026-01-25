@@ -3393,21 +3393,16 @@ bool BattleUnit::addItem(BattleItem *item, const Mod *mod, bool allowSecondClip,
 
 		if (loaded && (getGeoscapeSoldier() == 0 || allowAutoLoadout))
 		{
-			if (getBaseStats()->strength * 0.66 >= weight) // weight is always considered 0 for aliens
+			// C1 - vanilla right-hand main weapon (and OXCE left-hand second main weapon)
+			if (fitItemToInventory(rightHand, item, testMode))
 			{
-				// C1 - vanilla right-hand main weapon (and OXCE left-hand second main weapon)
-				if (fitItemToInventory(rightHand, item, testMode))
-				{
-					placed = true;
-				}
-				bool allowTwoMainWeapons = (getFaction() != FACTION_PLAYER) || _armor->getAllowTwoMainWeapons();
-				if (!placed && allowTwoMainWeapons && fitItemToInventory(leftHand, item, testMode))
-				{
-					placed = true;
-				}
+				placed = true;
 			}
 		}
-		break;
+		if (placed)
+		{
+			break;
+		}
 	case BT_AMMO:
 		{
 			BattleItem *rightWeapon = getRightHandWeapon();
@@ -3449,6 +3444,10 @@ bool BattleUnit::addItem(BattleItem *item, const Mod *mod, bool allowSecondClip,
 			FALLTHROUGH;
 		}
 	default:
+		break;
+	}
+	if (!placed && (rule->getBattleType() != BT_AMMO || keep))
+	{
 		if (rule->getBattleType() == BT_PSIAMP && getFaction() == FACTION_HOSTILE)
 		{
 			// C2 - vanilla left-hand psi-amp for hostiles
@@ -3470,10 +3469,6 @@ bool BattleUnit::addItem(BattleItem *item, const Mod *mod, bool allowSecondClip,
 						if (slot->getType() != INV_GROUND)
 						{
 							placed = fitItemToInventory(slot, item, testMode);
-							if (placed)
-							{
-								break;
-							}
 						}
 					}
 				}
@@ -3497,32 +3492,75 @@ bool BattleUnit::addItem(BattleItem *item, const Mod *mod, bool allowSecondClip,
 						}
 					}
 				}
-				if (!placed && Options::oxceSmartCtrlEquip)
+				if (!placed)
 				{
-					int cheapestCostToMoveToHand = INT_MAX;
-					RuleInventory* cheapestInventoryToMoveToHand = nullptr;
+					int bestPrimaryCost = INT_MAX;
+					int bestSecondaryCost = INT_MAX; // Used to break ties (e.g. Belt vs Leg)
+					RuleInventory* bestInventory = nullptr;
+					bool useMostExpensive = rule->getBattleType() == BT_AMMO && !Mod::EXTENDED_ITEM_RELOAD_COST;
+
+					// 1. Identify Hand IDs
+					const auto& rightHandID = mod->getInventoryRightHand();
+					const auto& leftHandID = mod->getInventoryLeftHand();
+
+					// 2. Check which hands are currently empty
+					bool rightEmpty = getRightHandWeapon() == nullptr;
+					bool leftEmpty = getLeftHandWeapon() == nullptr;
+
+					// 3. Determine optimization target
+					// Rule: "One hand is empty, the other isn't: optimize for reachability of the empty hand"
+					// Rule: "Both hands or no hands are empty: optimize for right-hand-reachability"
+					// This simplifies to: Optimize for Left ONLY if Left is empty AND Right is NOT empty.
+					bool optimizeForLeft = (leftEmpty && !rightEmpty);
+
 					for (const auto& s : mod->getInvsList())
 					{
 						RuleInventory* slot = mod->getInventory(s);
+
+						// Basic filters
 						if (slot->getType() == INV_GROUND)
 							continue;
+
+						// Optimization: Check if it's a hand BEFORE checking if item fits.
+						// We are looking for storage slots (pockets/bags), not hands.
+						if (slot->isLeftHand() || slot->isRightHand())
+							continue;
+
 						if (fitItemToInventory(slot, item, true))
 						{
-							int currCost = std::min(slot->getCost(mod->getInventoryRightHand()), slot->getCost(mod->getInventoryLeftHand()));
-							if (slot->isLeftHand() || slot->isRightHand())
-								continue;
-							if (currCost <= cheapestCostToMoveToHand)
+							int costRight = slot->getCost(rightHandID);
+							int costLeft = slot->getCost(leftHandID);
+
+							int primaryCost = optimizeForLeft ? costLeft : costRight;
+							int secondaryCost = optimizeForLeft ? costRight : costLeft;
+
+							// Case A: Found a strictly better slot for the target hand
+							if (primaryCost < bestPrimaryCost)
 							{
-								cheapestCostToMoveToHand = currCost;
-								cheapestInventoryToMoveToHand = slot;
+								bestPrimaryCost = primaryCost;
+								bestSecondaryCost = secondaryCost;
+								bestInventory = slot;
+							}
+							// Case B: Found a slot with equal cost for target hand (Tie-Breaker)
+							// Example: Target Left. Leg->Left is 4TU. Belt->Left is 4TU.
+							// Leg->Right is 6TU. Belt->Right is 4TU.
+							// We choose Belt because secondary cost (4) is lower than Leg secondary (6).
+							else if (primaryCost == bestPrimaryCost)
+							{
+								if (secondaryCost < bestSecondaryCost)
+								{
+									bestSecondaryCost = secondaryCost;
+									bestInventory = slot;
+								}
 							}
 						}
 					}
-					if (cheapestInventoryToMoveToHand != nullptr)
+
+					if (bestInventory != nullptr)
 					{
-						if (cheapestInventoryToMoveToHand->getType() == INV_SLOT)
+						if (bestInventory->getType() == INV_SLOT)
 						{
-							placed = fitItemToInventory(cheapestInventoryToMoveToHand, item, testMode);
+							placed = fitItemToInventory(bestInventory, item, testMode);
 						}
 					}
 				}
@@ -3536,16 +3574,11 @@ bool BattleUnit::addItem(BattleItem *item, const Mod *mod, bool allowSecondClip,
 						if (slot->getType() == INV_SLOT)
 						{
 							placed = fitItemToInventory(slot, item, testMode);
-							if (placed)
-							{
-								break;
-							}
 						}
 					}
 				}
 			}
 		}
-		break;
 	}
 
 	item->setXCOMProperty(getFaction() == FACTION_PLAYER && !isSummonedPlayerUnit());

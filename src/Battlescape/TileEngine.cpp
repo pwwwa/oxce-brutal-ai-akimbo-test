@@ -6033,7 +6033,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		if ((!neighbouringTile2 || !originTile2) && direction % 2 == 0)
 		{
 			return false;
-		} 
+		}
 	}
 	if (originTile && neighbouringTile)
 	{
