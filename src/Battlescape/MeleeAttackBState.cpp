@@ -144,11 +144,27 @@ void MeleeAttackBState::init()
 	}
 
 	//int height = _target->getFloatHeight() + (_target->getHeight() / 2) - _parent->getSave()->getTile(_action.target)->getTerrainLevel();
-	//_voxel = _action.target.toVoxel() + Position(8, 8, height);
-	
 	bool isForcedMeleeToFloor = _parent->getSave()->isCtrlPressed() && _parent->getSave()->getSide() == FACTION_PLAYER && _unit->getFaction() == FACTION_PLAYER;
 	int height = isForcedMeleeToFloor ? 1 : _target->getFloatHeight() + (_target->getHeight() * 2 / 3) - _parent->getSave()->getTile(_action.target)->getTerrainLevel();
-	_voxel = isForcedMeleeToFloor ? _unit->getPosition().toVoxel() + Position(8, 8, height) : _action.target.toVoxel() + Position(8, 8, height);
+	// special case for hitting weird map tiles under feet (ect. "content" tiles in wall positions)
+	if (_parent->getSave()->isAltPressed() && _parent->getSave()->isCtrlPressed())	height = 2;
+
+	_voxel = _action.target.toVoxel() + Position(8, 8, height);
+
+	if (isForcedMeleeToFloor)
+	{
+		_voxel = _unit->getPosition().toVoxel() + Position(8, 8, height);
+
+		if (_unit->getArmor()->getSize() > 1)
+		{ // Align forced floor hitting tile position according to proper direction of view for big units
+			switch (_unit->getDirection())
+			{
+				case 1:	case 2:	_voxel = _unit->getPosition().toVoxel() + Position(1, 0, 0).toVoxel() + Position(8, 8, height); break;
+				case 3:	case 4:	_voxel = _unit->getPosition().toVoxel() + Position(1, 1, 0).toVoxel() + Position(8, 8, height);	break;
+				case 5:	case 6:	_voxel = _unit->getPosition().toVoxel() + Position(0, 1, 0).toVoxel() + Position(8, 8, height);	break;
+			}
+		}
+	}
 
 	if (!_parent->getSave()->getTile(_voxel.toTile()))
 	{
