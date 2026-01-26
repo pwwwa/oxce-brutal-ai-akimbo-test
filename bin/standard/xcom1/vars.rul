@@ -14,3 +14,6 @@ timePersonnel: 72
 initialFunding: 6000
 alienFuel: [STR_ELERIUM_115, 50]
 fontName: Font.dat
+
+constants: #done
+  extendedTerrainMelee: 1
