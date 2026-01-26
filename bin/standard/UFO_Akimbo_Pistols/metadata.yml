@@ -1,0 +1,9 @@
+#
+# metadata.yaml for UFO Akimbo Pistols
+
+name: "UFO Akimbo Pistols"
+version: 1.0
+description: "Adds akimbo shooting mode for pistols"
+author: pWWWa
+
+master: xcom1
