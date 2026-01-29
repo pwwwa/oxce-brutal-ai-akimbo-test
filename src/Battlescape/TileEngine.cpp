@@ -3236,7 +3236,7 @@ TileEngine::ReactionScore TileEngine::determineReactionType(BattleUnit *unit, Ba
 			&& ( unit->getTimeUnits() >=
 				(unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time + unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time) ) )
 		{
-			// has a gun capable of akimbo shot with ammo
+			// Is unit able to perform akimbo shooting with each gun`s ammo
 			if (!unit->getLeftHandWeapon()->getRules()->isOutOfRange(unit->distance3dToUnitSq(target))
 				&& !unit->getRightHandWeapon()->getRules()->isOutOfRange(unit->distance3dToUnitSq(target))
 				&& unit->getLeftHandWeapon()->getAmmoForAction(BA_AKIMBOSHOT)
@@ -6001,7 +6001,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 
 	if (originTile && originTile->getTerrainLevel() <= -16 && !_save->isAltPressed())
 	{
-		// if we are on the upper part of stairs, target one tile above
+		// if we are on the upper part of stairs, target one tile above. + Let leave at the same tile altitude with pressed Alt, if there are need to crash stair under feet.
 		pos += Position(0, 0, 1);
 		originTile = _save->getTile(pos);
 	}
@@ -6017,6 +6017,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		else if (direction == 2)
 		{
 			// East
+			originTile =		_save->getTile(pos + p);
 			originTile2 =		_save->getTile(pos + p + Position(0, 1, 0));
 			neighbouringTile =  _save->getTile(pos + p + Position(1, 0, 0));
 			neighbouringTile2 = _save->getTile(pos + p + Position(1, 1, 0));
@@ -6024,6 +6025,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		else if (direction == 4)
 		{
 			// South
+			originTile =		_save->getTile(pos + p);
 			originTile2 =		_save->getTile(pos + p + Position(1, 0, 0));
 			neighbouringTile =  _save->getTile(pos + p + Position(0, 1, 0));
 			neighbouringTile2 = _save->getTile(pos + p + Position(1, 1, 0));
@@ -6056,7 +6058,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			neighbouringTile3 = _save->getTile(pos + Position(0, 2, 0));
 		}
 
-		if (direction % 2 != 0)	originTile2 = originTile; // "exclude" secondary originTile for diagonal directions for unexpected targeting
+		if (direction % 2 != 0)	originTile2 = originTile; // "exclude" secondary originTile for diagonal directions for unexpected tile/object targeting
 
 		if (direction % 2 == 0 && (!neighbouringTile2 || !originTile2) )
 		{
@@ -6206,7 +6208,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 				return true;
 			}
 			else if (direction == 1)
-			{ // North-East: targeting
+			{ // North-East: targeting priority
 				if (setTarget(originTile,		 O_NORTHWALL, action) ||
 					setTarget(neighbouringTile3, O_WESTWALL, action) ||
 					setTarget(neighbouringTile,	 O_WESTWALL, action) ||
@@ -6214,7 +6216,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 				return true;
 			}
 			else if (direction == 3)
-			{ // South-East: targeting
+			{ // South-East: targeting priority
 				if (setTarget(neighbouringTile2, O_NORTHWALL, action) ||
 					setTarget(neighbouringTile3, O_WESTWALL, action) ||
 					setTarget(neighbouringTile,  O_WESTWALL, action) ||
@@ -6222,7 +6224,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 				return true;
 			}
 			else if (direction == 5)
-			{ // South-East: targeting
+			{ // South-East: targeting priority
 				if (setTarget(originTile,		 O_WESTWALL, action) ||
 					setTarget(neighbouringTile3, O_NORTHWALL, action) ||
 					setTarget(neighbouringTile3, O_WESTWALL, action) ||
@@ -6248,7 +6250,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		   (setTarget(neighbouringTile2, O_OBJECT, action) ||
 			setTarget(neighbouringTile3, O_OBJECT, action)))
 		{
-			// Forced neighbour terrain object targeting. Suitable near big walls and terrain stuff "crushing" for diagonal directions.
+			// Forced neighbour terrain object targeting. Suitable near big walls and terrain stuff targetting&hitting for diagonal directions.
 			return true;
 		}
 
