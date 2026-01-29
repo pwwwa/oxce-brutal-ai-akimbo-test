@@ -18,6 +18,7 @@ alienFuel: [STR_ZRBITE, 50]
 fontName: Font.dat
 
 constants: #done
+  extendedTerrainMelee: 1   
   doorSound: 47
   slidingDoorSound: 46
   slidingDoorClose: -1

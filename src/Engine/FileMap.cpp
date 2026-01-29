@@ -1036,6 +1036,8 @@ void scanModDir(const std::string& dirname, const std::string& basename, bool pr
 
 	// "standard" directory is for built-in mods only! otherwise automatic updates would delete user data
 	const static std::set<std::string> standardMods = {
+		"UFO_Akimbo_Pistols",
+		"TFTD_Akimbo_Dart_Pistols",
 		"Aliens_Pick_Up_Weapons",
 		"Aliens_Pick_Up_Weapons_TFTD",
 		"Brutal_AI",

@@ -1,0 +1,21 @@
+items:
+  - type: STR_DART_PISTOL
+    accuracyAkimbo: 35
+    tuAkimbo: 12
+    akimboShots: 1
+    flatAkimbo: false
+    akimboRange: 10
+
+  - type: STR_GAUSS_PISTOL
+    accuracyAkimbo: 25
+    tuAkimbo: 17
+    akimboShots: 3
+    flatAkimbo: false
+    akimboRange: 7
+
+  - type: STR_SONIC_PISTOL
+    accuracyAkimbo: 60
+    tuAkimbo: 17
+    akimboShots: 1
+    flatAkimbo: false
+    akimboRange: 10
