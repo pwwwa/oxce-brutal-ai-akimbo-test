@@ -1762,12 +1762,9 @@ int AIModule::scoreFiringMode(BattleAction *action, BattleUnit *target, bool che
 	{
 		numberOfShots = weapon->getConfigAuto()->shots;
 	}
-	else if (action->type == BA_AKIMBOSHOT && _unit->getLeftHandWeapon() && _unit->getRightHandWeapon())
+	else if (action->type == BA_AKIMBOSHOT && _unit->isAkimbo())
 	{
-		if (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time && _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time)
 		numberOfShots = _unit->getLeftHandWeapon()->getRules()->getConfigAkimbo()->shots + _unit->getRightHandWeapon()->getRules()->getConfigAkimbo()->shots;
-		else
-		numberOfShots = weapon->getConfigAkimbo()->shots;
 	}
 
 	int tuCost = _unit->getActionTUs(action->type, action->weapon).Time;
@@ -2549,19 +2546,15 @@ void AIModule::projectileAction()
 	// vanilla
 	if (distance < 4)
 	{
-		if (_unit->getLeftHandWeapon() && _unit->getRightHandWeapon())
+		if (_unit->isAkimbo() && costAkimbo.haveTU() &&
+			_unit->getOppositeHandWeapon()->haveAnyAmmo() &&
+			_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
+			_unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time) )
 		{
-			if (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time &&
-				_unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time &&
-				costAkimbo.haveTU() &&
-				_unit->getOppositeHandWeapon()->haveAnyAmmo() &&
-				_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
-									      _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
-			{
-				_attackAction.type = BA_AKIMBOSHOT;
-				return;
-			}
+			_attackAction.type = BA_AKIMBOSHOT;
+			return;
 		}
+
 		if (costAuto.haveTU())
 		{
 			_attackAction.type = BA_AUTOSHOT;
@@ -2579,7 +2572,6 @@ void AIModule::projectileAction()
 		return;
 	}
 
-
 	if (distance > 12)
 	{
 		if (costAimed.haveTU())
@@ -2594,18 +2586,13 @@ void AIModule::projectileAction()
 		}
 	}
 
-	if (_unit->getLeftHandWeapon() && _unit->getRightHandWeapon())
+	if (_unit->isAkimbo() && costAkimbo.haveTU() &&
+		_unit->getOppositeHandWeapon()->haveAnyAmmo() &&
+		_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
+								  _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
 	{
-		if(_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time &&
-		   _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time &&
-		   costAkimbo.haveTU() &&
-		   _unit->getOppositeHandWeapon()->haveAnyAmmo() &&
-		   _unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
-		   _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
-		{
-			_attackAction.type = BA_AKIMBOSHOT;
-			return;
-		}
+		_attackAction.type = BA_AKIMBOSHOT;
+		return;
 	}
 	if (costSnap.haveTU())
 	{
@@ -2630,17 +2617,16 @@ void AIModule::extendedFireModeChoice(BattleActionCost& costAuto, BattleActionCo
 	{
 		attackOptions.push_back(BA_AIMEDSHOT);
 	}
-	if (_unit->getLeftHandWeapon() && _unit->getRightHandWeapon())
+
+	if (_unit->isAkimbo() && costAkimbo.haveTU() &&
+		_unit->getOppositeHandWeapon()->haveAnyAmmo() &&
+		_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
+								  _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
+
 	{
-		if (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time &&
-			_unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time &&
-			costAkimbo.haveTU() && _unit->getOppositeHandWeapon()->haveAnyAmmo() &&
-			_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
-									  _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
-		{
-			attackOptions.push_back(BA_AKIMBOSHOT);
-		}
+		attackOptions.push_back(BA_AKIMBOSHOT);
 	}
+	
 	if (costAuto.haveTU())
 	{
 		attackOptions.push_back(BA_AUTOSHOT);
@@ -5178,17 +5164,12 @@ float AIModule::brutalExtendedFireModeChoice(BattleActionCost &costAuto, BattleA
 	{
 		attackOptions.push_back(BA_AIMEDSHOT);
 	}
-	if (_unit->getLeftHandWeapon() && _unit->getRightHandWeapon())
+	if (_unit->isAkimbo() && costAkimbo.haveTU() &&
+		_unit->getOppositeHandWeapon()->haveAnyAmmo() &&
+		_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
+								  _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
 	{
-		if (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time &&
-			_unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time &&
-			costAkimbo.haveTU() &&
-			_unit->getOppositeHandWeapon()->haveAnyAmmo() && _unit->getTimeUnits() >=
-			(_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
-			 _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
-		{
-			attackOptions.push_back(BA_AKIMBOSHOT);
-		}
+		attackOptions.push_back(BA_AKIMBOSHOT);
 	}
 	if (costAuto.haveTU())
 	{
@@ -5346,13 +5327,10 @@ float AIModule::brutalScoreFiringMode(BattleAction* action, BattleUnit* target, 
 	{
 		numberOfShots = action->weapon->getRules()->getConfigAuto()->shots;
 	}
-	else if (action->type == BA_AKIMBOSHOT && _unit->getLeftHandWeapon() && _unit->getRightHandWeapon())
-	{
-		if (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time && _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time)
-			numberOfShots = _unit->getLeftHandWeapon()->getRules()->getConfigAkimbo()->shots
-			+ _unit->getRightHandWeapon()->getRules()->getConfigAkimbo()->shots;
-		else
-		numberOfShots = action->weapon->getRules()->getConfigAkimbo()->shots; 
+	else if (action->type == BA_AKIMBOSHOT && _unit->isAkimbo())
+	{		
+		numberOfShots = _unit->getLeftHandWeapon()->getRules()->getConfigAkimbo()->shots +
+						_unit->getRightHandWeapon()->getRules()->getConfigAkimbo()->shots;
 	}
 	else if (action->type == BA_HIT)
 	{
@@ -6300,10 +6278,8 @@ int AIModule::maxExtenderRangeWith(BattleUnit *unit, int tus)
 		highestRangeAvailableWithTUs = weapon->getRules()->getAimRange();
 	if (weapon->getRules()->getCostSnap().Time > 0 && unit->getActionTUs(BA_SNAPSHOT, weapon).Time < tus)
 		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, weapon->getRules()->getSnapRange());
-	//if (weapon->getRules()->getCostAkimbo().Time > 0 && unit->getActionTUs(BA_AKIMBOSHOT, weapon).Time < tus)
-	if (unit->getLeftHandWeapon() && unit->getRightHandWeapon() && unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time && unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time &&
-	 ((unit->getActionTUs(BA_AKIMBOSHOT, unit->getLeftHandWeapon()).Time + 
-	  unit->getActionTUs(BA_AKIMBOSHOT, unit->getRightHandWeapon()).Time) <= tus))
+	if (unit->isAkimbo() && (unit->getActionTUs(BA_AKIMBOSHOT, unit->getLeftHandWeapon()).Time + 
+							 unit->getActionTUs(BA_AKIMBOSHOT, unit->getRightHandWeapon()).Time) <= tus)
 		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, std::max(unit->getLeftHandWeapon()->getRules()->getAkimboRange(),
 																					   unit->getRightHandWeapon()->getRules()->getAkimboRange()));
 	if (weapon->getRules()->getCostAuto().Time > 0 && unit->getActionTUs(BA_AUTOSHOT, weapon).Time < tus)
@@ -7254,13 +7230,10 @@ float AIModule::damagePotential(Position pos, BattleUnit* target, int tuTotal, i
 			{
 				numberOfShots = weapon->getRules()->getConfigSnap()->shots;
 			}
-			else if (bat == BA_AKIMBOSHOT && _unit->getLeftHandWeapon() && _unit->getRightHandWeapon())
+			else if (bat == BA_AKIMBOSHOT && _unit->isAkimbo())
 			{
-				if (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time && _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time)
-					numberOfShots = _unit->getLeftHandWeapon()->getRules()->getConfigAkimbo()->shots
-					+ _unit->getRightHandWeapon()->getRules()->getConfigAkimbo()->shots;
-				else
-					numberOfShots = weapon->getRules()->getConfigAkimbo()->shots;
+				numberOfShots = _unit->getLeftHandWeapon()->getRules()->getConfigAkimbo()->shots +
+								_unit->getRightHandWeapon()->getRules()->getConfigAkimbo()->shots;
 			}
 
 			else if (bat == BA_AUTOSHOT)

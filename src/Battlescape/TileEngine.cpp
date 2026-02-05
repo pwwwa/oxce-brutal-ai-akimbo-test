@@ -3231,9 +3231,9 @@ TileEngine::ReactionScore TileEngine::determineReactionType(BattleUnit *unit, Ba
 				return reaction;
 			}
 		}
-		if ( _save->canUseWeapon(unit->getLeftHandWeapon(), unit, false, BA_AKIMBOSHOT) && _save->canUseWeapon(unit->getRightHandWeapon(), unit, false, BA_AKIMBOSHOT)
-			&& unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time && unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time
-			&& ( unit->getTimeUnits() >=
+		if ( unit->isAkimbo() && _save->canUseWeapon(unit->getLeftHandWeapon(), unit, false, BA_AKIMBOSHOT) &&
+			_save->canUseWeapon(unit->getRightHandWeapon(), unit, false, BA_AKIMBOSHOT)	&&
+			( unit->getTimeUnits() >=
 				(unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time + unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time) ) )
 		{
 			// Is unit able to perform akimbo shooting with each gun`s ammo
@@ -5900,7 +5900,7 @@ bool TileEngine::validMeleeRange(Position pos, int direction, BattleUnit *attack
 					if (target == 0 || targetTile->getUnit() == target)
 					{
 						Position originVoxel = Position(origin->getPosition().toVoxel())
-							+ Position(8,8,attacker->getHeight() + attacker->getFloatHeight() - 4 - origin->getTerrainLevel() + meleeOriginVoxelVerticalOffset);
+							+ Position(8,8,attacker->getHeight() + attacker->getFloatHeight() - 4 -origin->getTerrainLevel() + meleeOriginVoxelVerticalOffset);
 						Position targetVoxel;
 						if (canTargetUnit(&originVoxel, targetTile, &targetVoxel, attacker, false))
 						{
@@ -6001,7 +6001,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 
 	if (originTile && originTile->getTerrainLevel() <= -16 && !_save->isAltPressed())
 	{
-		// if we are on the upper part of stairs, target one tile above. + Let leave at the same tile altitude with pressed Alt, if there are need to crash stair under feet.
+		// if we are on the upper part of stairs, target one tile above. + Let leave at the same tile altitude with pressed Alt, if there are need to hit stair under feet.
 		pos += Position(0, 0, 1);
 		originTile = _save->getTile(pos);
 	}
@@ -6060,7 +6060,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 
 		if (direction % 2 != 0)	originTile2 = originTile; // "exclude" secondary originTile for diagonal directions for unexpected tile/object targeting
 
-		if (direction % 2 == 0 && (!neighbouringTile2 || !originTile2) )
+		if ( direction % 2 == 0 && (!neighbouringTile2 || !originTile2) )
 		{
 			return false;
 		}
@@ -6253,7 +6253,6 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			// Forced neighbour terrain object targeting. Suitable near big walls and terrain stuff targetting&hitting for diagonal directions.
 			return true;
 		}
-
 	}
 
 	return false;

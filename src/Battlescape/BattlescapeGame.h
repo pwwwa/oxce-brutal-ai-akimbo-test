@@ -81,10 +81,10 @@ struct BattleAction : BattleActionCost
 	bool kneel = false;
 	int diff;
 	int autoShotCounter;
-	int actWeaponCounter;
-	int opWeaponCounter;
-	int actWeaponShotQnty;
-	int opWeaponShotQnty;
+	int actWeaponCounter = 0;
+	int opWeaponCounter = 0;
+	int actWeaponShotQnty = 0;
+	int opWeaponShotQnty = 0;
 	Position cameraPosition;
 	bool desperate; // ignoring newly-spotted units
 	int finalFacing;

@@ -116,16 +116,12 @@ ActionMenuState::ActionMenuState(BattleAction *action, int x, int y) : _action(a
 
 	if (weapon->getBattleType() == BT_FIREARM)
 	{
-		bool isAkimbo = false;
-
-		if (_action->actor->getLeftHandWeapon() && _action->actor->getRightHandWeapon())
-			isAkimbo = _action->actor->getLeftHandWeapon()->getRules()->getCostAkimbo().Time && _action->actor->getRightHandWeapon()->getRules()->getCostAkimbo().Time;
-
 		auto isLauncher = _action->weapon->getCurrentWaypoints() != 0;
 		auto slotLauncher = _action->weapon->getActionConf(BA_LAUNCH)->ammoSlot;
 		auto slotSnap = _action->weapon->getActionConf(BA_SNAPSHOT)->ammoSlot;
 		auto slotAuto = _action->weapon->getActionConf(BA_AUTOSHOT)->ammoSlot;
 		auto slotAkimbo = _action->weapon->getActionConf(BA_AKIMBOSHOT)->ammoSlot;
+
 		if ((!isLauncher || slotLauncher != slotAuto) && weapon->getCostAuto().Time > 0)
 		{
 			addItem(BA_AUTOSHOT, weapon->getConfigAuto()->name, &id, Options::keyBattleActionItem3);
@@ -144,7 +140,8 @@ ActionMenuState::ActionMenuState(BattleAction *action, int x, int y) : _action(a
 		{
 			addItem(BA_AIMEDSHOT,  weapon->getConfigAimed()->name, &id, Options::keyBattleActionItem1);
 		}
-		if (isAkimbo)
+
+		if (_action->actor->isAkimbo())
 		{
 			addItem(BA_AKIMBOSHOT, weapon->getConfigAkimbo()->name, &id, Options::keyBattleActionItem6);
 		}
@@ -231,8 +228,11 @@ void ActionMenuState::addItem(BattleActionType ba, const std::string &name, int 
 	std::string s1, s2;
 	int acc = BattleUnit::getFiringAccuracy(BattleActionAttack::GetBeforeShoot(ba, _action->actor, _action->weapon), _game->getMod());
 	int tu = _action->actor->getActionTUs(ba, _action->weapon).Time;
-	int tuOp = _action->actor->getActionTUs(ba, _action->actor->getOppositeHandWeapon()).Time;
-	if (ba == BA_AKIMBOSHOT) tu += tuOp;
+
+	if (ba == BA_AKIMBOSHOT)
+	{
+		tu += _action->actor->getActionTUs(ba, _action->actor->getOppositeHandWeapon()).Time;
+	}
 
 	if (ba == BA_THROW || ba == BA_AIMEDSHOT || ba == BA_SNAPSHOT || ba == BA_AKIMBOSHOT || ba == BA_AUTOSHOT || ba == BA_LAUNCH || ba == BA_HIT)
 		s1 = tr("STR_ACCURACY_SHORT").arg(Unicode::formatPercentage(acc));

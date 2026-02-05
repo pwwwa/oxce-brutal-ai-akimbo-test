@@ -105,41 +105,6 @@ void ProjectileFlyBState::init()
 		}
 	}
 
-	if (_action.type == BA_AKIMBOSHOT)
-	{	// Align Active Hand to "Main Hand" address for proper weapon switching process during AI activity, reaction shot and berserk state 
-		if (_action.weapon !=_action.actor->getActiveHand(_action.actor->getLeftHandWeapon(), _action.actor->getRightHandWeapon()))
-		{
-			if (_action.actor->getActiveHand(_action.actor->getLeftHandWeapon(), _action.actor->getRightHandWeapon()) == _action.actor->getLeftHandWeapon())
-			{
-				_action.actor->setActiveRightHand();
-			}
-			else
-			{
-				_action.actor->setActiveLeftHand();
-			}
-		}
-
-		_ammo = _action.weapon ? _action.weapon->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result) : 0;
-		_ammoOp = _unit->getOppositeHandWeapon() ? _unit->getOppositeHandWeapon()->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result) : 0;
-		_action.actWeaponShotQnty = _action.weapon ? _action.weapon->getActionConf(BA_AKIMBOSHOT)->shots : 0;
-		_action.opWeaponShotQnty = _unit->getOppositeHandWeapon() ? _unit->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots : 0;
-		// if either weapon is out of ammo, there is no point to arrange akimbo
-		if (!_ammo || !_ammoOp)
-		{
-			_action.result = "STR_NO_ROUNDS_LEFT";
-			_parent->popState();
-			return;
-		}
-		// temp solution due HaveTU() function doesn`t consider both weapons parameters
-		if (_action.actor->getTimeUnits() < (_action.actor->getActionTUs(BA_AKIMBOSHOT, _action.weapon).Time
-			+ _action.actor->getActionTUs(BA_AKIMBOSHOT, _action.actor->getOppositeHandWeapon()).Time))
-		{
-			_action.result = "STR_NOT_ENOUGH_TIME_UNITS";
-			_parent->popState();
-			return;
-		}		
-	}
-
 	if (_unit->isOut() || _unit->isOutThresholdExceed())
 	{
 		// something went wrong - we can't shoot when dead or unconscious, or if we're about to fall over.
@@ -173,7 +138,6 @@ void ProjectileFlyBState::init()
 	case BA_SNAPSHOT:
 	case BA_AIMEDSHOT:
 	case BA_AUTOSHOT:
-	case BA_AKIMBOSHOT:
 	case BA_LAUNCH:
 		if (weapon->getRules()->isOutOfRange(distanceSq))
 		{
@@ -196,6 +160,41 @@ void ProjectileFlyBState::init()
 			endTile->getPosition().z + 1 < _parent->getSave()->getMapSizeZ())
 		{
 			_action.target.z += 1;
+		}
+		break;
+	case BA_AKIMBOSHOT:
+		if (_unit->isAkimbo())
+		{
+			// temp solution due HaveTU() func doesn`t consider both weapons parameters. Perhaps need to add checking for other unit stats like energy, stun, mana & etc.
+			if (_unit->getTimeUnits() < (_unit->getActionTUs(BA_AKIMBOSHOT, weapon).Time + _unit->getActionTUs(BA_AKIMBOSHOT, _unit->getOppositeHandWeapon()).Time))
+			{
+				_action.result = "STR_NOT_ENOUGH_TIME_UNITS";
+				_parent->popState();
+				return;
+			}
+			// Align (equate) Active Hand to Main Hand "addresses" for proper weapon switching process during AI activity, reaction shot and berserk state
+			if (weapon != _unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()))
+			{
+				if (_unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()) == _unit->getLeftHandWeapon())
+				{
+					_unit->setActiveRightHand();
+				}
+				else
+				{
+					_unit->setActiveLeftHand();
+				}
+			}
+			_ammo = weapon->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
+			_ammoOp = _unit->getOppositeHandWeapon()->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
+			_action.actWeaponShotQnty = weapon->getActionConf(BA_AKIMBOSHOT)->shots;
+			_action.opWeaponShotQnty = _unit->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots;
+			// if either weapon is out of ammo, there is no point to arrange akimbo
+			if (!_ammo || !_ammoOp)
+			{
+				_action.result = "STR_NO_ROUNDS_LEFT";
+				_parent->popState();
+				return;
+			}
 		}
 		break;
 	default:
@@ -452,15 +451,16 @@ void ProjectileFlyBState::init()
 			_parent->getMap()->setFollowProjectile(false);
 		}
 		if (_range == 0) _action.spendTU();
-		
-		if (_action.type == BA_AKIMBOSHOT) // Spend TU from opposite weapon`s stats (temp solution ?)
-		{
+
+		if (_action.type == BA_AKIMBOSHOT)
+		{ // Spend TU also from opposite weapon`s stats (temp solution (?))
 			BattleItem* origWeapon = _action.weapon;
 			_action.weapon = _unit->getOppositeHandWeapon();
 			_action.updateTU();
 			_action.spendTU();
 			_action.weapon = origWeapon;
 		}
+
 		_parent->getMap()->setCursorType(CT_NONE);
 		_parent->getMap()->getCamera()->stopMouseScrolling();
 		_parent->getMap()->disableObstacles();
@@ -486,35 +486,34 @@ bool ProjectileFlyBState::createNewProjectile()
 	\***********************/
 	if ( _action.type == BA_AKIMBOSHOT )
 	{	// Remember original Active Hand weapon and ammo for hand iteration mechanism (ammo address need for projectile and impact "alignment")
-		BattleItem *deopWeapon = const_cast<BattleItem*>(_unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()));
-		BattleItem *deopAmmo = deopWeapon ? deopWeapon->getAmmoForAction(_action.type) : 0; 
-		// make possible last shots (if it supposes) during forced switching to active hand mechaism caused by dissarearing weapons 
-		if (deopWeapon && deopAmmo && !_unit->getOppositeHandWeapon() && _action.opWeaponCounter < _action.actWeaponShotQnty)
+		BattleItem *originWeapon = const_cast<BattleItem*>(_unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()));
+		BattleItem *originAmmo = originWeapon ? originWeapon->getAmmoForAction(_action.type) : 0; 
+		// Make possible last shots (if it supposes) during forced claiming inactive hand as active hand caused by dissarearing weapon mechanic 
+		if (originWeapon && originAmmo && !_unit->getOppositeHandWeapon() && _action.opWeaponCounter < _action.actWeaponShotQnty)
 		{
 			_action.actWeaponCounter = _action.opWeaponCounter;
 		}
-		// Prevent switching to active hand, if no weapon / no ammo
-		if (!deopWeapon || !deopAmmo || deopAmmo->getAmmoQuantity() == 0)
+		// Prevent switching to origin hand, if it has no weapon / no ammo
+		if (!originWeapon || !originAmmo || originAmmo->getAmmoQuantity() == 0)
 		{
 			_action.actWeaponCounter = _action.actWeaponShotQnty;
 		}
-		// Prevent switching to opposite hand, if no weapon / no ammo
+		// Prevent switching to opposite hand, if it has no weapon / no ammo
 		if (!_unit->getOppositeHandWeapon() || !_ammoOp || _ammoOp->getAmmoQuantity() == 0)
 		{
 			_action.opWeaponCounter = _action.opWeaponShotQnty;
 		}
-		// Stop shooting
+		// All shots are done - stop shooting
 		if (_action.actWeaponCounter >= _action.actWeaponShotQnty &&
 			_action.opWeaponCounter >= _action.opWeaponShotQnty)
 		{
 			_parent->popState();
-		// Player helper (?) and nullptr avoider in past (already fixed with checking hands for null at battleSacpeGame spreadWaypoint section)	
-			if (!deopWeapon || !_unit->getOppositeHandWeapon())
+			// Lacks of weapon in hands when shooting is finished - cancel action and return "normal" cursor
+			if (!originWeapon || !_unit->getOppositeHandWeapon())
 			{
 				_parent->cancelCurrentAction();
 				_parent->setupCursor();
 			}
-			
 			return false;
 		}
 		// Hand switch mechanic of proper hand (and ammo) each shot, if everything fine
@@ -522,8 +521,8 @@ bool ProjectileFlyBState::createNewProjectile()
 			(_action.actWeaponCounter == _action.opWeaponCounter || _action.opWeaponCounter >= _action.opWeaponShotQnty) )
 		{
 			++_action.actWeaponCounter;
-			_action.weapon = deopWeapon;
-			_ammo = deopAmmo;
+			_action.weapon = originWeapon;
+			_ammo = originAmmo;
 			_action.updateTU();
 		}
 		else if ( _action.opWeaponCounter < _action.opWeaponShotQnty &&
@@ -986,7 +985,7 @@ void ProjectileFlyBState::cancel()
 	}
 	if (_parent->areAllEnemiesNeutralized())
 	{
-		// stop autoshots and akimbo shot when battle auto-ends
+		// stop autoshots and akimbo shots when battle auto-ends
 		_action.autoShotCounter = 1000;
 		_action.actWeaponCounter = 1000;
 		_action.opWeaponCounter = 1000;

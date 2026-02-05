@@ -138,25 +138,25 @@ void MeleeAttackBState::init()
 		_target = _parent->getSave()->getTile(_action.target)->getUnit();
 	}
 
-	if (!_parent->getSave()->isCtrlPressed() && !_target)
+	bool isForcedMeleeToFloor = _parent->getSave()->isCtrlPressed() && _parent->getSave()->getSide() == FACTION_PLAYER && _unit->getFaction() == FACTION_PLAYER;
+
+	if (!isForcedMeleeToFloor && !_target)
 	{
 		throw Exception("This is a known (but tricky) bug... still fixing it, sorry. In the meantime, try save scumming option or kill all aliens in debug mode to finish the mission.");
 	}
 
-	//int height = _target->getFloatHeight() + (_target->getHeight() / 2) - _parent->getSave()->getTile(_action.target)->getTerrainLevel();
-	bool isForcedMeleeToFloor = _parent->getSave()->isCtrlPressed() && _parent->getSave()->getSide() == FACTION_PLAYER && _unit->getFaction() == FACTION_PLAYER;
-	int height = isForcedMeleeToFloor ? 1 : _target->getFloatHeight() + (_target->getHeight() * 2 / 3) - _parent->getSave()->getTile(_action.target)->getTerrainLevel();
-	// special case for hitting weird map tiles under feet (ect. "content" tiles in wall positions)
-	if (_parent->getSave()->isAltPressed() && _parent->getSave()->isCtrlPressed())	height = 2;
-
-	_voxel = _action.target.toVoxel() + Position(8, 8, height);
+	int height = isForcedMeleeToFloor ? 0 : _target->getFloatHeight() + (_target->getHeight() * 2 / 3) - _parent->getSave()->getTile(_action.target)->getTerrainLevel();
 
 	if (isForcedMeleeToFloor)
 	{
+		if (_parent->getSave()->isAltPressed())
+			{ // Let hit weird tiles feet ("floor type" objects in wall postions)
+				height = std::max(2, -_parent->getSave()->getTile(_unit->getPosition())->getTerrainLevel() / 2);
+			}
 		_voxel = _unit->getPosition().toVoxel() + Position(8, 8, height);
 
 		if (_unit->getArmor()->getSize() > 1)
-		{ // Align forced floor hitting tile position according to proper direction of view for big units
+		{ // Align forced floor hitting tile position according to proper direction for big units
 			switch (_unit->getDirection())
 			{
 				case 1:	case 2:	_voxel = _unit->getPosition().toVoxel() + Position(1, 0, 0).toVoxel() + Position(8, 8, height); break;
@@ -165,6 +165,7 @@ void MeleeAttackBState::init()
 			}
 		}
 	}
+	else _voxel = _action.target.toVoxel() + Position(8, 8, height);
 
 	if (!_parent->getSave()->getTile(_voxel.toTile()))
 	{
