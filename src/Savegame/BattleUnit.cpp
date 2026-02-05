@@ -4074,6 +4074,21 @@ BattleItem* BattleUnit::getOppositeHandWeapon() const
 		return nullptr;
 	}
 }
+/**
+ * Check if unit able to perform akimbo shot
+ */
+
+bool BattleUnit::isAkimbo() const
+{
+	if (getLeftHandWeapon() && getRightHandWeapon())
+	{
+		if (getLeftHandWeapon()->getRules()->getCostAkimbo().Time && getRightHandWeapon()->getRules()->getCostAkimbo().Time)
+		{
+			return true;
+		}
+	}
+	return false;
+}
 
 /**
  * Set the right hand as main active hand.

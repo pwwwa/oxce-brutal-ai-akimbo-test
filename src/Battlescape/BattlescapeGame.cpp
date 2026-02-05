@@ -1889,13 +1889,13 @@ void BattlescapeGame::primaryAction(Position pos)
 				getMap()->getWaypoints()->push_back(pos);
 			}
 		}
-		else if ( ( (_currentAction.type == BA_AUTOSHOT && _currentAction.weapon->getRules()->getSprayWaypoints() > 0) ||
-				  (_currentAction.type == BA_AKIMBOSHOT && _currentAction.actor->getLeftHandWeapon() && _currentAction.actor->getRightHandWeapon() &&
+		else if ( ( ( _currentAction.type == BA_AUTOSHOT && _currentAction.weapon->getRules()->getSprayWaypoints() > 0 ) ||
+				  (_currentAction.type == BA_AKIMBOSHOT && _currentAction.actor->isAkimbo() &&
 				   _currentAction.actor->getLeftHandWeapon()->getRules()->getSprayWaypoints() > 0 &&
 			       _currentAction.actor->getRightHandWeapon()->getRules()->getSprayWaypoints() > 0) ) &&
 				   _save->isCtrlPressed(true) &&
 			       _save->isShiftPressed(true) &&
-			       _currentAction.waypoints.empty()) // Starts the spray autoshot or akimboshot targeting
+			       _currentAction.waypoints.empty() ) // Starts the spray autoshot or akimboshot targeting
 		{
 			_currentAction.sprayTargeting = true;
 			_currentAction.waypoints.push_back(pos);

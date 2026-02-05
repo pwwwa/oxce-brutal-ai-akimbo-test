@@ -516,6 +516,8 @@ public:
 	BattleItem *getLeftHandWeapon() const;
 	/// Get opposite weapon for switching hands during akimbo action
 	BattleItem* getOppositeHandWeapon() const;
+	/// is unit able to perform akimbo shot 
+	bool isAkimbo() const;
 	/// Set the right hand as main active hand.
 	void setActiveRightHand();
 	/// Set the left hand as main active hand.
