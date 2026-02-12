@@ -122,6 +122,11 @@ ActionMenuState::ActionMenuState(BattleAction *action, int x, int y) : _action(a
 		auto slotAuto = _action->weapon->getActionConf(BA_AUTOSHOT)->ammoSlot;
 		auto slotAkimbo = _action->weapon->getActionConf(BA_AKIMBOSHOT)->ammoSlot;
 
+		if ((!isLauncher || slotLauncher != slotAuto) && _action->actor->isAkimbo())
+		{
+			addItem(BA_AKIMBOSHOT, weapon->getConfigAkimbo()->name, &id, Options::keyBattleActionItem6);
+		}
+
 		if ((!isLauncher || slotLauncher != slotAuto) && weapon->getCostAuto().Time > 0)
 		{
 			addItem(BA_AUTOSHOT, weapon->getConfigAuto()->name, &id, Options::keyBattleActionItem3);
@@ -139,11 +144,6 @@ ActionMenuState::ActionMenuState(BattleAction *action, int x, int y) : _action(a
 		else if (weapon->getCostAimed().Time > 0)
 		{
 			addItem(BA_AIMEDSHOT,  weapon->getConfigAimed()->name, &id, Options::keyBattleActionItem1);
-		}
-
-		if (_action->actor->isAkimbo())
-		{
-			addItem(BA_AKIMBOSHOT, weapon->getConfigAkimbo()->name, &id, Options::keyBattleActionItem6);
 		}
 	}
 
@@ -235,7 +235,7 @@ void ActionMenuState::addItem(BattleActionType ba, const std::string &name, int 
 	}
 
 	if (ba == BA_THROW || ba == BA_AIMEDSHOT || ba == BA_SNAPSHOT || ba == BA_AKIMBOSHOT || ba == BA_AUTOSHOT || ba == BA_LAUNCH || ba == BA_HIT)
-		s1 = tr("STR_ACCURACY_SHORT").arg(Unicode::formatPercentage(acc));
+	s1 = tr("STR_ACCURACY_SHORT").arg(Unicode::formatPercentage(acc));
 	s2 = tr("STR_TIME_UNITS_SHORT").arg(tu);
 	_actionMenu[*id]->setAction(ba, tr(name), s1, s2, tu);
 	_actionMenu[*id]->setVisible(true);
