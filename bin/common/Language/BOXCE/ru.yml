@@ -113,7 +113,7 @@ ru:
   spaceOccupied: "Место занято"
   #Morale attack success info
   STR_MORALE_ATTACK_SUCCESS_NOTIFY: "Оповещение об успешн. псих. атаке"
-  STR_MORALE_ATTACK_SUCCESS_NOTIFY_DESC: "Оповещать игрока об успешной психической атаке.{NEWLINE}0 - Не оповещать (Оригинал), 1 - Мерцающее сообщение, 2 - Инфо рамка."
+  STR_MORALE_ATTACK_SUCCESS_NOTIFY_DESC: "Оповещать игрока об успешной психической атаке.{NEWLINE}0 - не оповещать (оригинал), 1 - всплывающее сообщение, 2 - инфо рамка."
  #Akimbo options
   STR_AKIMBO_SHOT: "Из двух рук"
   STR_SHOT_TYPE_AKIMBO: "Из двух рук"
