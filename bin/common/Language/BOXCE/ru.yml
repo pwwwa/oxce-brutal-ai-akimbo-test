@@ -111,3 +111,12 @@ ru:
   WRT_VANILLA: "Формула из оригинальной игры"
   hangarType: "Тип ангара"
   spaceOccupied: "Место занято"
+  #Morale attack success info
+  STR_MORALE_ATTACK_SUCCESS_NOTIFY: "Оповещение об успешн. псих. атаке"
+  STR_MORALE_ATTACK_SUCCESS_NOTIFY_DESC: "Оповещать игрока об успешной психической атаке.{NEWLINE}0 - Не оповещать (Оригинал), 1 - Мерцающее сообщение, 2 - Инфо рамка."
+ #Akimbo options
+  STR_AKIMBO_SHOT: "Из двух рук"
+  STR_SHOT_TYPE_AKIMBO: "Из двух рук"
+  STR_RESERVE_TIME_UNITS_FOR_AKIMBO_SHOT: "Резервировать ОД для стрельбы из двух рук"
+  STR_TIME_UNITS_RESERVED_FOR_AKIMBO_SHOT: "Очки действия зарезервированы для стрельбы из друх рук"
+  STR_ACTION_ITEM_6: "Действие 6 (Из двух рук)"

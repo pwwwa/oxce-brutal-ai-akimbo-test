@@ -43,9 +43,7 @@
 #include "../Menu/NotesState.h"
 #include "../Geoscape/GeoscapeState.h"
 #include "../Menu/TestState.h"
-#include <algorithm>
 #include "../fallthrough.h"
-#include "../Geoscape/GeoscapeState.h"
 
 namespace OpenXcom
 {

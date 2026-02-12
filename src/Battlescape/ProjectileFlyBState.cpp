@@ -172,7 +172,7 @@ void ProjectileFlyBState::init()
 				_parent->popState();
 				return;
 			}
-			// Align (equate) Active Hand to Main Hand "addresses" for proper weapon switching process during AI activity, reaction shot and berserk state
+			// Align Active Hand = Main Hand for proper weapon switching process during AI activity, reaction shot and berserk state
 			if (weapon != _unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()))
 			{
 				if (_unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()) == _unit->getLeftHandWeapon())
@@ -482,7 +482,7 @@ bool ProjectileFlyBState::createNewProjectile()
 	++_action.autoShotCounter;
 
 	/***********************\ 
-	*  AKIMBO SHOT SECTION  *
+	*  AKIMBO SHOTS SECTION  *
 	\***********************/
 	if ( _action.type == BA_AKIMBOSHOT )
 	{	// Remember original Active Hand weapon and ammo for hand iteration mechanism (ammo address need for projectile and impact "alignment")

@@ -5991,7 +5991,6 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 	} **/
 	Position p;
 	Pathfinding::directionToVector(direction, &p);
-
 	Tile* originTile = _save->getTile(pos);
 	Tile* originTile2 = originTile;
 	Tile* neighbouringTile = _save->getTile(pos + p);

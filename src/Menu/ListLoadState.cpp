@@ -18,7 +18,6 @@
  */
 #include <algorithm>
 #include "ListLoadState.h"
-#include <algorithm>
 #include "../Engine/Game.h"
 #include "../Engine/Action.h"
 #include "../Engine/Options.h"
