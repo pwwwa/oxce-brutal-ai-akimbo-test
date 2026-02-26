@@ -420,9 +420,11 @@ void createOptionsOXCE()
 #ifdef __MOBILE__
 	_info.push_back(OptionInfo(OPTION_OXCE, "oxceInventorySplitScrollButton", &oxceInventorySplitScrollButton, true, "", "HIDDEN"));
 	_info.push_back(OptionInfo(OPTION_OXCE, "oxceInventoryDropItemOverPaperdoll", &oxceInventoryDropItemOverPaperdoll, true, "", "HIDDEN"));
+	_info.push_back(OptionInfo(OPTION_OXCE, "oxceInventoryUnloadFixedWeapons", &oxceInventoryUnloadFixedWeapons, true, "", "HIDDEN"));
 #else
 	_info.push_back(OptionInfo(OPTION_OXCE, "oxceInventorySplitScrollButton", &oxceInventorySplitScrollButton, false, "", "HIDDEN"));
 	_info.push_back(OptionInfo(OPTION_OXCE, "oxceInventoryDropItemOverPaperdoll", &oxceInventoryDropItemOverPaperdoll, false, "", "HIDDEN"));
+	_info.push_back(OptionInfo(OPTION_OXCE, "oxceInventoryUnloadFixedWeapons", &oxceInventoryUnloadFixedWeapons, false, "", "HIDDEN"));
 #endif
 
 	// TODO: needs restart (or code change) to work properly
@@ -626,7 +628,6 @@ void createAdvancedOptionsOTHER()
 
 void createControlsOTHER()
 {
-	// OTHER control Battlescape
 	_info.push_back(OptionInfo(OPTION_OTHER, "keyAIList", &keyAIList, SDLK_c, "STR_keyAIList", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "keyToggleAutoPlay", &keyToggleAutoPlay, SDLK_a, "STR_TOGGLE_AUTO_PLAY", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyLightGrenade", &keyReadyLightGrenade, SDLK_COMMA, "STR_KEY_READY_LIGHT_GRENADE", "STR_BATTLESCAPE"));
