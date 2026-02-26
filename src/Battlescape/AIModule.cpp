@@ -2572,6 +2572,7 @@ void AIModule::projectileAction()
 		return;
 	}
 
+
 	if (distance > 12)
 	{
 		if (costAimed.haveTU())
