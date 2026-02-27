@@ -228,7 +228,7 @@ namespace OpenXcom
 			_txtTuCost->setWordWrap(true);
 			_txtTuCost->setText(tr("STR_TIME_UNIT_COST"));
 
-			_lstInfo = new TextList(204, 55, 8, 82);
+			_lstInfo = new TextList(204, 62, 8, 77); // was 204, 55, 8, 82
 			add(_lstInfo);
 
 			_lstInfo->setColor(_listColor2); // color for % data!
@@ -238,7 +238,7 @@ namespace OpenXcom
 
 		auto addAttack = [&](int& row, const std::string& name, const RuleItemUseCost& cost, const RuleItemUseFlat& flat, const RuleItemAction *config, const RuleItem *weapon)
 		{
-			if (row < 3 && cost.Time > 0 && config->ammoSlot == ammoSlot)
+			if (row < 4 && cost.Time > 0 && config->ammoSlot == ammoSlot)
 			{
 				std::string tu = Unicode::formatPercentage(cost.Time);
 				if (flat.Time)
@@ -264,9 +264,9 @@ namespace OpenXcom
 
 			addAttack(current_row, "STR_SHOT_TYPE_SNAP", item->getCostSnap(), item->getFlatSnap(), item->getConfigSnap(), item);
 
-			addAttack(current_row, "STR_SHOT_TYPE_AKIMBO", item->getCostAkimbo(), item->getFlatAkimbo(), item->getConfigAkimbo(), item);
-
 			addAttack(current_row, "STR_SHOT_TYPE_AIMED", item->getCostAimed(), item->getFlatAimed(), item->getConfigAimed(), item);
+
+			addAttack(current_row, "STR_SHOT_TYPE_AKIMBO", item->getCostAkimbo(), item->getFlatAkimbo(), item->getConfigAkimbo(), item);
 
 			//optional melee
 			addAttack(current_row, "STR_SHOT_TYPE_MELEE", item->getCostMelee(), item->getFlatMelee(), item->getConfigMelee(), item);
