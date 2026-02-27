@@ -1497,7 +1497,7 @@ bool BattlescapeGame::checkReservedTU(BattleUnit *bu, int tu, int energy, bool j
 	{
 		cost.updateTU();
 
-		if (_currentAction.actor->getActionTUs(BA_AKIMBOSHOT, _currentAction.actor->getOppositeHandWeapon()).Time)
+		if (_currentAction.actor->isAkimbo())
 		{
 			cost.Time += _currentAction.actor->getActionTUs(BA_AKIMBOSHOT, _currentAction.actor->getOppositeHandWeapon()).Time;
 		}

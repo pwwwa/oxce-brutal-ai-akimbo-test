@@ -51,25 +51,25 @@ namespace OpenXcom
 		// SHOT STATS TABLE (for firearms only)
 		if (item->getBattleType() == BT_FIREARM)
 		{
-			_txtShotType = new Text(53, 17, 8, 157);
+			_txtShotType = new Text(53, 17, 8, 150); // (53, 17, 8, 157);
 			add(_txtShotType);
 			_txtShotType->setColor(_textColor);
 			_txtShotType->setWordWrap(true);
 			_txtShotType->setText(tr("STR_SHOT_TYPE"));
 
-			_txtAccuracy = new Text(57, 17, 61, 157);
+			_txtAccuracy = new Text(57, 17, 61, 150); // (57, 17, 61, 157);
 			add(_txtAccuracy);
 			_txtAccuracy->setColor(_textColor);
 			_txtAccuracy->setWordWrap(true);
 			_txtAccuracy->setText(tr("STR_ACCURACY_UC"));
 
-			_txtTuCost = new Text(56, 17, 118, 157);
+			_txtTuCost = new Text(56, 17, 118, 150); // (56, 17, 118, 157);
 			add(_txtTuCost);
 			_txtTuCost->setColor(_textColor);
 			_txtTuCost->setWordWrap(true);
 			_txtTuCost->setText(tr("STR_TIME_UNIT_COST"));
 
-			_lstInfo = new TextList(140, 55, 8, 170);
+			_lstInfo = new TextList(140, 48, 8, 165); // (140, 55, 8, 170);
 			add(_lstInfo);
 
 			_lstInfo->setColor(_listColor2); // color for % data!
@@ -78,7 +78,7 @@ namespace OpenXcom
 
 			auto addAttack = [&](int& row, const std::string& name, const RuleItemUseCost& cost, const RuleItemUseFlat& flat, const RuleItemAction *config, const RuleItem* weapon)
 			{
-				if (row < 3 && cost.Time > 0 && config->ammoSlot == ammoSlot)
+				if (row < 4 && cost.Time > 0 && config->ammoSlot == ammoSlot)
 				{
 					std::string tu = Unicode::formatPercentage(cost.Time);
 					if (flat.Time)
@@ -102,9 +102,9 @@ namespace OpenXcom
 
 			addAttack(current_row, "STR_SHOT_TYPE_SNAP", item->getCostSnap(), item->getFlatSnap(), item->getConfigSnap(), item);
 
-			addAttack(current_row, "STR_SHOT_TYPE_AKIMBO", item->getCostAkimbo(), item->getFlatAkimbo(), item->getConfigAkimbo(), item);
-
 			addAttack(current_row, "STR_SHOT_TYPE_AIMED", item->getCostAimed(), item->getFlatAimed(), item->getConfigAimed(), item);
+
+			addAttack(current_row, "STR_SHOT_TYPE_AKIMBO", item->getCostAkimbo(), item->getFlatAkimbo(), item->getConfigAkimbo(), item);
 
 			//optional melee
 			addAttack(current_row, "STR_SHOT_TYPE_MELEE", item->getCostMelee(), item->getFlatMelee(), item->getConfigMelee(), item);
