@@ -69,6 +69,7 @@ SoldiersState::SoldiersState(Base *base) : _base(base), _origSoldierOrder(*_base
 	_window = new Window(this, 320, 200, 0, 0);
 	_btnOk = new TextButton(64, 16, 248, 176);
 	_cbxScreenActions = new ComboBox(this, 128, 16, 8, 176, true);
+	_cbxFilterByCraft = new ComboBox(this, 96, 16, 144, 176, true);	
 	_txtTitle = new Text(168, 17, 16, 8);
 	_cbxSortBy = new ComboBox(this, 120, 16, 192, 8, false);
 	_txtName = new Text(114, 9, 16, 32);
@@ -88,6 +89,7 @@ SoldiersState::SoldiersState(Base *base) : _base(base), _origSoldierOrder(*_base
 	add(_lstSoldiers, "list", "soldierList");
 	add(_cbxSortBy, "button", "soldierList");	
 	add(_cbxScreenActions, "button", "soldierList");
+	add(_cbxFilterByCraft, "button", "soldierList");	
 
 	centerAllSurfaces();
 
@@ -101,52 +103,38 @@ SoldiersState::SoldiersState(Base *base) : _base(base), _origSoldierOrder(*_base
 	_btnOk->onKeyboardPress((ActionHandler)&SoldiersState::btnAIClick, Options::keyAIList);
 	_btnOk->onKeyboardPress((ActionHandler)&SoldiersState::btnTransformationsOverviewClick, SDLK_t);
 
-	_btnPsiTraining->setText(tr("STR_PSI_TRAINING"));
-	_btnPsiTraining->onMouseClick((ActionHandler)&SoldiersState::btnPsiTrainingClick);
-	_btnPsiTraining->setVisible(isPsiBtnVisible);
+	_availableOptions.push_back("STR_SOLDIER_INFO");
+	_availableOptions.push_back("STR_MEMORIAL");
+	_availableOptions.push_back("STR_INVENTORY");
 
 	if (isPsiBtnVisible)
 		_availableOptions.push_back("STR_PSI_TRAINING");
 
-	_btnMemorial->setText(tr("STR_MEMORIAL"));
-	_btnMemorial->onMouseClick((ActionHandler)&SoldiersState::btnMemorialClick);
+	if (isTrnBtnVisible)
+		_availableOptions.push_back("STR_TRAINING");
 
-	_availableOptions.clear();
-	if (showCombobox)
+	if (isTransformationAvailable)
 	{
+		_mainOffset = _availableOptions.size();
+		_availableOptions.push_back("STR_TRANSFORMATIONS_OVERVIEW");
+	}
 
-		_availableOptions.push_back("STR_SOLDIER_INFO");
-		_availableOptions.push_back("STR_MEMORIAL");
-		_availableOptions.push_back("STR_INVENTORY");
+	bool refreshDeadSoldierStats = false;
 
-		if (isPsiBtnVisible)
-			_availableOptions.push_back("STR_PSI_TRAINING");
-
-		if (isTrnBtnVisible)
-			_availableOptions.push_back("STR_TRAINING");
-
-		if (isTransformationAvailable)
+	for (const auto* transformationRule : availableTransformations)
+	{
+		_availableOptions.push_back(transformationRule->getName());
+		if (transformationRule->isAllowingDeadSoldiers())
 		{
-			_mainOffset = _availableOptions.size();
-			_availableOptions.push_back("STR_TRANSFORMATIONS_OVERVIEW");
+			refreshDeadSoldierStats = true;
 		}
+	}
 
-		bool refreshDeadSoldierStats = false;
-		for (const auto* transformationRule : availableTransformations)
-		{
-			_availableOptions.push_back(transformationRule->getName());
-			if (transformationRule->isAllowingDeadSoldiers())
-			{
-				refreshDeadSoldierStats = true;
-			}
-		}
-		if (refreshDeadSoldierStats)
-		{
-			for (auto* deadMan : *_game->getSavedGame()->getDeadSoldiers())
-			{
-				deadMan->prepareStatsWithBonuses(_game->getMod()); // refresh stats for sorting
-			}
-		}
+	_availableOptions.push_back("STR_AI_LISTBUTTON");
+
+	_cbxScreenActions->setOptions(_availableOptions, true);
+	_cbxScreenActions->setSelected(0);
+	_cbxScreenActions->onChange((ActionHandler)&SoldiersState::cbxScreenActionsChange);
 
 	// _cbxFilterByCraft
 	_craftOptions.clear();  // NHR: could be a std::string? defined here
@@ -155,9 +143,6 @@ SoldiersState::SoldiersState(Base *base) : _base(base), _origSoldierOrder(*_base
 	for (size_t craft = 0; craft < _base->getCrafts()->size(); ++craft)
 	{
        _craftOptions.push_back( _base->getCrafts()->at(craft)->getName(_game->getLanguage()));
-		_cbxScreenActions->setOptions(_availableOptions, true);
-		_cbxScreenActions->setSelected(0);
-		_cbxScreenActions->onChange((ActionHandler)&SoldiersState::cbxScreenActionsChange);
 	}
 	_cbxFilterByCraft->setOptions(_craftOptions, true);
 	_cbxFilterByCraft->setSelected(0);
@@ -371,8 +356,28 @@ void SoldiersState::initList(size_t scrl)
 	{
 		_lstSoldiers->setArrowColumn(188, ARROW_VERTICAL);
 
-		// all soldiers in the base
-		_filteredListOfSoldiers = *_base->getSoldiers();
+		// all soldiers in the base // NHR: Change to selection based on selectedCraftIndex
+		for(size_t i=0; i< _base->getSoldiers()->size();++i)
+		{
+			Soldier* soldier=_base->getSoldiers()->at(i);
+			if(selectedCraftIndex == 0)
+			{
+				_filteredListOfSoldiers.push_back(soldier);
+				_filteredIndicesOfSoldiers.push_back(i);
+			}else if(selectedCraftIndex == 1){
+				if (soldier->getCraft() == 0){
+					_filteredListOfSoldiers.push_back(soldier);	
+					_filteredIndicesOfSoldiers.push_back(i);									
+				}	
+			}else{
+				if (soldier->getCraft() == _base->getCrafts()->at(selectedCraftIndex-2))
+				{
+					_filteredListOfSoldiers.push_back(soldier);
+					_filteredIndicesOfSoldiers.push_back(i);
+				}
+			
+			}
+		}
 	}
 	else
 	{
@@ -387,7 +392,11 @@ void SoldiersState::initList(size_t scrl)
 			for (auto* soldier : *_base->getSoldiers())
 			{
 				idx++;
-				if (soldier->getCraft() && soldier->getCraft()->getStatus() == "STR_OUT")
+				if ((soldier->getCraft() && soldier->getCraft()->getStatus() == "STR_OUT") || 
+                  
+				    ((selectedCraftIndex  > 1) && soldier->getCraft() != _base->getCrafts()->at(selectedCraftIndex-2)) ||
+					
+					(selectedCraftIndex == 1 )  && soldier->getCraft())
 				{
 					// soldiers outside of the base are not eligible
 					continue;
@@ -419,7 +428,7 @@ void SoldiersState::initList(size_t scrl)
 	}
 	_txtCraft->setX(_txtRank->getX() + 98 - offset);
 
-	BaseSumDailyRecovery recovery = _base->getSumRecoveryPerDay();
+	auto recovery = _base->getSumRecoveryPerDay();
 	unsigned int row = 0;
 	for (const auto* soldier : _filteredListOfSoldiers)
 	{
@@ -484,16 +493,18 @@ void SoldiersState::lstItemsLeftArrowClick(Action *action)
  */
 void SoldiersState::moveSoldierUp(Action *action, unsigned int row, bool max)
 {
-	Soldier *s = _base->getSoldiers()->at(row);
+	Soldier *s = _filteredListOfSoldiers.at(row);
+	size_t baseIndex = _filteredIndicesOfSoldiers.at(row);
 	if (max)
 	{
-		_base->getSoldiers()->erase(_base->getSoldiers()->begin() + row);
+		_base->getSoldiers()->erase(_base->getSoldiers()->begin() + baseIndex);
 		_base->getSoldiers()->insert(_base->getSoldiers()->begin(), s);
 	}
 	else
 	{
-		_base->getSoldiers()->at(row) = _base->getSoldiers()->at(row - 1);
-		_base->getSoldiers()->at(row - 1) = s;
+		size_t baseIndexNext = _filteredIndicesOfSoldiers.at(row - 1);
+		_base->getSoldiers()->at(baseIndex) = _base->getSoldiers()->at(baseIndexNext);
+		_base->getSoldiers()->at(baseIndexNext) = s;
 		if (row != _lstSoldiers->getScroll())
 		{
 			SDL_WarpMouse(action->getLeftBlackBand() + action->getXMouse(), action->getTopBlackBand() + action->getYMouse() - static_cast<Uint16>(8 * action->getYScale()));
@@ -513,7 +524,7 @@ void SoldiersState::moveSoldierUp(Action *action, unsigned int row, bool max)
 void SoldiersState::lstItemsRightArrowClick(Action *action)
 {
 	unsigned int row = _lstSoldiers->getSelectedRow();
-	size_t numSoldiers = _base->getSoldiers()->size();
+	size_t numSoldiers = _filteredListOfSoldiers.size();
 	if (0 < numSoldiers && INT_MAX >= numSoldiers && row < numSoldiers - 1)
 	{
 		if (action->getDetails()->button.button == SDL_BUTTON_LEFT)
@@ -537,16 +548,18 @@ void SoldiersState::lstItemsRightArrowClick(Action *action)
  */
 void SoldiersState::moveSoldierDown(Action *action, unsigned int row, bool max)
 {
-	Soldier *s = _base->getSoldiers()->at(row);
+	Soldier *s = _filteredListOfSoldiers.at(row);
+	size_t baseIndex = _filteredIndicesOfSoldiers.at(row);
 	if (max)
 	{
-		_base->getSoldiers()->erase(_base->getSoldiers()->begin() + row);
+		_base->getSoldiers()->erase(_base->getSoldiers()->begin() + baseIndex);
 		_base->getSoldiers()->insert(_base->getSoldiers()->end(), s);
 	}
 	else
 	{
-		_base->getSoldiers()->at(row) = _base->getSoldiers()->at(row + 1);
-		_base->getSoldiers()->at(row + 1) = s;
+		size_t baseIndexNext = _filteredIndicesOfSoldiers.at(row + 1);
+		_base->getSoldiers()->at(baseIndex) = _base->getSoldiers()->at(baseIndexNext);
+		_base->getSoldiers()->at(baseIndexNext) = s;
 		if (row != _lstSoldiers->getVisibleRows() - 1 + _lstSoldiers->getScroll())
 		{
 			SDL_WarpMouse(action->getLeftBlackBand() + action->getXMouse(), action->getTopBlackBand() + action->getYMouse() + static_cast<Uint16>(8 * action->getYScale()));
