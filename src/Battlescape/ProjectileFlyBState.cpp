@@ -172,6 +172,13 @@ void ProjectileFlyBState::init()
 				_parent->popState();
 				return;
 			}
+			if (_unit->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || _unit->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq))
+			{
+				// out of range of any weapon in hands
+				_action.result = "STR_OUT_OF_RANGE";
+				_parent->popState();
+				return;
+			}
 			// Align Active Hand = Main Hand for proper weapon switching process during AI activity, reaction shot and berserk state
 			if (weapon != _unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()))
 			{
