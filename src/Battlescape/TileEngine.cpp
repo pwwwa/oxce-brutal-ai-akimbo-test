@@ -3234,13 +3234,14 @@ TileEngine::ReactionScore TileEngine::determineReactionType(BattleUnit *unit, Ba
 		if ( unit->isAkimbo() && _save->canUseWeapon(unit->getLeftHandWeapon(), unit, false, BA_AKIMBOSHOT) &&
 			_save->canUseWeapon(unit->getRightHandWeapon(), unit, false, BA_AKIMBOSHOT)	&&
 			( unit->getTimeUnits() >=
-				(unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time + unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time) ) )
+			 (unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
+			  unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time) ) )
 		{
 			// Is unit able to perform akimbo shooting with each gun`s ammo
-			if (!unit->getLeftHandWeapon()->getRules()->isOutOfRange(unit->distance3dToUnitSq(target))
-				&& !unit->getRightHandWeapon()->getRules()->isOutOfRange(unit->distance3dToUnitSq(target))
-				&& unit->getLeftHandWeapon()->getAmmoForAction(BA_AKIMBOSHOT)
-				&& unit->getRightHandWeapon()->getAmmoForAction(BA_AKIMBOSHOT))
+			if ( !unit->getLeftHandWeapon()->getRules()->isOutOfRange(unit->distance3dToUnitSq(target)) &&
+				 !unit->getRightHandWeapon()->getRules()->isOutOfRange(unit->distance3dToUnitSq(target)) &&
+				  unit->getLeftHandWeapon()->getAmmoForAction(BA_AKIMBOSHOT) &&
+				  unit->getRightHandWeapon()->getAmmoForAction(BA_AKIMBOSHOT) )
 			{
 				setReaction(reaction, BA_AKIMBOSHOT, weapon);
 				return reaction;
@@ -6091,7 +6092,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 				bool isHighEnough = false;
 				for (int i = Mod::EXTENDED_TERRAIN_MELEE; i < 12; ++i)
 				{
-					if (obj->getLoftID(i) > 0)
+					if (obj->getLoftID(i) >= 0)
 					{
 						isHighEnough = true;
 						break;

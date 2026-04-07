@@ -202,8 +202,10 @@ int Mod::EXTENDED_UNDERWATER_THROW_FACTOR;
 bool Mod::EXTENDED_EXPERIENCE_AWARD_SYSTEM;
 bool Mod::EXTENDED_FORCE_SPAWN;
 int Mod::EXTENDED_SMOKE_OFFSET;
+float Mod::TRANSFER_COST_MULT;
 
 extern std::string OXCE_CURRENCY_SYMBOL;
+
 
 constexpr size_t MaxDifficultyLevels = 5;
 
@@ -321,6 +323,7 @@ void Mod::resetGlobalStatics()
 	EXTENDED_SMOKE_OFFSET = 0;
 
 	OXCE_CURRENCY_SYMBOL = "$";
+	TRANSFER_COST_MULT = 1.0;
 }
 
 /**
@@ -2738,6 +2741,7 @@ void Mod::loadConstants(const YAML::YamlNodeReader &reader)
 	reader.tryRead("extendedSmokeOffset", EXTENDED_SMOKE_OFFSET);
 
 	reader.tryRead("extendedCurrencySymbol", OXCE_CURRENCY_SYMBOL);
+	reader.tryRead("globeTransferCostMult", TRANSFER_COST_MULT);
 }
 
 /**

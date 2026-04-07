@@ -1484,8 +1484,10 @@ void Map::drawTerrain(Surface *surface)
 										}
 
 										bool outOfRange = (action->type == BA_THROW)
-															  ? weapon->isOutOfThrowRange(distanceSq, _save->getDepth())
-															  : weapon->isOutOfRange(distanceSq);
+														? weapon->isOutOfThrowRange(distanceSq, _save->getDepth())
+														: (action->type == !BA_AKIMBOSHOT)
+														? weapon->isOutOfRange(distanceSq)
+														: unit->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || unit->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq);
 
 										// zero accuracy or out of range: set it red.
 										if (accuracy <= 0 || outOfRange)
@@ -1664,7 +1666,9 @@ void Map::drawTerrain(Surface *surface)
 											}
 
 											int distanceSq = action->actor->distance3dToPositionSq(Position(itX, itY, itZ));
-											bool outOfRange = weapon->isOutOfRange(distanceSq);
+											bool outOfRange = (action->type == BA_AKIMBOSHOT)
+															? action->actor->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || action->actor->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq)
+															: weapon->isOutOfRange(distanceSq);
 
 											if (isSniperShot)
 											{
@@ -1859,10 +1863,11 @@ void Map::drawTerrain(Surface *surface)
 							if (_save->getBattleGame()->getCurrentAction()->type == BA_LAUNCH || _save->getBattleGame()->getCurrentAction()->sprayTargeting)
 							{
 								_numWaypid->setValue(waypid);
+								_numWaypid->setBordered(true);
 								_numWaypid->draw();
 								_numWaypid->blitNShade(surface, screenPosition.x + waypXOff, screenPosition.y + waypYOff, 0);
 
-								waypXOff += waypid > 9 ? 8 : 6;
+								waypXOff += waypid > 9 ? 10 : 6; // 9 ? 8 : 6;
 								if (waypXOff >= 26)
 								{
 									waypXOff = 2;

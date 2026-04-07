@@ -1065,6 +1065,10 @@ bool Projectile::move()
 			_position--;
 			return false;
 		}
+		if (_ammo && _ammo->getRules()->getProjectileRangeEvent() && _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(getPosition().toTile())) )
+		{ // stop projectile fly, if it passed defined limited range and has "special" projectile type
+			return false;
+		}
 
 		_distance += TileEngine::trajectoryStepSize(_trajectory, _position);
 
