@@ -232,6 +232,7 @@ void ActionMenuState::addItem(BattleActionType ba, const std::string &name, int 
 	if (ba == BA_AKIMBOSHOT)
 	{
 		tu += _action->actor->getActionTUs(ba, _action->actor->getOppositeHandWeapon()).Time;
+		acc = (acc + _action->actor->getFiringAccuracy(BattleActionAttack::GetBeforeShoot(ba, _action->actor, _action->actor->getOppositeHandWeapon()), _game->getMod())) / 2;
 	}
 
 	if (ba == BA_THROW || ba == BA_AIMEDSHOT || ba == BA_SNAPSHOT || ba == BA_AKIMBOSHOT || ba == BA_AUTOSHOT || ba == BA_LAUNCH || ba == BA_HIT)
@@ -497,7 +498,7 @@ void ActionMenuState::handleAction()
 		}
 		else if (_action->type == BA_HIT)
 		{
-			bool isForcedMeleeToFloor = _game->isCtrlPressed() && _game->getSavedGame()->getSavedBattle()->getSide() == FACTION_PLAYER && _action->actor->getFaction() == FACTION_PLAYER;
+			bool isForcedMeleeToFloor = _game->isCtrlPressed(true) && _game->getSavedGame()->getSavedBattle()->getSide() == FACTION_PLAYER && _action->actor->getFaction() == FACTION_PLAYER && !_action->actor->getTile()->hasNoFloor();
 			// check beforehand if we have enough time units
 			if (!_action->haveTU(&_action->result))
 			{

@@ -73,8 +73,8 @@ void UnitPanicBState::think()
 				ba.type = BA_AKIMBOSHOT;
 				ba.updateTU();
 				bool canShoot = ba.haveTU() && _unit->isAkimbo() &&
-								_parent->getSave()->canUseWeapon(_unit->getLeftHandWeapon(), ba.actor, _berserking, ba.type) &&
-								_parent->getSave()->canUseWeapon(_unit->getRightHandWeapon(), ba.actor, _berserking, ba.type) &&
+								_parent->getSave()->canUseWeapon(_unit->getLeftHandWeapon(), _unit, _berserking, ba.type) &&
+								_parent->getSave()->canUseWeapon(_unit->getRightHandWeapon(), _unit, _berserking, ba.type) &&
 								(_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
 								 _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time));
 
@@ -116,7 +116,12 @@ void UnitPanicBState::think()
 						for (auto* bu : *_unit->getVisibleUnits())
 						{
 							int newDist = Position::distance2d(_unit->getPosition(), bu->getPosition());
-							if (newDist < dist)
+							if ( newDist < dist &&
+							( (!ba.type == BA_AKIMBOSHOT && !ba.weapon->getRules()->isOutOfRange(_unit->distance3dToPositionSq(bu->getPosition()))) ||
+							( ba.type == BA_AKIMBOSHOT &&
+							!_unit->getLeftHandWeapon()->getRules()->isOutOfRange(_unit->distance3dToPositionSq(bu->getPosition())) &&
+							!_unit->getRightHandWeapon()->getRules()->isOutOfRange(_unit->distance3dToPositionSq(bu->getPosition())) ) ) )
+
 							{
 								ba.target = bu->getPosition();
 								dist = newDist;
@@ -124,8 +129,12 @@ void UnitPanicBState::think()
 						}
 					}
 					else // otherwise shoot randomly
-					{
-						ba.target = Position(_unit->getPosition().x + RNG::generate(-6,6), _unit->getPosition().y + RNG::generate(-6,6), _unit->getPosition().z);
+					{	// check max possible weapon range, compare it with default "vanilla" max berserk 6 range and pick minimal
+						int range =	ba.type != BA_AKIMBOSHOT
+								  ? std::min(6, ba.weapon->getRules()->getMaxRange())
+								  : std::min({6, _unit->getLeftHandWeapon()->getRules()->getMaxRange(), _unit->getRightHandWeapon()->getRules()->getMaxRange()});
+							
+						ba.target = Position(_unit->getPosition().x + RNG::generate(-range,range), _unit->getPosition().y + RNG::generate(-range,range), _unit->getPosition().z);
 					}
 					// include the cost for facing our target
 					int turnCost = std::abs(_unit->getDirection() - _unit->directionTo(ba.target));

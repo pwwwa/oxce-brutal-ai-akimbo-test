@@ -541,7 +541,7 @@ bool ProjectileFlyBState::createNewProjectile()
 			_action.updateTU();
 		}
 		// allow player to reverse "spread" sequence with pressed "Alt" button (dynamic).
-		if ( _action.sprayTargeting && _parent->getSave()->isAltPressed() )
+		if ( _action.sprayTargeting && _parent->getSave()->isAltPressed(true) )
 		{
 			_action.waypoints.reverse();
 		}
@@ -746,9 +746,11 @@ void ProjectileFlyBState::think()
 		bool unitCanFly = _action.actor->getMovementType() == MT_FLY;
 		bool isAkimbo = _action.type == BA_AKIMBOSHOT;
 
-		if ( ( (!isAkimbo && _action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter)
-			&& _ammo->getAmmoQuantity() != 0) || isAkimbo )
-			&& !_action.actor->isOut() && (hasFloor || unitCanFly) )
+		if ( ( (!isAkimbo &&
+				_action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter) &&
+				_ammo->getAmmoQuantity() != 0) ||
+				isAkimbo ) &&
+				!_action.actor->isOut() && (hasFloor || unitCanFly) )
 		{
 			createNewProjectile();
 			if (_action.cameraPosition.z != -1)
@@ -790,6 +792,14 @@ void ProjectileFlyBState::think()
 		}
 		if (!_parent->getMap()->getProjectile()->move())
 		{
+			if (_ammo && _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(_parent->getMap()->getProjectile()->getPosition().toTile())))
+			{
+				switch (_ammo->getRules()->getProjectileRangeEvent())
+				{
+				case 1:	_projectileImpact = V_EMPTY; break;
+				case 2:	_projectileImpact = V_OUTOFBOUNDS; break;
+				}
+			}
 			// impact !
 			if (_action.type == BA_THROW)
 			{

@@ -1740,9 +1740,12 @@ int AIModule::scoreFiringMode(BattleAction *action, BattleUnit *target, bool che
 		}
 	}
 
-	bool outOfRange = action->type == BA_THROW
-		? weapon->isOutOfThrowRange(distanceSq, _save->getDepth())
-		: weapon->isOutOfRange(distanceSq);
+	bool outOfRange =
+		action->type == BA_THROW
+			? weapon->isOutOfThrowRange(distanceSq, _save->getDepth())
+		: action->type == !BA_AKIMBOSHOT
+			? weapon->isOutOfRange(distanceSq)
+			: _unit->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || _unit->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq);
 
 	if (outOfRange)
 	{
@@ -2547,9 +2550,10 @@ void AIModule::projectileAction()
 	if (distance < 4)
 	{
 		if (_unit->isAkimbo() && costAkimbo.haveTU() &&
-			_unit->getOppositeHandWeapon()->haveAnyAmmo() &&
+			_unit->getLeftHandWeapon()->haveAnyAmmo() &&
+			_unit->getRightHandWeapon()->haveAnyAmmo() &&
 			_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
-			_unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time) )
+								      _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time) )
 		{
 			_attackAction.type = BA_AKIMBOSHOT;
 			return;
@@ -2588,7 +2592,8 @@ void AIModule::projectileAction()
 	}
 
 	if (_unit->isAkimbo() && costAkimbo.haveTU() &&
-		_unit->getOppositeHandWeapon()->haveAnyAmmo() &&
+		_unit->getLeftHandWeapon()->haveAnyAmmo() &&
+		_unit->getRightHandWeapon()->haveAnyAmmo() &&
 		_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
 								  _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
 	{
@@ -2620,7 +2625,8 @@ void AIModule::extendedFireModeChoice(BattleActionCost& costAuto, BattleActionCo
 	}
 
 	if (_unit->isAkimbo() && costAkimbo.haveTU() &&
-		_unit->getOppositeHandWeapon()->haveAnyAmmo() &&
+		_unit->getLeftHandWeapon()->haveAnyAmmo() &&
+		_unit->getRightHandWeapon()->haveAnyAmmo() &&
 		_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
 								  _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
 
@@ -5166,7 +5172,8 @@ float AIModule::brutalExtendedFireModeChoice(BattleActionCost &costAuto, BattleA
 		attackOptions.push_back(BA_AIMEDSHOT);
 	}
 	if (_unit->isAkimbo() && costAkimbo.haveTU() &&
-		_unit->getOppositeHandWeapon()->haveAnyAmmo() &&
+		_unit->getLeftHandWeapon()->haveAnyAmmo() &&
+		_unit->getRightHandWeapon()->haveAnyAmmo() &&
 		_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
 								  _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
 	{
@@ -5249,7 +5256,7 @@ float AIModule::brutalScoreFiringMode(BattleAction* action, BattleUnit* target, 
 		}
 		else if (action->type == BA_AKIMBOSHOT)
 		{
-			upperLimit = action->weapon->getRules()->getAkimboRange();
+			upperLimit = std::min(action->actor->getLeftHandWeapon()->getRules()->getAkimboRange(), action->actor->getRightHandWeapon()->getRules()->getAkimboRange());
 		}
 		else if (action->type == BA_AUTOSHOT)
 		{
@@ -5259,7 +5266,9 @@ float AIModule::brutalScoreFiringMode(BattleAction* action, BattleUnit* target, 
 		{
 			upperLimit = action->weapon->getRules()->getSnapRange();
 		}
-		int lowerLimit = action->weapon->getRules()->getMinRange();
+		int lowerLimit = action->type != BA_AKIMBOSHOT
+		? action->weapon->getRules()->getMinRange()
+		: std::min(action->actor->getRightHandWeapon()->getRules()->getAkimboRange(), action->actor->getRightHandWeapon()->getRules()->getAkimboRange());
 
 		if (distance > upperLimit)
 		{
@@ -5290,7 +5299,12 @@ float AIModule::brutalScoreFiringMode(BattleAction* action, BattleUnit* target, 
 			accuracy *= action->weapon->getRules()->getNoLOSAccuracyPenalty(_save->getMod()) / 100.0;
 	}
 
-	if (action->type != BA_THROW && action->weapon->getRules()->isOutOfRange(distanceSq))
+	if ( (action->type != BA_THROW && action->type != BA_AKIMBOSHOT &&
+		  action->weapon->getRules()->isOutOfRange(distanceSq)) ||       
+	    ( action->type == BA_AKIMBOSHOT &&
+		 (action->actor->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) ||
+		  action->actor->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq)) ) )
+
 		accuracy = 0;
 	if (action->type == BA_HIT)
 	{
@@ -5857,7 +5871,7 @@ void AIModule::brutalBlaster()
 					if (wpPosition.z != targetNode->getPrevNode()->getPosition().z)
 						zChange = true;
 					bool losBreak = false;
-					if (!hasTileSight(targetNode->getPrevNode()->getPosition(), _attackAction.waypoints.front()))
+					if (!_attackAction.waypoints.empty() && !hasTileSight(targetNode->getPrevNode()->getPosition(), _attackAction.waypoints.front()))
 						losBreak = true;
 					//If we have unlimited way-points for our blaster, we might as well put a way-point on every single node along the path
 					if (_attackAction.weapon->getCurrentWaypoints() == -1)
@@ -6279,9 +6293,9 @@ int AIModule::maxExtenderRangeWith(BattleUnit *unit, int tus)
 		highestRangeAvailableWithTUs = weapon->getRules()->getAimRange();
 	if (weapon->getRules()->getCostSnap().Time > 0 && unit->getActionTUs(BA_SNAPSHOT, weapon).Time < tus)
 		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, weapon->getRules()->getSnapRange());
-	if (unit->isAkimbo() && (unit->getActionTUs(BA_AKIMBOSHOT, unit->getLeftHandWeapon()).Time + 
-							 unit->getActionTUs(BA_AKIMBOSHOT, unit->getRightHandWeapon()).Time) <= tus)
-		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, std::max(unit->getLeftHandWeapon()->getRules()->getAkimboRange(),
+	if (unit->isAkimbo() && ((unit->getActionTUs(BA_AKIMBOSHOT, unit->getLeftHandWeapon()).Time + 
+							 unit->getActionTUs(BA_AKIMBOSHOT, unit->getRightHandWeapon()).Time) <= tus))
+		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, std::min(unit->getLeftHandWeapon()->getRules()->getAkimboRange(),
 																					   unit->getRightHandWeapon()->getRules()->getAkimboRange()));
 	if (weapon->getRules()->getCostAuto().Time > 0 && unit->getActionTUs(BA_AUTOSHOT, weapon).Time < tus)
 		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, weapon->getRules()->getAutoRange());
@@ -7158,9 +7172,9 @@ float AIModule::damagePotential(Position pos, BattleUnit* target, int tuTotal, i
 				{
 					upperLimit = weapon->getRules()->getAimRange();
 				}
-				else if (bat == BA_AKIMBOSHOT)
+				else if (bat == BA_AKIMBOSHOT && _unit->isAkimbo())
 				{
-					upperLimit = weapon->getRules()->getAkimboRange();
+					upperLimit = std::min(_unit->getLeftHandWeapon()->getRules()->getAkimboRange(), _unit->getRightHandWeapon()->getRules()->getAkimboRange());
 				}
 				else if (bat == BA_AUTOSHOT)
 				{
@@ -7170,7 +7184,9 @@ float AIModule::damagePotential(Position pos, BattleUnit* target, int tuTotal, i
 				{
 					upperLimit = weapon->getRules()->getSnapRange();
 				}
-				int lowerLimit = weapon->getRules()->getMinRange();
+				int lowerLimit = bat != BA_AKIMBOSHOT
+				? weapon->getRules()->getMinRange()
+				: std::min(_unit->getLeftHandWeapon()->getRules()->getMinRange(), _unit->getRightHandWeapon()->getRules()->getMinRange());
 
 				if (distance > upperLimit)
 				{

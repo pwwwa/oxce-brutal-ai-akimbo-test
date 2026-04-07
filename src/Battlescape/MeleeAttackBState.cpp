@@ -138,20 +138,31 @@ void MeleeAttackBState::init()
 		_target = _parent->getSave()->getTile(_action.target)->getUnit();
 	}
 
-	bool isForcedMeleeToFloor = _parent->getSave()->isCtrlPressed() && _parent->getSave()->getSide() == FACTION_PLAYER && _unit->getFaction() == FACTION_PLAYER;
+	bool isForcedMeleeToFloor = _parent->getSave()->isCtrlPressed(true) && _parent->getSave()->getSide() == FACTION_PLAYER && _unit->getFaction() == FACTION_PLAYER && !_unit->getTile()->hasNoFloor();
 
 	if (!isForcedMeleeToFloor && !_target)
 	{
 		throw Exception("This is a known (but tricky) bug... still fixing it, sorry. In the meantime, try save scumming option or kill all aliens in debug mode to finish the mission.");
 	}
 
-	int height = isForcedMeleeToFloor ? 1 : _target->getFloatHeight() + (_target->getHeight() * 2 / 3) - _parent->getSave()->getTile(_action.target)->getTerrainLevel();
+	int height = !isForcedMeleeToFloor
+		? _target->getFloatHeight() + (_target->getHeight() * 2 / 3) - _parent->getSave()->getTile(_action.target)->getTerrainLevel()
+		: 1 - _unit->getTile()->getTerrainLevel() / 2;
 
 	if (isForcedMeleeToFloor)
-	{
-		if (_parent->getSave()->isAltPressed())
-			{ // Let hit weird tiles feet ("floor type" objects in wall postions)
-				height = std::max(3, -_parent->getSave()->getTile(_unit->getPosition())->getTerrainLevel() / 2);
+	{ // Let check presence of any alive unit under feet and apply their height
+		if (_unit->getTile()->getTopItem())
+		{
+			BattleUnit* unitFloor = _unit->getTile()->getTopItem()->getUnit();
+
+			if (unitFloor && unitFloor->getStatus() == STATUS_UNCONSCIOUS)
+			{
+				height = unitFloor->getPosition().toTile().z;
+			}
+		}
+		if (_parent->getSave()->isAltPressed(true))
+			{ // Adjust height for trying to hit weird tile parts ("floor type" objects in wall postions and etc.)
+				height = 3 -_unit->getTile()->getTerrainLevel();
 			}
 
 		_voxel = _unit->getPosition().toVoxel() + Position(8, 8, height);
