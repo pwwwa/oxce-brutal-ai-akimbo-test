@@ -2551,14 +2551,11 @@ void AIModule::projectileAction()
 	{
 		if (_unit->isAkimbo() && costAkimbo.haveTU() &&
 			_unit->getLeftHandWeapon()->haveAnyAmmo() &&
-			_unit->getRightHandWeapon()->haveAnyAmmo() &&
-			_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
-								      _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time) )
+			_unit->getRightHandWeapon()->haveAnyAmmo())
 		{
 			_attackAction.type = BA_AKIMBOSHOT;
 			return;
 		}
-
 		if (costAuto.haveTU())
 		{
 			_attackAction.type = BA_AUTOSHOT;
@@ -2593,9 +2590,7 @@ void AIModule::projectileAction()
 
 	if (_unit->isAkimbo() && costAkimbo.haveTU() &&
 		_unit->getLeftHandWeapon()->haveAnyAmmo() &&
-		_unit->getRightHandWeapon()->haveAnyAmmo() &&
-		_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
-								  _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
+		_unit->getRightHandWeapon()->haveAnyAmmo())
 	{
 		_attackAction.type = BA_AKIMBOSHOT;
 		return;
@@ -2626,9 +2621,7 @@ void AIModule::extendedFireModeChoice(BattleActionCost& costAuto, BattleActionCo
 
 	if (_unit->isAkimbo() && costAkimbo.haveTU() &&
 		_unit->getLeftHandWeapon()->haveAnyAmmo() &&
-		_unit->getRightHandWeapon()->haveAnyAmmo() &&
-		_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
-								  _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
+		_unit->getRightHandWeapon()->haveAnyAmmo())
 
 	{
 		attackOptions.push_back(BA_AKIMBOSHOT);
@@ -5173,9 +5166,7 @@ float AIModule::brutalExtendedFireModeChoice(BattleActionCost &costAuto, BattleA
 	}
 	if (_unit->isAkimbo() && costAkimbo.haveTU() &&
 		_unit->getLeftHandWeapon()->haveAnyAmmo() &&
-		_unit->getRightHandWeapon()->haveAnyAmmo() &&
-		_unit->getTimeUnits() >= (_unit->getLeftHandWeapon()->getRules()->getCostAkimbo().Time +
-								  _unit->getRightHandWeapon()->getRules()->getCostAkimbo().Time))
+		_unit->getRightHandWeapon()->haveAnyAmmo())
 	{
 		attackOptions.push_back(BA_AKIMBOSHOT);
 	}

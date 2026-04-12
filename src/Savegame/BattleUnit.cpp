@@ -4097,7 +4097,7 @@ BattleItem* BattleUnit::getOppositeHandWeapon() const
 
 bool BattleUnit::isAkimbo() const
 {
-	if (getLeftHandWeapon() && getRightHandWeapon())
+	if (Options::akimboMod && getLeftHandWeapon() && getRightHandWeapon())
 	{
 		if (getLeftHandWeapon()->getRules()->getCostAkimbo().Time && getRightHandWeapon()->getRules()->getCostAkimbo().Time)
 		{

@@ -690,6 +690,16 @@ void RuleItem::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript&
 	_scriptValues.load(reader, parsers.getShared());
 
 	_battleItemScripts.load(_type, reader, parsers.battleItemScripts);
+
+	if (!getCostAkimbo().Time && !isFixed() && isPistol() && getCostSnap().Time)
+	{ // Is pistol has no akimbo feature ? let fix it within shapshot config. 
+		auto temp = _confSnap;
+		_confAkimbo = temp;
+		_confAkimbo.cost.Time.setValue(getCostAkimbo().Time / 2 + 5);
+		_confAkimbo.accuracy -= 10;
+		_confAkimbo.range = 7;
+		_confAkimbo.name = "STR_AKIMBO_SHOT";
+	}
 }
 
 /**
@@ -1529,7 +1539,7 @@ RuleItemUseCost RuleItem::getCostSnap() const
  */
 RuleItemUseCost RuleItem::getCostAkimbo() const
 {
-	return getDefault(_confAkimbo.cost, _confAimed.cost);
+	return getDefault(_confAkimbo.cost, _confSnap.cost);
 }
 
 /**

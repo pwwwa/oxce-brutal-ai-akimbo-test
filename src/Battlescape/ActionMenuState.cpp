@@ -122,7 +122,7 @@ ActionMenuState::ActionMenuState(BattleAction *action, int x, int y) : _action(a
 		auto slotAuto = _action->weapon->getActionConf(BA_AUTOSHOT)->ammoSlot;
 		auto slotAkimbo = _action->weapon->getActionConf(BA_AKIMBOSHOT)->ammoSlot;
 
-		if ((!isLauncher || slotLauncher != slotAuto) && _action->actor->isAkimbo())
+		if ((!isLauncher || slotLauncher != slotAuto) && _action->actor->isAkimbo() && (Options::akimboMod == 2 || Options::akimboMod == 1 && _game->isCtrlPressed(true)))
 		{
 			addItem(BA_AKIMBOSHOT, weapon->getConfigAkimbo()->name, &id, Options::keyBattleActionItem6);
 		}

@@ -118,7 +118,9 @@ en-US:
   STR_MORALE_ATTACK_SUCCESS_NOTIFY_DESC: "Notify player about morale attack success.{NEWLINE}0 - No notify (Vanilla), 1 - Flash message, 2 - Info Box."
  #Akimbo options
   STR_AKIMBO_SHOT: "Akimbo Shots"
-  STR_SHOT_TYPE_AKIMBO: "Akimbo Shots"
+  STR_SHOT_TYPE_AKIMBO: "Akimbo"
   STR_RESERVE_TIME_UNITS_FOR_AKIMBO_SHOT: "Reserve TUs for Akimbo Shots"
   STR_TIME_UNITS_RESERVED_FOR_AKIMBO_SHOT: "Time units reserved for akimbo shots"
   STR_ACTION_ITEM_6: "Item Action 6 (Akimbo)"
+  STR_AKIMBO_MOD: "Akimbo shooting"
+  STR_AKIMBO_MOD_DESC: "Allow dual-wield shooting mode for weapons.{NEWLINE}0 - Disable, 1 - Enable, but CTRL+click on the weapon to access.{NEWLINE}2 - Fully Enable. Each pistol gets this feature."
