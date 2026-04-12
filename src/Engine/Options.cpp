@@ -584,6 +584,7 @@ void createAdvancedOptionsOTHER()
 	_info.push_back(OptionInfo(OPTION_OTHER, "baseDetectionProbability", &baseDetectionProbability, false, "STR_DISPLAY_BASE_DETECTION_PROBABILITY", "STR_BASESCAPE"));
 
 	// OTHER options Battlescape
+	_info.push_back(OptionInfo(OPTION_OTHER, "akimboMod", &akimboMod, 0, "STR_AKIMBO_MOD", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "moraleAttackSuccessNotify", &moraleAttackSuccessNotify, 0, "STR_MORALE_ATTACK_SUCCESS_NOTIFY", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "forcedAbsoluteCosts", &forcedAbsoluteCosts, false, "STR_FORCED_ABSOLUTE_COSTS", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "shootingSpreadMode", &shootingSpreadMode, 1, "STR_SHOOTING_SPREAD_MODE", "STR_BATTLESCAPE"));

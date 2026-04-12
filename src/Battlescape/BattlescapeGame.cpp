@@ -99,6 +99,17 @@ void BattleActionCost::clearTU()
  */
 bool BattleActionCost::haveTU(std::string *message)
 {
+
+	if (type == BA_AKIMBOSHOT)
+	{	// it allows to remove mass code usage checking for both weapons in hands at several places, but requires some adjustment for reserveTU checking
+		Time = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Time + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Time;
+		Energy = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Energy + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Energy;
+		Morale = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Morale + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Morale;
+		Health = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Health + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Health;
+		Stun = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Stun + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Stun;
+		Mana = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Mana + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Mana;
+	}
+
 	if (!skillRules && Time <= 0)
 	{
 		//no action, no message
@@ -1468,9 +1479,6 @@ bool BattlescapeGame::checkReservedTU(BattleUnit *bu, int tu, int energy, bool j
 		cost.Time = tu; //override original
 		switch (cost.type)
 		{
-		case BA_AKIMBOSHOT:
-			cost.Time += _currentAction.actor->getActionTUs(BA_AKIMBOSHOT, _currentAction.actor->getOppositeHandWeapon()).Time
-				+ (bu->getBaseStats()->tu / 2);	break; // ~50%
 		case BA_SNAPSHOT: cost.Time += (bu->getBaseStats()->tu / 3); break; // 33%
 		case BA_AUTOSHOT: cost.Time += ((bu->getBaseStats()->tu / 5)*2); break; // 40%
 		case BA_AIMEDSHOT: cost.Time += (bu->getBaseStats()->tu / 2); break; // 50%
@@ -1491,20 +1499,6 @@ bool BattlescapeGame::checkReservedTU(BattleUnit *bu, int tu, int energy, bool j
 	{
 		cost.type = BA_AIMEDSHOT;
 		cost.updateTU();
-	}
-	// reserve correct (left + right hand) TUs for akimbo reaction shot
-	if (cost.type == BA_AKIMBOSHOT)
-	{
-		cost.updateTU();
-
-		if (_currentAction.actor->isAkimbo())
-		{
-			cost.Time += _currentAction.actor->getActionTUs(BA_AKIMBOSHOT, _currentAction.actor->getOppositeHandWeapon()).Time;
-		}
-		else
-		{
-			cost.Time = 0;
-		}
 	}
 
 	const int tuKneel = (_save->getKneelReserved() && !bu->isKneeled()  && bu->getArmor()->allowsKneeling(bu->getType() == "SOLDIER")) ? bu->getKneelDownCost() : 0;
@@ -1532,7 +1526,9 @@ bool BattlescapeGame::checkReservedTU(BattleUnit *bu, int tu, int energy, bool j
 	cost.Time += tu;
 	cost.Energy += energy;
 
-	if ((cost.type != BA_NONE || _save->getKneelReserved()) && !cost.haveTU())
+	if ( ( (cost.type != BA_NONE || _save->getKneelReserved()) && !cost.haveTU() )		 ||
+		  ( cost.type == BA_AKIMBOSHOT && (cost.Time + tu + tuKneel > bu->getTimeUnits() ||
+			cost.Energy + energy > bu->getEnergy()) ) )
 	{
 		if (!justChecking)
 		{

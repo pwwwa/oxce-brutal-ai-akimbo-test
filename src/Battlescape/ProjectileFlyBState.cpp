@@ -164,14 +164,7 @@ void ProjectileFlyBState::init()
 		break;
 	case BA_AKIMBOSHOT:
 		if (_unit->isAkimbo())
-		{
-			// temp solution due HaveTU() func doesn`t consider both weapons parameters. Perhaps need to add checking for other unit stats like energy, stun, mana & etc.
-			if (_unit->getTimeUnits() < (_unit->getActionTUs(BA_AKIMBOSHOT, weapon).Time + _unit->getActionTUs(BA_AKIMBOSHOT, _unit->getOppositeHandWeapon()).Time))
-			{
-				_action.result = "STR_NOT_ENOUGH_TIME_UNITS";
-				_parent->popState();
-				return;
-			}
+		{	
 			if (_unit->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || _unit->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq))
 			{
 				// out of range of any weapon in hands
@@ -458,16 +451,6 @@ void ProjectileFlyBState::init()
 			_parent->getMap()->setFollowProjectile(false);
 		}
 		if (_range == 0) _action.spendTU();
-
-		if (_action.type == BA_AKIMBOSHOT)
-		{ // Spend TU also from opposite weapon`s stats (temp solution (?))
-			BattleItem* origWeapon = _action.weapon;
-			_action.weapon = _unit->getOppositeHandWeapon();
-			_action.updateTU();
-			_action.spendTU();
-			_action.weapon = origWeapon;
-		}
-
 		_parent->getMap()->setCursorType(CT_NONE);
 		_parent->getMap()->getCamera()->stopMouseScrolling();
 		_parent->getMap()->disableObstacles();
@@ -488,14 +471,14 @@ bool ProjectileFlyBState::createNewProjectile()
 {
 	++_action.autoShotCounter;
 
-	/***********************\ 
-	*  AKIMBO SHOTS SECTION  *
-	\***********************/
+	/*********************\ 
+	* AKIMBO SHOTS SECTION *
+	\*********************/
 	if ( _action.type == BA_AKIMBOSHOT )
 	{	// Remember original Active Hand weapon and ammo for hand iteration mechanism (ammo address need for projectile and impact "alignment")
 		BattleItem *originWeapon = const_cast<BattleItem*>(_unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()));
 		BattleItem *originAmmo = originWeapon ? originWeapon->getAmmoForAction(_action.type) : 0; 
-		// Make possible last shots (if it supposes) during forced claiming inactive hand as active hand caused by dissarearing weapon mechanic 
+		// Make possible remained shots (if it supposes) when weapon dissapeared and inactive hand asignes as active hand due ActiveHand result
 		if (originWeapon && originAmmo && !_unit->getOppositeHandWeapon() && _action.opWeaponCounter < _action.actWeaponShotQnty)
 		{
 			_action.actWeaponCounter = _action.opWeaponCounter;
@@ -510,12 +493,12 @@ bool ProjectileFlyBState::createNewProjectile()
 		{
 			_action.opWeaponCounter = _action.opWeaponShotQnty;
 		}
-		// All shots are done - stop shooting
+		// All shots are done or impossible - stop shooting
 		if (_action.actWeaponCounter >= _action.actWeaponShotQnty &&
 			_action.opWeaponCounter >= _action.opWeaponShotQnty)
 		{
 			_parent->popState();
-			// Lacks of weapon in hands when shooting is finished - cancel action and return "normal" cursor
+			// Lacks of weapon in any hand when shooting is finished - cancel action and return "normal" cursor
 			if (!originWeapon || !_unit->getOppositeHandWeapon())
 			{
 				_parent->cancelCurrentAction();
@@ -793,7 +776,7 @@ void ProjectileFlyBState::think()
 		if (!_parent->getMap()->getProjectile()->move())
 		{
 			if (_ammo && _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(_parent->getMap()->getProjectile()->getPosition().toTile())))
-			{
+			{ // Projectile has special event property, when stopped at restricted range, let handle it
 				switch (_ammo->getRules()->getProjectileRangeEvent())
 				{
 				case 1:	_projectileImpact = V_EMPTY; break;
@@ -865,7 +848,7 @@ void ProjectileFlyBState::think()
 					_action.weapon->spendAmmoForAction(_action.type, _parent->getSave());
 				}
 
-				if (_projectileImpact != V_OUTOFBOUNDS)
+				if (_projectileImpact != V_OUTOFBOUNDS || (_ammo && _ammo->getRules()->getShotgunPellets()))
 				{
 					bool shotgun = _ammo && _ammo->getRules()->getShotgunPellets() != 0 && _ammo->getRules()->getDamageType()->isDirect();
 					int offset = 0;
@@ -881,6 +864,11 @@ void ProjectileFlyBState::think()
 						noMoreShotsToShoot(),
 						shotgun ? 0 : _range + _parent->getMap()->getProjectile()->getDistance()
 					));
+
+					if (_projectileImpact == V_OUTOFBOUNDS)
+					{
+						_parent->getMap()->getExplosions()->clear();
+					}
 
 					if (_projectileImpact == V_UNIT)
 					{
@@ -944,7 +932,7 @@ void ProjectileFlyBState::think()
 									{
 										projectileHitUnit(proj->getPosition(offset));
 									}
-									Explosion *explosion = new Explosion(proj->getPosition(offset), _ammo->getRules()->getHitAnimation(), 0, false, false, _ammo->getRules()->getHitAnimationFrames());
+									//Explosion *explosion = new Explosion(proj->getPosition(offset), _ammo->getRules()->getHitAnimation(), 0, false, false, _ammo->getRules()->getHitAnimationFrames());
 									int power = 0;
 									if (_action.weapon->getRules()->getIgnoreAmmoPower())
 									{
@@ -954,7 +942,7 @@ void ProjectileFlyBState::think()
 									{
 										power = _ammo->getRules()->getPowerBonus(attack) - _ammo->getRules()->getPowerRangeReduction(proj->getDistance());
 									}
-									_parent->getMap()->getExplosions()->push_back(explosion);
+									_parent->getMap()->getExplosions()->push_back(new Explosion(proj->getPosition(offset), _ammo->getRules()->getHitAnimation(), 0, false, false, _ammo->getRules()->getHitAnimationFrames()));
 									_parent->getSave()->getTileEngine()->hit(attack, proj->getPosition(offset), power, _ammo->getRules()->getDamageType());
 
 									//do not work yet

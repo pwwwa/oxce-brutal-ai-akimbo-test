@@ -116,7 +116,9 @@ ru:
   STR_MORALE_ATTACK_SUCCESS_NOTIFY_DESC: "Оповещать игрока об успешной психической атаке.{NEWLINE}0 - не оповещать (оригинал), 1 - всплывающее сообщение, 2 - инфо рамка."
  #Akimbo options
   STR_AKIMBO_SHOT: "Из двух рук"
-  STR_SHOT_TYPE_AKIMBO: "Из двух рук"
+  STR_SHOT_TYPE_AKIMBO: "2х-рук"
   STR_RESERVE_TIME_UNITS_FOR_AKIMBO_SHOT: "Резервировать ОД для стрельбы из двух рук"
   STR_TIME_UNITS_RESERVED_FOR_AKIMBO_SHOT: "Очки действия зарезервированы для стрельбы из друх рук"
   STR_ACTION_ITEM_6: "Действие 6 (Из двух рук)"
+  STR_AKIMBO_MOD: "Стрельба из двух рук"
+  STR_AKIMBO_MOD_DESC: "Разрешить режим стрельбы из двух рук.{NEWLINE}0 - Отключить, 1 - Включить, но для доступа нажмите CTRL+click на оружие. 2 - Включить полностью. Все пистолеты получают эту опцию."
