@@ -100,9 +100,9 @@ void BattleActionCost::clearTU()
 bool BattleActionCost::haveTU(std::string *message)
 {
 
-	if (type == BA_AKIMBOSHOT)
+	if (actor->isAkimbo() && type == BA_AKIMBOSHOT)
 	{	// it allows to remove mass code usage checking for both weapons in hands at several places, but requires some adjustment for reserveTU checking
-		Time = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Time + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Time;
+		Time = std::max(actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Time, actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Time);
 		Energy = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Energy + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Energy;
 		Morale = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Morale + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Morale;
 		Health = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Health + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Health;

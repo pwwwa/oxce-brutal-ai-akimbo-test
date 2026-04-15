@@ -289,31 +289,14 @@ BattlescapeState::BattlescapeState() :
 		Surface *tftdIcons = _game->getMod()->getSurface("TFTDReserve");
 		tftdIcons->blitNShade(icons, 48, 176);
 	}
+
 	// Add in custom reserve akimbo button
-	if (_game->getMod()->getSurface("akimboReserveIco", false) && Options::akimboMod)
+	if (_game->getMod()->getSurfaceSet("akimboReserveIco", false) && Options::akimboMod)
 	{
 		add(_btnReserveAkimbo);
-		_game->getMod()->getSurface("akimboReserveIco")->offset(1);
-		_btnReserveAkimbo->initSurfaces(_game->getMod()->getSurface("akimboReserveIco"));
-		_game->getMod()->getSurface("akimboReserveIco")->blitNShade(_btnReserveAkimbo, 0, 0, -1);
+		_btnReserveAkimbo->initSurfaces(_game->getMod()->getSurfaceSet("akimboReserveIco")->getFrame(1));
+		_game->getMod()->getSurfaceSet("akimboReserveIco")->getFrame(0)->blitNShade(_btnReserveAkimbo, 0, 0);
 	}
-
-	/**
-	{
-		Surface* akimboIcon = _game->getMod()->getSurface("akimboReserveIco");
-		{
-			if (_game->getMod()->getInterface("battlescape")->getElement("icons")->TFTDMode)
-			{
-				akimboIcon->blitNShade(icons, 245, 177);
-			}
-			else
-			{
-				akimboIcon->blitNShade(icons, 245, 177, -3);
-			}
-		}
-	}
-	*/
-
 
 	// there is some cropping going on here, because the icons image is 320x200 while we only need the bottom of it.
 	auto crop = icons->getCrop();

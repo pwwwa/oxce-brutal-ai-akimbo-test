@@ -231,8 +231,8 @@ void ActionMenuState::addItem(BattleActionType ba, const std::string &name, int 
 
 	if (ba == BA_AKIMBOSHOT)
 	{
-		tu += _action->actor->getActionTUs(ba, _action->actor->getOppositeHandWeapon()).Time;
-		acc = (acc + _action->actor->getFiringAccuracy(BattleActionAttack::GetBeforeShoot(ba, _action->actor, _action->actor->getOppositeHandWeapon()), _game->getMod())) / 2;
+		tu = std::max(_action->actor->getActionTUs(BA_AKIMBOSHOT, _action->actor->getLeftHandWeapon()).Time, _action->actor->getActionTUs(BA_AKIMBOSHOT, _action->actor->getRightHandWeapon()).Time);
+		acc = (acc + _action->actor->getFiringAccuracy(BattleActionAttack::GetBeforeShoot(ba, _action->actor, _action->actor->getOppositeHandWeapon()), _game->getMod())) >> 1;
 	}
 
 	if (ba == BA_THROW || ba == BA_AIMEDSHOT || ba == BA_SNAPSHOT || ba == BA_AKIMBOSHOT || ba == BA_AUTOSHOT || ba == BA_LAUNCH || ba == BA_HIT)
