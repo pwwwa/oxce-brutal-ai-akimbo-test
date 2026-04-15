@@ -695,7 +695,7 @@ void RuleItem::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript&
 	{ // Is pistol has no akimbo feature ? let fix it within shapshot config. 
 		auto temp = _confSnap;
 		_confAkimbo = temp;
-		_confAkimbo.cost.Time.setValue(getCostAkimbo().Time / 2 + 5);
+		_confAkimbo.cost.Time.setValue((getCostAkimbo().Time + 5));
 		_confAkimbo.accuracy -= 10;
 		_confAkimbo.range = 7;
 		_confAkimbo.name = "STR_AKIMBO_SHOT";
