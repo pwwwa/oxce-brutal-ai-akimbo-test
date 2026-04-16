@@ -5985,12 +5985,12 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 	if (direction < 0 || direction > 7)
 	{
 		return false;
-	} /**
-	if (direction % 2 != 0)
+	} 
+	if (!Options::diagTerrainMelee && direction % 2 != 0)
 	{
-		// diagonal directions are not supported
+		// diagonal directions are not supported. pWWWa: if proper option is not activated
 		return false;
-	} **/
+	}
 	Position p;
 	Pathfinding::directionToVector(direction, &p);
 	Tile* originTile = _save->getTile(pos);
@@ -6000,7 +6000,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 	Tile* neighbouringTile3 = nullptr;
 	int size = attacker->getArmor()->getSize();
 
-	if (originTile && originTile->getTerrainLevel() <= -16 && !_save->isAltPressed())
+	if (originTile && originTile->getTerrainLevel() <= -16 && !Options::diagTerrainMelee && !_save->isAltPressed(true))
 	{
 		// if we are on the upper part of stairs, target one tile above. + Let leave at the same tile altitude with pressed Alt, if there are need to hit stair under feet.
 		pos += Position(0, 0, 1);
@@ -6073,7 +6073,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			MapData* obj = tt->getMapData(tp);
 			if (obj)
 			{
-				if (dir > -1 && tp == O_OBJECT && !tt->getSavedGame()->isAltPressed())
+				if (dir > -1 && tp == O_OBJECT && !Options::diagTerrainMelee && !tt->getSavedGame()->isAltPressed(true))
 				{ 
 					auto bigWall = obj->getBigWall();
 					if (dir == 0 /*north*/ && bigWall != Pathfinding::BIGWALLNORTH && bigWall != Pathfinding::BIGWALLWESTANDNORTH) return false;
@@ -6247,7 +6247,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 				return true;
 			}
 		}
-		if (_save->isAltPressed() && direction % 2 != 0 &&
+		if (Options::diagTerrainMelee && _save->isAltPressed(true) && direction % 2 != 0 &&
 		   (setTarget(neighbouringTile2, O_OBJECT, action) ||
 			setTarget(neighbouringTile3, O_OBJECT, action)))
 		{

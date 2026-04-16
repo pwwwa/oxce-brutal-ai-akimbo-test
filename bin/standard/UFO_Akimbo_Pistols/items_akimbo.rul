@@ -1,23 +1,24 @@
 items:
   - type: STR_PISTOL
-    accuracyAkimbo: 55
-    tuAkimbo: 14
+    accuracyAkimbo: 53
+    tuAkimbo: 23
     akimboShots: 1
     flatAkimbo: false
     akimboRange: 10
     sprayWaypoints: 2
     
   - type: STR_LASER_PISTOL
-    accuracyAkimbo: 23
-    tuAkimbo: 18
+    accuracyAkimbo: 21
+    tuAkimbo: 30
     akimboShots: 3
     flatAkimbo: false
     akimboRange: 7
-    sprayWaypoints: 2
+    sprayWaypoints: 3
+    maxRange: 2
  
   - type: STR_PLASMA_PISTOL
-    accuracyAkimbo: 45
-    tuAkimbo: 20
+    accuracyAkimbo: 43
+    tuAkimbo: 35
     akimboShots: 3
     flatAkimbo: false
     akimboRange: 7

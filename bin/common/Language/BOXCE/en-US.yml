@@ -124,3 +124,6 @@ en-US:
   STR_ACTION_ITEM_6: "Item Action 6 (Akimbo)"
   STR_AKIMBO_MOD: "Akimbo shooting"
   STR_AKIMBO_MOD_DESC: "Allow dual-wield shooting mode for weapons.{NEWLINE}0 - Disable, 1 - Enable, but CTRL+click on the weapon to access.{NEWLINE}2 - Fully Enable. Each pistol gets this feature."
+  # Diagonal Terrain melee
+  STR_DIAG_TERRAIN_MELEE: "Diagonal Terrain Melee"
+  STR_DIAG_TERRAIN_MELEE_DESC: "Hitting terrain objects at diagonal directions with melee.{NEWLINE}Requires activated \"TerrainMeleeExtended\" feature.{NEWLINE}Alt+click - to hit objects at current and adjacent tiles."
