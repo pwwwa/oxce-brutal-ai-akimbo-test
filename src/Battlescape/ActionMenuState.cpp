@@ -498,13 +498,26 @@ void ActionMenuState::handleAction()
 		}
 		else if (_action->type == BA_HIT)
 		{
-			bool isForcedMeleeToFloor = _game->isCtrlPressed(true) && _game->getSavedGame()->getSavedBattle()->getSide() == FACTION_PLAYER && _action->actor->getFaction() == FACTION_PLAYER && !_action->actor->getTile()->hasNoFloor();
 			// check beforehand if we have enough time units
 			if (!_action->haveTU(&_action->result))
 			{
 				//nothing
 			}
-			else if (!isForcedMeleeToFloor && !_game->getSavedGame()->getSavedBattle()->getTileEngine()->validMeleeRange(
+			else if (_game->isCtrlPressed(true) && _game->getSavedGame()->getSavedBattle()->getSide() == FACTION_PLAYER && _action->actor->getFaction() == FACTION_PLAYER && !_action->actor->getTile()->hasNoFloor())
+			{ // ForcedMelleeToFloor: Let pass target coordinates, cause it usually is empty until any action will be performed at beginning of any battle
+				if (_action->actor->getArmor()->getSize() > 1)
+				{ // Let big unit target proper tile during forced floor hitting
+					switch (_action->actor->getDirection())
+					{
+					case 1: case 2: _action->target = _action->actor->getPosition() + Position(1, 0, 0); break;
+					case 3:	case 4:	_action->target = _action->actor->getPosition() + Position(1, 1, 0); break;
+					case 5:	case 6:	_action->target = _action->actor->getPosition() + Position(0, 1, 0); break;
+					default: _action->target = _action->actor->getPosition();
+					}
+				}
+				else _action->target = _action->actor->getPosition();
+			}
+			else if (!_game->getSavedGame()->getSavedBattle()->getTileEngine()->validMeleeRange(
 				_action->actor->getPosition(),
 				_action->actor->getDirection(),
 				_action->actor,
