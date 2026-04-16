@@ -696,7 +696,7 @@ void RuleItem::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript&
 		auto temp = _confSnap;
 		_confAkimbo = temp;
 		_confAkimbo.cost.Time.setValue((getCostAkimbo().Time + 5));
-		_confAkimbo.accuracy -= 10;
+		_confAkimbo.accuracy -= 7;
 		_confAkimbo.range = 7;
 		_confAkimbo.name = "STR_AKIMBO_SHOT";
 	}

@@ -138,46 +138,41 @@ void MeleeAttackBState::init()
 		_target = _parent->getSave()->getTile(_action.target)->getUnit();
 	}
 
-	bool isForcedMeleeToFloor = _parent->getSave()->isCtrlPressed(true) && _parent->getSave()->getSide() == FACTION_PLAYER && _unit->getFaction() == FACTION_PLAYER && !_unit->getTile()->hasNoFloor();
-
-	if (!isForcedMeleeToFloor && !_target)
+	if (!_target)
 	{
 		throw Exception("This is a known (but tricky) bug... still fixing it, sorry. In the meantime, try save scumming option or kill all aliens in debug mode to finish the mission.");
 	}
 
-	int height = !isForcedMeleeToFloor
-		? _target->getFloatHeight() + (_target->getHeight() * 2 / 3) - _parent->getSave()->getTile(_action.target)->getTerrainLevel()
-		: 1 - _unit->getTile()->getTerrainLevel() / 2;
+	int height = _target->getFloatHeight() + (_target->getHeight() * 2 / 3) - _parent->getSave()->getTile(_action.target)->getTerrainLevel();
 
-	if (isForcedMeleeToFloor)
-	{ // Let check presence of any alive unit under feet and apply their height
-		if (_unit->getTile()->getTopItem())
+	//Correct height for ForcedMeleeToFloor feature
+	if (_parent->getSave()->isCtrlPressed(true) && _parent->getSave()->getSide() == FACTION_PLAYER && _unit->getFaction() == FACTION_PLAYER && !_unit->getTile()->hasNoFloor())
+	{
+		// Check presence of any alive unit under feet and apply their height (it usually is 0, but let check)
+		if (_target->getTile()->getTopItem() && _target->getTile()->getTopItem()->getUnit() && _target->getTile()->getTopItem()->getUnit()->getStatus() == STATUS_UNCONSCIOUS)
 		{
-			BattleUnit* unitFloor = _unit->getTile()->getTopItem()->getUnit();
-
-			if (unitFloor && unitFloor->getStatus() == STATUS_UNCONSCIOUS)
-			{
-				height = unitFloor->getPosition().toTile().z;
-			}
+			height = _target->getTile()->getTopItem()->getUnit()->getPosition().toTile().z;
 		}
-		if (_parent->getSave()->isAltPressed(true))
-			{ // Adjust height for trying to hit weird tile parts ("floor type" objects in wall postions and etc.)
-				height = 3 -_unit->getTile()->getTerrainLevel();
+		else if (Mod::EXTENDED_TERRAIN_MELEE <= 0)
+		{ // Do not allow to hit floor without activated Terrain Melee feature
+			_action.result = "STR_THERE_IS_NO_ONE_THERE";
+			_parent->getCurrentAction()->type = BA_NONE;
+			_parent->popState();
+			return;
+		}
+		else
+		{
+			if (!_parent->getSave()->isAltPressed(true))
+			{ // Default height 
+				 height = 1 - _target->getTile()->getTerrainLevel() / 2;
 			}
-
-		_voxel = _unit->getPosition().toVoxel() + Position(8, 8, height);
-
-		if (_unit->getArmor()->getSize() > 1)
-		{ // Let big unit target proper tile during forced floor hitting
-			switch (_unit->getDirection())
-			{
-				case 1:	case 2:	_voxel = _unit->getPosition().toVoxel() + Position(1, 0, 0).toVoxel() + Position(8, 8, height); break;
-				case 3:	case 4:	_voxel = _unit->getPosition().toVoxel() + Position(1, 1, 0).toVoxel() + Position(8, 8, height);	break;
-				case 5:	case 6:	_voxel = _unit->getPosition().toVoxel() + Position(0, 1, 0).toVoxel() + Position(8, 8, height);	break;
+			else
+			{ // Adjust height withing pressed Alt button for hitting "uncommon" tileparts (floor objects on wall position and etc.) 
+				height = 3 - _target->getTile()->getTerrainLevel();
 			}
 		}
 	}
-	else _voxel = _action.target.toVoxel() + Position(8, 8, height);
+	_voxel = _action.target.toVoxel() + Position(8, 8, height);
 
 	if (!_parent->getSave()->getTile(_voxel.toTile()))
 	{

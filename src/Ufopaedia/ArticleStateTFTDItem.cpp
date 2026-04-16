@@ -104,7 +104,7 @@ namespace OpenXcom
 
 			addAttack(current_row, "STR_SHOT_TYPE_AIMED", item->getCostAimed(), item->getFlatAimed(), item->getConfigAimed(), item);
 
-			addAttack(current_row, "STR_SHOT_TYPE_AKIMBO", item->getCostAkimbo(), item->getFlatAkimbo(), item->getConfigAkimbo(), item);
+			if (Options::akimboMod) addAttack(current_row, "STR_SHOT_TYPE_AKIMBO", item->getCostAkimbo(), item->getFlatAkimbo(), item->getConfigAkimbo(), item);
 
 			//optional melee
 			addAttack(current_row, "STR_SHOT_TYPE_MELEE", item->getCostMelee(), item->getFlatMelee(), item->getConfigMelee(), item);
