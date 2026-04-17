@@ -145,7 +145,7 @@ void MeleeAttackBState::init()
 
 	int height = _target->getFloatHeight() + (_target->getHeight() * 2 / 3) - _parent->getSave()->getTile(_action.target)->getTerrainLevel();
 
-	//Correct height for ForcedMeleeToFloor feature
+	//Correct height for -=ForcedMeleeToFloor=- feature
 	if (_parent->getSave()->isCtrlPressed(true) && _parent->getSave()->getSide() == FACTION_PLAYER && _unit->getFaction() == FACTION_PLAYER && !_unit->getTile()->hasNoFloor())
 	{
 		// Check presence of any alive unit under feet and apply their height (it usually is 0, but let check)
@@ -153,8 +153,8 @@ void MeleeAttackBState::init()
 		{
 			height = _target->getTile()->getTopItem()->getUnit()->getPosition().toTile().z;
 		}
-		else if (Mod::EXTENDED_TERRAIN_MELEE <= 0)
-		{ // Do not allow to hit floor without activated Terrain Melee feature
+		else if (Mod::EXTENDED_TERRAIN_MELEE <= 0 || _action.weapon && (!_action.weapon->getRules()->getDamageType()->ToTile || !_action.weapon->getRules()->getMeleeType()->ToTile))
+		{ // Do not allow to hit floor without activated Terrain Melee feature or for not suitable items for this
 			_action.result = "STR_THERE_IS_NO_ONE_THERE";
 			_parent->getCurrentAction()->type = BA_NONE;
 			_parent->popState();
