@@ -6059,7 +6059,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			neighbouringTile3 = _save->getTile(pos + Position(0, 2, 0));
 		}
 
-		if (direction % 2 != 0)	originTile2 = originTile; // "exclude" secondary originTile for diagonal directions for unexpected tile/object targeting
+		if (direction % 2 != 0)	originTile2 = originTile; // "exclude" secondary originTile at diagonal directions for unexpected tile/object targeting
 
 		if ( direction % 2 == 0 && (!neighbouringTile2 || !originTile2) )
 		{
@@ -6073,7 +6073,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			MapData* obj = tt->getMapData(tp);
 			if (obj)
 			{
-				if (dir > -1 && tp == O_OBJECT && !Options::diagTerrainMelee && !tt->getSavedGame()->isAltPressed(true))
+				if (dir > -1 && tp == O_OBJECT && !(Options::diagTerrainMelee && tt->getSavedGame()->isAltPressed(true)))
 				{ 
 					auto bigWall = obj->getBigWall();
 					if (dir == 0 /*north*/ && bigWall != Pathfinding::BIGWALLNORTH && bigWall != Pathfinding::BIGWALLWESTANDNORTH) return false;
@@ -6093,7 +6093,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 				bool isHighEnough = false;
 				for (int i = Mod::EXTENDED_TERRAIN_MELEE; i < 12; ++i)
 				{
-					if (obj->getLoftID(i) >= 0)
+					if (obj->getLoftID(i) > 0)
 					{
 						isHighEnough = true;
 						break;
@@ -6243,11 +6243,11 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		{
 			if (setTarget(neighbouringTile2, O_OBJECT, action))
 			{
-				// All non diagonal directions
+				// All non diagonal directions: big unit's second part "want" to break something too.
 				return true;
 			}
 		}
-		if (Options::diagTerrainMelee && _save->isAltPressed(true) && direction % 2 != 0 &&
+		if (_save->isAltPressed(true) && direction % 2 != 0 && 
 		   (setTarget(neighbouringTile2, O_OBJECT, action) ||
 			setTarget(neighbouringTile3, O_OBJECT, action)))
 		{
