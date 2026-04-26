@@ -964,7 +964,7 @@ void TransferItemsState::increaseByValue(int change)
 			change = std::min(std::min(freeQuarters, getRow().qtySrc - getRow().amount), change);
 			_pQty += change;
 			getRow().amount += change;
-			_total += ceil(getRow().cost * change * Mod::TRANSFER_COST_MULT);
+			_total += getRow().cost * change;
 			break;
 		case TRANSFER_CRAFT:
 			_tCQty[p]++;
@@ -972,7 +972,7 @@ void TransferItemsState::increaseByValue(int change)
 			_iQty += craft->getTotalItemStorageSize();
 			getRow().amount++;
 			if (!Options::canTransferCraftsWhileAirborne || craft->getStatus() != "STR_OUT")
-				_total += ceil(getRow().cost * Mod::TRANSFER_COST_MULT);
+				_total += getRow().cost;
 			break;
 		case TRANSFER_ITEM:
 			if (selItem->isAlien())
@@ -997,7 +997,7 @@ void TransferItemsState::increaseByValue(int change)
 				_aQty += change;
 			}
 			getRow().amount += change;
-			_total += ceil(getRow().cost * change * Mod::TRANSFER_COST_MULT);
+			_total += getRow().cost * change;
 			break;
 		}
 		updateItemStrings();
@@ -1057,7 +1057,7 @@ void TransferItemsState::decreaseByValue(int change)
 	}
 	getRow().amount -= change;
 	if (!Options::canTransferCraftsWhileAirborne || 0 == craft || craft->getStatus() != "STR_OUT")
-		_total -= ceil(getRow().cost * change * Mod::TRANSFER_COST_MULT);
+		_total -= getRow().cost * change;
 	updateItemStrings();
 }
 
