@@ -607,6 +607,7 @@ void createAdvancedOptionsOTHER()
 	_info.push_back(OptionInfo(OPTION_OTHER, "oxceSmartCtrlEquip", &oxceSmartCtrlEquip, true, "STR_SMARTCONTROLEQUIP", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "preprimeGrenades", &preprimeGrenades, 1, "STR_PREPRIMEGRENADES", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "updateTurnsSinceSeenByClue", &updateTurnsSinceSeenByClue, true, "STR_UPDATETURNSSINCESEENBYCLUE", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "strictBattlescapeAutosaveMode", &strictBattlescapeAutosaveMode, true, "STR_STRICTBATTLESCAPEAUTOSAVEMODE", "STR_BATTLESCAPE"));
 
 	// OTHER options AI
 	_info.push_back(OptionInfo(OPTION_OTHER, "brutalAI", &brutalAI, 1, "STR_BRUTALAI", "STR_AI"));
