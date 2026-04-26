@@ -291,9 +291,9 @@ BattlescapeState::BattlescapeState() :
 	}
 
 	// Add in custom reserve akimbo button
+	add(_btnReserveAkimbo, "akimboReserveIco", "battlescape", _icons);
 	if (_game->getMod()->getSurfaceSet("akimboReserveIco", false) && Options::akimboMod)
 	{
-		add(_btnReserveAkimbo);
 		_btnReserveAkimbo->initSurfaces(_game->getMod()->getSurfaceSet("akimboReserveIco")->getFrame(1));
 		_game->getMod()->getSurfaceSet("akimboReserveIco")->getFrame(0)->blitNShade(_btnReserveAkimbo, 0, 0);
 	}
