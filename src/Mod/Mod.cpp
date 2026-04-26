@@ -205,7 +205,6 @@ int Mod::EXTENDED_SMOKE_OFFSET;
 
 extern std::string OXCE_CURRENCY_SYMBOL;
 
-
 constexpr size_t MaxDifficultyLevels = 5;
 
 
@@ -320,6 +319,7 @@ void Mod::resetGlobalStatics()
 	EXTENDED_EXPERIENCE_AWARD_SYSTEM = false;
 	EXTENDED_FORCE_SPAWN = false;
 	EXTENDED_SMOKE_OFFSET = 0;
+
 	OXCE_CURRENCY_SYMBOL = "$";
 }
 
@@ -424,6 +424,7 @@ Mod::Mod() :
 	_maxViewDistance(20), _maxDarknessToSeeUnits(9), _maxStaticLightDistance(16), _maxDynamicLightDistance(24), _enhancedLighting(0),
 	_costHireEngineer(0), _costHireScientist(0),
 	_costEngineer(0), _costScientist(0), _timePersonnel(0), _hireByCountryOdds(0), _hireByRegionOdds(0), _initialFunding(0),
+	_globalTransferCostMult(1), _globalTransferCostDiv(1),
 	_aiUseDelayBlaster(3), _aiUseDelayFirearm(0), _aiUseDelayGrenade(3), _aiUseDelayProxy(999), _aiUseDelayMelee(0), _aiUseDelayPsionic(0), _aiUseDelayMedikit(999),
 	_aiFireChoiceIntelCoeff(5), _aiFireChoiceAggroCoeff(5), _aiExtendedFireModeChoice(false), _aiRespectMaxRange(false), _aiDestroyBaseFacilities(false),
 	_aiPickUpWeaponsMoreActively(false), _aiPickUpWeaponsMoreActivelyCiv(false),
@@ -3199,6 +3200,11 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
 	reader.tryRead("hireByCountryOdds", _hireByCountryOdds);
 	reader.tryRead("hireByRegionOdds", _hireByRegionOdds);
 	reader.tryRead("initialFunding", _initialFunding);
+	if (const auto& nodeTransferCosts = loadDocInfoHelper("transferCosts"))
+	{
+		nodeTransferCosts.tryRead("globalCostMult", _globalTransferCostMult);
+		nodeTransferCosts.tryRead("globalCostDiv", _globalTransferCostDiv);
+	}
 	reader.tryRead("alienFuel", _alienFuel);
 	reader.tryRead("fontName", _fontName);
 	reader.tryRead("psiUnlockResearch", _psiUnlockResearch);
