@@ -6080,9 +6080,9 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 					if (dir == 2 /*east */ && bigWall != Pathfinding::BIGWALLEAST  && bigWall != Pathfinding::BIGWALLEASTANDSOUTH) return false;
 					if (dir == 4 /*south*/ && bigWall != Pathfinding::BIGWALLSOUTH && bigWall != Pathfinding::BIGWALLEASTANDSOUTH) return false;
 					if (dir == 6 /*west */ && bigWall != Pathfinding::BIGWALLWEST  && bigWall != Pathfinding::BIGWALLWESTANDNORTH) return false;
-					if (dir == 1 /*NW   */ && bigWall != Pathfinding::BIGWALLNWSE  && bigWall != Pathfinding::BIGWALLWESTANDNORTH) return false;
+					if (dir == 1 /*NW   */ && bigWall != Pathfinding::BIGWALLNWSE /** && bigWall != Pathfinding::BIGWALLWESTANDNORTH)*/) return false;
 					if (dir == 3 /*NE   */ && bigWall != Pathfinding::BIGWALLNESW  && bigWall != Pathfinding::BIGWALLEASTANDSOUTH) return false;
-					if (dir == 5 /*SE   */ && bigWall != Pathfinding::BIGWALLNWSE  && bigWall != Pathfinding::BIGWALLEASTANDSOUTH) return false;
+					if (dir == 5 /*SE   */ && bigWall != Pathfinding::BIGWALLNWSE /** && bigWall != Pathfinding::BIGWALLEASTANDSOUTH)*/) return false;
 					if (dir == 7 /*SW   */ && bigWall != Pathfinding::BIGWALLNESW  && bigWall != Pathfinding::BIGWALLWESTANDNORTH) return false;
 				} 
 				if (tp != O_OBJECT && !obj->isDoor() && !obj->isUFODoor() && tt->getTUCost(tp, MT_WALK) != Pathfinding::INVALID_MOVE_COST)

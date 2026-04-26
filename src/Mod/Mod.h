@@ -476,7 +476,6 @@ public:
 	static bool EXTENDED_EXPERIENCE_AWARD_SYSTEM;
 	static bool EXTENDED_FORCE_SPAWN;
 	static int EXTENDED_SMOKE_OFFSET;
-	static float TRANSFER_COST_MULT;
 
     // Hit chances lookup tables config
     static const int distanceRows = 40;
