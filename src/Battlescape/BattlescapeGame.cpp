@@ -59,7 +59,6 @@
 #include "../Savegame/BattleUnitStatistics.h"
 #include "ConfirmEndMissionState.h"
 #include "../fmath.h"
-#include "../Menu/SaveGameState.h"
 
 namespace OpenXcom
 {
@@ -1513,7 +1512,6 @@ bool BattlescapeGame::checkReservedTU(BattleUnit *bu, int tu, int energy, bool j
 		cost.type = BA_AIMEDSHOT;
 		cost.updateTU();
 	}
-
 	const int tuKneel = (_save->getKneelReserved() && !bu->isKneeled()  && bu->getArmor()->allowsKneeling(bu->getType() == "SOLDIER")) ? bu->getKneelDownCost() : 0;
 	// no aimed shot available? revert to none.
 	if (cost.Time == 0 && cost.type == BA_AIMEDSHOT)
