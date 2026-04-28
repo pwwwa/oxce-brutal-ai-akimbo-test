@@ -1241,7 +1241,7 @@ void Map::drawTerrain(Surface *surface)
 					int pixelMaskArray[] = { 0, 2, 1, 3 };
 					SurfaceRaw<int> pixelMask(pixelMaskArray, 2, 2);
 					const int vaporScreenOriginX = screenPosition.x + _spriteWidth / 2;
-					const int vaporScreenOriginY = screenPosition.y + _spriteHeight - _spriteWidth / 2 + tile->getPosition().toVoxel().z;
+					const int vaporScreenOriginY = screenPosition.y + _spriteHeight / 2 + tile->getPosition().toVoxel().z; // Original: screenPosition.y + _spriteHeight - _spriteWidth / 2 + tile->getPosition().toVoxel().z;
 					const Uint8* const transparetPtr = _transparencies->data();
 
 					//draw particle clouds behind solder
@@ -1666,9 +1666,9 @@ void Map::drawTerrain(Surface *surface)
 											}
 
 											int distanceSq = action->actor->distance3dToPositionSq(Position(itX, itY, itZ));
-											bool outOfRange = (action->type == BA_AKIMBOSHOT)
-															? action->actor->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || action->actor->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq)
-															: weapon->isOutOfRange(distanceSq);
+											bool outOfRange = (action->type != BA_AKIMBOSHOT)
+																  ? weapon->isOutOfRange(distanceSq)
+																  : action->actor->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || action->actor->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq);
 
 											if (isSniperShot)
 											{
