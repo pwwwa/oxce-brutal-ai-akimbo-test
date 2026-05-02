@@ -5964,7 +5964,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 	action->terrainMeleeTilePart = 0;
 
 	if (action->weapon)
-	{
+	{	// is melee weapon able to hit terrain ?
 		auto wRule = action->weapon->getRules();
 		if (wRule->getBattleType() == BT_MELEE)
 		{
@@ -5978,12 +5978,10 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		}
 	}
 
-	Position pos = action->actor->getPosition();
 	int direction = action->actor->getDirection();
-	BattleUnit* attacker = action->actor;
 
 	if (direction < 0 || direction > 7)
-	{
+	{	// only horisontal direction are allowed
 		return false;
 	} 
 	if (!Options::diagTerrainMelee && direction % 2 != 0)
@@ -5992,14 +5990,10 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		return false;
 	}
 
+	Position pos = action->actor->getPosition();
 	Position p;
 	Pathfinding::directionToVector(direction, &p);
 	Tile* originTile = _save->getTile(pos);
-	Tile* originTile2 = originTile;
-	Tile* neighbouringTile = _save->getTile(pos + p);
-	Tile* neighbouringTile2 = nullptr;
-	Tile* neighbouringTile3 = nullptr;
-	int size = attacker->getArmor()->getSize();
 
 	if (originTile && originTile->getTerrainLevel() <= -16 && !Options::diagTerrainMelee && !_save->isAltPressed(true))
 	{
@@ -6008,10 +6002,16 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		originTile = _save->getTile(pos);
 	}
 
+	Tile* originTile2 = originTile;
+	Tile* neighbouringTile =	  _save->getTile(pos + p);
+	Tile* neighbouringTileLeft =  _save->getTile(pos + p);
+	Tile* neighbouringTileRight = _save->getTile(pos + p);
+	int size = action->actor->getArmor()->getSize(); // pwwwa: removed attacker variable, cause it used only once
+
 	if (direction == 7)
 	{	// North-West: Unified unit size North-West tiles definition
-		neighbouringTile2 = _save->getTile(pos + Position(-1, 0, 0));
-		neighbouringTile3 = _save->getTile(pos + Position(0, -1, 0));
+		neighbouringTileLeft =  _save->getTile(pos + Position(-1, 0, 0));
+		neighbouringTileRight = _save->getTile(pos + Position(0, -1, 0));
 	}
 
 	if (size < 2)
@@ -6019,16 +6019,16 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		switch (direction)
 		{
 		case 1: // North-East
-				neighbouringTile2 = _save->getTile(pos + Position(1, 0, 0));
-				neighbouringTile3 = _save->getTile(pos + Position(0, -1, 0));
+				neighbouringTileLeft =  _save->getTile(pos + Position(1, 0, 0));
+				neighbouringTileRight = _save->getTile(pos + Position(0, -1, 0));
 				break;
 		case 3: // South-East
-				neighbouringTile2 = _save->getTile(pos + Position(0, 1, 0));
-				neighbouringTile3 = _save->getTile(pos + Position(1, 0, 0));
+				neighbouringTileLeft =  _save->getTile(pos + Position(0, 1, 0));
+				neighbouringTileRight = _save->getTile(pos + Position(1, 0, 0));
 				break;
 		case 5: // North-East
-				neighbouringTile2 = _save->getTile(pos + Position(0, 1, 0));
-				neighbouringTile3 = _save->getTile(pos + Position(-1, 0, 0));
+				neighbouringTileLeft =  _save->getTile(pos + Position(0, 1, 0));
+				neighbouringTileRight = _save->getTile(pos + Position(-1, 0, 0));
 		}
 	}
 
@@ -6037,42 +6037,42 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		switch (direction)
 		{
 		case 0: // North
-				originTile2 =		_save->getTile(pos + Position(1, 0, 0));
-				neighbouringTile2 = _save->getTile(pos + p + Position(1, 0, 0));
+				originTile2 =			_save->getTile(pos + Position(1, 0, 0));
+				neighbouringTileLeft =	_save->getTile(pos + p + Position(1, 0, 0));
 				break;
 		case 1: // North-East
-				originTile =		_save->getTile(pos + Position(1, 0, 0));
-				neighbouringTile =  _save->getTile(pos + Position(2, -1, 0));
-				neighbouringTile2 = _save->getTile(pos + Position(1, -1, 0));
-				neighbouringTile3 = _save->getTile(pos + Position(2, 0, 0));
+				originTile =			_save->getTile(pos + Position(1, 0, 0));
+				neighbouringTile =		_save->getTile(pos + Position(2, -1, 0));
+				neighbouringTileLeft =	_save->getTile(pos + Position(1, -1, 0));
+				neighbouringTileRight = _save->getTile(pos + Position(2, 0, 0));
 				break;
 		case 2:// East
-				originTile =		_save->getTile(pos + p);
-				originTile2 =		_save->getTile(pos + p + Position(0, 1, 0));
-				neighbouringTile =	_save->getTile(pos + p + Position(1, 0, 0));
-				neighbouringTile2 = _save->getTile(pos + p + Position(1, 1, 0));
+				originTile =			_save->getTile(pos + p);
+				originTile2 =			_save->getTile(pos + p + Position(0, 1, 0));
+				neighbouringTile =		_save->getTile(pos + p + Position(1, 0, 0));
+				neighbouringTileLeft =	_save->getTile(pos + p + Position(1, 1, 0));
 				break;
 		case 3: // South-East
-				originTile =	    _save->getTile(pos + Position(1, 1, 0));
-				neighbouringTile =  _save->getTile(pos + Position(2, 2, 0));
-				neighbouringTile2 = _save->getTile(pos + Position(1, 2, 0));
-				neighbouringTile3 = _save->getTile(pos + Position(2, 1, 0));
+				originTile =			_save->getTile(pos + Position(1, 1, 0));
+				neighbouringTile =		_save->getTile(pos + Position(2, 2, 0));
+				neighbouringTileLeft =	_save->getTile(pos + Position(1, 2, 0));
+				neighbouringTileRight = _save->getTile(pos + Position(2, 1, 0));
 				break;
 		case 4: // South
-				originTile =		_save->getTile(pos + p);
-				originTile2 =		_save->getTile(pos + p + Position(1, 0, 0));
-				neighbouringTile =	_save->getTile(pos + p + Position(0, 1, 0));
-				neighbouringTile2 = _save->getTile(pos + p + Position(1, 1, 0));
+				originTile =			_save->getTile(pos + p);
+				originTile2 =			_save->getTile(pos + p + Position(1, 0, 0));
+				neighbouringTile =		_save->getTile(pos + p + Position(0, 1, 0));
+				neighbouringTileLeft =	_save->getTile(pos + p + Position(1, 1, 0));
 				break;
 		case 5: // South-West
-				originTile =	    _save->getTile(pos + Position(0, 1, 0));
-				neighbouringTile =  _save->getTile(pos + Position(-1, 2, 0));
-				neighbouringTile2 = _save->getTile(pos + Position(-1, 1, 0));
-				neighbouringTile3 = _save->getTile(pos + Position(0, 2, 0));
+				originTile =			_save->getTile(pos + Position(0, 1, 0));
+				neighbouringTile =		_save->getTile(pos + Position(-1, 2, 0));
+				neighbouringTileLeft =	_save->getTile(pos + Position(-1, 1, 0));
+				neighbouringTileRight = _save->getTile(pos + Position(0, 2, 0));
 				break;
 		case 6: // West
-				originTile2 =		_save->getTile(pos + Position(0, 1, 0));
-				neighbouringTile2 = _save->getTile(pos + p + Position(0, 1, 0));
+				originTile2 =			_save->getTile(pos + Position(0, 1, 0));
+				neighbouringTileLeft =	_save->getTile(pos + p + Position(0, 1, 0));
 		}
 	}
 
@@ -6150,8 +6150,8 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		case 7:	// North-West targeting. Unified unit size
 				if (setTarget(originTile, O_WESTWALL, action) ||
 					setTarget(originTile, O_NORTHWALL, action) ||
-					setTarget(neighbouringTile2, O_NORTHWALL, action) ||
-					setTarget(neighbouringTile3, O_WESTWALL, action))
+					setTarget(neighbouringTileLeft, O_NORTHWALL, action) ||
+					setTarget(neighbouringTileRight, O_WESTWALL, action))
 				return true;	
 		}
 
@@ -6161,24 +6161,24 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			{
 			case 1:	 // North-East 
 					if (setTarget(originTile, O_NORTHWALL, action) ||
-						setTarget(neighbouringTile2, O_WESTWALL, action) ||
+						setTarget(neighbouringTileLeft, O_WESTWALL, action) ||
 						setTarget(neighbouringTile, O_WESTWALL, action) ||
-						setTarget(neighbouringTile2, O_NORTHWALL, action))
+						setTarget(neighbouringTileLeft, O_NORTHWALL, action))
 					return true;
 					break;
 				
 			case 3: // South-East 
-					if (setTarget(neighbouringTile2, O_NORTHWALL, action) ||
-						setTarget(neighbouringTile3, O_WESTWALL, action) ||
+					if (setTarget(neighbouringTileLeft, O_NORTHWALL, action) ||
+						setTarget(neighbouringTileRight, O_WESTWALL, action) ||
 						setTarget(neighbouringTile, O_WESTWALL, action) ||
 						setTarget(neighbouringTile, O_NORTHWALL, action))
 					return true;
 					break;
 				
 			case 5: // North-East
-					if (setTarget(neighbouringTile2, O_NORTHWALL, action) ||
+					if (setTarget(neighbouringTileLeft, O_NORTHWALL, action) ||
 						setTarget(originTile, O_WESTWALL, action) ||
-						setTarget(neighbouringTile2, O_WESTWALL, action) ||
+						setTarget(neighbouringTileLeft, O_WESTWALL, action) ||
 						setTarget(neighbouringTile, O_NORTHWALL, action))
 					return true;
 					break;
@@ -6191,42 +6191,42 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			{
 			case 0: // North
 					if (setTarget(originTile2, O_NORTHWALL, action) ||
-						setTarget(neighbouringTile2, O_WESTWALL, action))
+						setTarget(neighbouringTileLeft, O_WESTWALL, action))
 					return true;
 					break;
 			case 2: // East
-					if (setTarget(neighbouringTile2, O_WESTWALL, action) ||
-						setTarget(neighbouringTile2, O_NORTHWALL, action))
+					if (setTarget(neighbouringTileLeft, O_WESTWALL, action) ||
+						setTarget(neighbouringTileLeft, O_NORTHWALL, action))
 					return true;
 					break;
 			case 4: // South
-					if (setTarget(neighbouringTile2, O_NORTHWALL, action) ||
-						setTarget(neighbouringTile2, O_WESTWALL, action))
+					if (setTarget(neighbouringTileLeft, O_NORTHWALL, action) ||
+						setTarget(neighbouringTileLeft, O_WESTWALL, action))
 					return true;
 					break;
 			case 6: // West
 					if (setTarget(originTile2, O_WESTWALL, action) ||
-						setTarget(neighbouringTile2, O_NORTHWALL, action))
+						setTarget(neighbouringTileLeft, O_NORTHWALL, action))
 					return true;
 					break;
 			case 1: // NE
 					if (setTarget(originTile, O_NORTHWALL, action) ||
-						setTarget(neighbouringTile3, O_WESTWALL, action) ||
+						setTarget(neighbouringTileRight, O_WESTWALL, action) ||
 						setTarget(neighbouringTile, O_WESTWALL, action) ||
-						setTarget(neighbouringTile3, O_NORTHWALL, action))
+						setTarget(neighbouringTileRight, O_NORTHWALL, action))
 					return true;
 					break;
 			case 3: // SE
-					if (setTarget(neighbouringTile2, O_NORTHWALL, action) ||
-						setTarget(neighbouringTile3, O_WESTWALL, action) ||
+					if (setTarget(neighbouringTileLeft, O_NORTHWALL, action) ||
+						setTarget(neighbouringTileRight, O_WESTWALL, action) ||
 						setTarget(neighbouringTile, O_WESTWALL, action) ||
 						setTarget(neighbouringTile, O_NORTHWALL, action))
 					return true;
 					break;
 			case 5: // SW
 					if (setTarget(originTile, O_WESTWALL, action) ||
-						setTarget(neighbouringTile3, O_NORTHWALL, action) ||
-						setTarget(neighbouringTile3, O_WESTWALL, action) ||
+						setTarget(neighbouringTileRight, O_NORTHWALL, action) ||
+						setTarget(neighbouringTileRight, O_WESTWALL, action) ||
 						setTarget(neighbouringTile, O_NORTHWALL, action))
 					return true;
 			}
@@ -6241,14 +6241,14 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		}
 		if (size > 1 && direction % 2 == 0)
 		{	
-			if (setTarget(neighbouringTile2, O_OBJECT, action))
+			if (setTarget(neighbouringTileLeft, O_OBJECT, action))
 			{	// All non diagonal directions: big unit's second part "want" to break something too.
 				return true;
 			}
 		}
 		if ( _save->isAltPressed(true) && direction % 2 != 0 && 
-		   ( setTarget(neighbouringTile2, O_OBJECT, action) ||
-			 setTarget(neighbouringTile3, O_OBJECT, action) ) )
+		   ( setTarget(neighbouringTileLeft, O_OBJECT, action) ||
+			 setTarget(neighbouringTileRight, O_OBJECT, action) ) )
 		{
 			// Forced neighbour terrain object targeting helper. Suitable for big walls and terrain stuff targetting-hitting at diagonal directions.
 			return true;

@@ -1743,7 +1743,7 @@ int AIModule::scoreFiringMode(BattleAction *action, BattleUnit *target, bool che
 	bool outOfRange =
 		action->type == BA_THROW
 			? weapon->isOutOfThrowRange(distanceSq, _save->getDepth())
-		: action->type == !BA_AKIMBOSHOT
+		: action->type != BA_AKIMBOSHOT
 			? weapon->isOutOfRange(distanceSq)
 			: _unit->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || _unit->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq);
 
@@ -6219,10 +6219,8 @@ int AIModule::maxExtenderRangeWith(BattleUnit *unit, int tus)
 		highestRangeAvailableWithTUs = weapon->getRules()->getAimRange();
 	if (weapon->getRules()->getCostSnap().Time > 0 && unit->getActionTUs(BA_SNAPSHOT, weapon).Time < tus)
 		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, weapon->getRules()->getSnapRange());
-	if (unit->isAkimbo() && ((unit->getActionTUs(BA_AKIMBOSHOT, unit->getLeftHandWeapon()).Time + 
-							 unit->getActionTUs(BA_AKIMBOSHOT, unit->getRightHandWeapon()).Time) <= tus))
-		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, std::min(unit->getLeftHandWeapon()->getRules()->getAkimboRange(),
-																					   unit->getRightHandWeapon()->getRules()->getAkimboRange()));
+	if (unit->isAkimbo() && (std::max(unit->getActionTUs(BA_AKIMBOSHOT, unit->getLeftHandWeapon()).Time, unit->getActionTUs(BA_AKIMBOSHOT, unit->getRightHandWeapon()).Time) <= tus))
+		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, std::min(unit->getLeftHandWeapon()->getRules()->getAkimboRange(), unit->getRightHandWeapon()->getRules()->getAkimboRange()));
 	if (weapon->getRules()->getCostAuto().Time > 0 && unit->getActionTUs(BA_AUTOSHOT, weapon).Time < tus)
 		highestRangeAvailableWithTUs = std::max(highestRangeAvailableWithTUs, weapon->getRules()->getAutoRange());
 	if (weapon->getRules()->getBattleType() == BT_GRENADE && weapon->getRules()->getCostThrow().Time > 0 && unit->getActionTUs(BA_THROW, weapon).Time < tus)
@@ -7111,8 +7109,8 @@ float AIModule::damagePotential(Position pos, BattleUnit* target, int tuTotal, i
 					upperLimit = weapon->getRules()->getSnapRange();
 				}
 				int lowerLimit = bat != BA_AKIMBOSHOT
-				? weapon->getRules()->getMinRange()
-				: std::min(_unit->getLeftHandWeapon()->getRules()->getMinRange(), _unit->getRightHandWeapon()->getRules()->getMinRange());
+					? weapon->getRules()->getMinRange()
+					: std::min(_unit->getLeftHandWeapon()->getRules()->getMinRange(), _unit->getRightHandWeapon()->getRules()->getMinRange());
 
 				if (distance > upperLimit)
 				{
