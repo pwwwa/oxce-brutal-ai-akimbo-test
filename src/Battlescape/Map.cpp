@@ -1485,9 +1485,9 @@ void Map::drawTerrain(Surface *surface)
 
 										bool outOfRange = (action->type == BA_THROW)
 														? weapon->isOutOfThrowRange(distanceSq, _save->getDepth())
-														: (action->type == !BA_AKIMBOSHOT)
+															: action->type != BA_AKIMBOSHOT
 														? weapon->isOutOfRange(distanceSq)
-														: unit->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || unit->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq);
+															: unit->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || unit->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq);
 
 										// zero accuracy or out of range: set it red.
 										if (accuracy <= 0 || outOfRange)
@@ -1666,9 +1666,9 @@ void Map::drawTerrain(Surface *surface)
 											}
 
 											int distanceSq = action->actor->distance3dToPositionSq(Position(itX, itY, itZ));
-											bool outOfRange = (action->type != BA_AKIMBOSHOT)
-																  ? weapon->isOutOfRange(distanceSq)
-																  : action->actor->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || action->actor->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq);
+											bool outOfRange = action->type != BA_AKIMBOSHOT
+																? weapon->isOutOfRange(distanceSq)
+															: action->actor->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || action->actor->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq);
 
 											if (isSniperShot)
 											{
