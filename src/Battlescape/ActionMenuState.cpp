@@ -504,7 +504,7 @@ void ActionMenuState::handleAction()
 				//nothing
 			}
 			else if (_game->isCtrlPressed(true) && _game->getSavedGame()->getSavedBattle()->getSide() == FACTION_PLAYER && _action->actor->getFaction() == FACTION_PLAYER && !_action->actor->getTile()->hasNoFloor())
-			{ // ForcedMelleeToFloor: Let pass target coordinates, cause it usually is empty until any action will be performed at beginning of any battle
+			{ // ForcedMelleeToFloor: Let pass target tile coordinates directly to MeleeAttackBState
 				if (_action->actor->getArmor()->getSize() > 1)
 				{ // Let big unit target proper tile during forced floor hitting
 					switch (_action->actor->getDirection())
