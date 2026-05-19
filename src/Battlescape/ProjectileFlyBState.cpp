@@ -471,6 +471,10 @@ bool ProjectileFlyBState::createNewProjectile()
 {
 	++_action.autoShotCounter;
 
+	_parent->getSave()->getBattleGame()->railPower = _action.weapon->getRules()->getIgnoreAmmoPower() ?
+	_action.weapon->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) - _action.weapon->getRules()->getPowerRangeReduction(_range) :
+	_ammo->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) -_action.weapon->getRules()->getPowerRangeReduction(_range);
+
 	/*********************\ 
 	* AKIMBO SHOTS SECTION *
 	\*********************/
@@ -768,6 +772,37 @@ void ProjectileFlyBState::think()
 	else
 	{
 		auto attack = BattleActionAttack::GetAferShoot(_action, _ammo);
+		// RailGun bullet handling injection (dirty hack)
+		if (_ammo && _ammo->getRules()->getProjectileRailLevel() && !_ammo->getRules()->getShotgunPellets() && _parent->getMap()->getProjectile())
+		{
+			_projectileImpact = _parent->getTileEngine()->voxelCheck(_parent->getMap()->getProjectile()->getPosition(), _unit);
+			Tile* tile = _parent->getSave()->getTile(_parent->getMap()->getProjectile()->getPosition().toTile());
+			const auto tp = static_cast<TilePart>(_projectileImpact);
+
+			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && _parent->getSave()->getBattleGame()->railPower > 0)
+			{
+				int powerRailDercement = _projectileImpact == V_UNIT && tile->getUnit() ?
+					tile->getUnit()->getArmor()->getArmor(SIDE_FRONT) + tile->getUnit()->getHealth() :
+					tile->getMapData(tp)->getArmor();
+
+				_parent->getSave()->getTileEngine()->hit(attack, _parent->getMap()->getProjectile()->getPosition(), _parent->getSave()->getBattleGame()->railPower, _ammo->getRules()->getDamageType());
+				_parent->getSave()->getBattleGame()->railPower -= powerRailDercement;
+
+				if (_projectileImpact == V_UNIT)
+				{ // handling live object sufferring
+					if (!_parent->areAllEnemiesNeutralized())
+					projectileHitUnit(_parent->getMap()->getProjectile()->getPosition());
+					_parent->checkForCasualties(nullptr, attack, false, false);
+					_parent->getSave()->reviveUnconsciousUnits(true);
+					_parent->convertInfected();
+				}
+			}
+			else // let do not spawn hit animation at the end of map
+			{
+				_projectileImpact = V_OUTOFBOUNDS;
+			}		
+		}
+
 		if (_action.type != BA_THROW && _ammo && _ammo->getRules()->getShotgunPellets() != 0)
 		{
 			// shotgun pellets move to their terminal location instantly as fast as possible
@@ -779,8 +814,8 @@ void ProjectileFlyBState::think()
 			{ // Projectile has special event property, when stopped at restricted range, let handle it
 				switch (_ammo->getRules()->getProjectileRangeEvent())
 				{
-				case 1:	_projectileImpact = V_EMPTY; break;
-				case 2:	_projectileImpact = V_OUTOFBOUNDS; break;
+					case 1:	_projectileImpact = V_EMPTY; break;
+					case 2:	_projectileImpact = V_OUTOFBOUNDS;
 				}
 			}
 			// impact !
@@ -866,7 +901,7 @@ void ProjectileFlyBState::think()
 					));
 
 					if (_projectileImpact == V_OUTOFBOUNDS)
-					{
+					{ // Remove hit animation for perst pellet during "shotgun void hit event"
 						_parent->getMap()->getExplosions()->clear();
 					}
 

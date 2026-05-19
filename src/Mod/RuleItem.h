@@ -481,7 +481,7 @@ private:
 	std::vector<int> _customItemPreviewIndex;
 	int _kneelBonus, _oneHandedPenalty;
 	int _monthlySalary, _monthlyMaintenance;
-	int _sprayWaypoints, _projectileRangeEvent;
+	int _sprayWaypoints, _projectileRangeEvent, _projectileRailLevel;
 	RuleStatBonus _damageBonus, _meleeBonus, _accuracyMulti, _meleeMulti, _throwMulti, _closeQuartersMulti;
 	ModScript::BattleItemScripts::Container _battleItemScripts;
 	ScriptValues<RuleItem> _scriptValues;
@@ -1050,6 +1050,7 @@ public:
 	int getSprayWaypoints() const;
 	/// Gets projectile behaviour type when maxRange distance is passed
 	int getProjectileRangeEvent() const;
+	int getProjectileRailLevel() const;
 	/// Gets script.
 	template<typename Script>
 	const typename Script::Container &getScript() const { return _battleItemScripts.get<Script>(); }

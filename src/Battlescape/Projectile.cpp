@@ -486,6 +486,10 @@ int Projectile::calculateTrajectory(double accuracy, const Position& originVoxel
 	}
 
 	// finally do a line calculation and store this trajectory.
+	if (_ammo && _ammo->getRules()->getProjectileRailLevel() && !_ammo->getRules()->getShotgunPellets())
+	{	// Rail gun hack injection: let get rentgene trajectory from origin to OutOfBounds 
+		return _save->getTileEngine()->calculateRailLineVoxel(originVoxel, _targetVoxel, true, &_trajectory, bu);
+	}
 	return _save->getTileEngine()->calculateLineVoxel(originVoxel, _targetVoxel, true, &_trajectory, bu);
 }
 
@@ -1057,16 +1061,20 @@ bool Projectile::move()
 		}
 	}
 
-	for (int i = 0; i < _speed; ++i)
+	bool isRail = _ammo && _ammo->getRules()->getProjectileRailLevel() && !_ammo->getRules()->getShotgunPellets();
+	bool isFallenUnit = _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_UNIT && _save->getTile(getPosition().toTile())->getUnit()->getHealth() <= 0;
+
+	for (int i = 0; i < _speed && (!isRail || (isRail && (_save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_EMPTY || _save->getBattleGame()->railPower <= 0 || isFallenUnit))); ++i)		
 	{
+		//_save->getBattleGame()->railPower;
 		_position++;
-		if (_position == _trajectory.size())
+		if (_position == _trajectory.size() || _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_OUTOFBOUNDS)
 		{
 			_position--;
 			return false;
 		}
-		if (_ammo && _ammo->getRules()->getProjectileRangeEvent() && _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(getPosition().toTile())) )
-		{ // stop projectile fly, if it passed defined limited range and has "special" projectile type
+		if ((_ammo && _ammo->getRules()->getProjectileRangeEvent() && _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(getPosition().toTile()))) || isRail && _save->getBattleGame()->railPower <= 0)
+		{ // pWWWa: stop projectile fly, if it passed defined limited range and has "special" projectile type
 			return false;
 		}
 
@@ -1148,7 +1156,8 @@ BattleItem* Projectile::getItem() const
  */
 void Projectile::skipTrajectory()
 {
-	while (move())
+
+	while (move() && _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_EMPTY)
 		;
 }
 

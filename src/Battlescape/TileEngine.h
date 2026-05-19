@@ -202,6 +202,8 @@ public:
 	int calculateLineTile(Position origin, Position target, std::vector<Position> &trajectory, int minLightBlock = 0);
 	/// Calculates a line trajectory in voxel space.
 	VoxelType calculateLineVoxel(Position origin, Position target, bool storeTrajectory, std::vector<Position> *trajectory, BattleUnit *excludeUnit, BattleUnit *excludeAllBut = 0, bool onlyVisible = false);
+	/// Calculates a line trajectory in voxel space.
+	VoxelType calculateRailLineVoxel(Position origin, Position target, bool storeTrajectory, std::vector<Position> *trajectory, BattleUnit *excludeUnit, BattleUnit *excludeAllBut = 0, bool onlyVisible = false);
 	/// Calculates a parabola trajectory.
 	int calculateParabolaVoxel(Position origin, Position target, bool storeTrajectory, std::vector<Position> *trajectory, BattleUnit *excludeUnit, double curvature, const Position delta);
 	/// Gets the origin voxel of a unit's eyesight.

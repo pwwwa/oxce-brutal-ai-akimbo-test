@@ -166,6 +166,7 @@ private:
 public:
 	/// is debug mode enabled in the battlescape?
 	static bool _debugPlay;
+	int railPower;
 
 	/// Creates the BattlescapeGame state.
 	BattlescapeGame(SavedBattleGame *save, BattlescapeState *parentState);

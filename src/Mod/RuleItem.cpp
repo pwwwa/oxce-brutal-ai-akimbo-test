@@ -184,7 +184,7 @@ RuleItem::RuleItem(const std::string &type, int listOrder) :
 	_vaporColorSurface(-1), _vaporDensitySurface(0), _vaporProbabilitySurface(15),
 	_kneelBonus(-1), _oneHandedPenalty(-1),
 	_monthlySalary(0), _monthlyMaintenance(0),
-	_sprayWaypoints(0), _projectileRangeEvent(0)
+	_sprayWaypoints(0), _projectileRangeEvent(0), _projectileRailLevel()
 {
 	_accuracyMulti.setFiring();
 	_meleeMulti.setMelee();
@@ -674,6 +674,7 @@ void RuleItem::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript&
 	reader.tryRead("monthlyMaintenance", _monthlyMaintenance);
 	reader.tryRead("sprayWaypoints", _sprayWaypoints);
 	reader.tryRead("projectileRangeEvent", _projectileRangeEvent);
+	reader.tryRead("projectileRailLevel", _projectileRailLevel);
 
 	_damageBonus.load(_type, reader, parsers.bonusStatsScripts.get<ModScript::DamageBonusStatBonus>());
 	_meleeBonus.load(_type, reader, parsers.bonusStatsScripts.get<ModScript::MeleeBonusStatBonus>());
@@ -2842,6 +2843,18 @@ int RuleItem::getProjectileRangeEvent() const
 		return 0;
 	}
 	return _projectileRangeEvent;
+}
+/**
+ * Gets Projectile behaviour type when maxRange distance is passed
+ * @return 0 - vanilla, 1 - hit "empty" Voxel/explode, 2 - vanish 
+ */
+int RuleItem::getProjectileRailLevel() const
+{
+	if (_projectileRailLevel < 0 || _projectileRailLevel > 3)
+	{
+		return 0;
+	}
+	return _projectileRailLevel;
 }
 
 

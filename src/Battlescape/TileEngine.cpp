@@ -4895,6 +4895,73 @@ VoxelType TileEngine::calculateLineVoxel(Position origin, Position target, bool 
 	}
 	return V_EMPTY;
 }
+/**
+ * Calculates a line for Rail Guns trajectory, using bresenham algorithm in 3D.
+ * Almost full copy of calculateLineVoxel, but with straight over map trajectory result
+ * @param origin Origin in voxel.
+ * @param target Target in voxel.
+ * @param storeTrajectory True will store the whole trajectory - otherwise it just stores the last position.
+ * @param trajectory A vector of positions in which the trajectory is stored.
+ * @param excludeUnit Excludes this unit in the collision detection.
+ * @param onlyVisible Skip invisible units? used in FPS view.
+ * @param excludeAllBut [Optional] The only unit to be considered for ray hits.
+ * @return the objectnumber(0-3) or unit(4) or out of map (5) or -1(hit nothing).
+ */
+VoxelType TileEngine::calculateRailLineVoxel(Position origin, Position target, bool storeTrajectory, std::vector<Position> *trajectory, BattleUnit *excludeUnit, BattleUnit *excludeAllBut, bool onlyVisible)
+{
+	VoxelType result = V_EMPTY;
+	bool excludeAllUnits = false;
+	int rand = (int)RNG::generate(0, 1) ? -1 : 1;
+
+	if (_save->isBeforeGame())
+	{
+		excludeAllUnits = true; // don't start unit spotting before pre-game inventory stuff (large units on the craftInventory tile will cause a crash if they're "spotted")
+	}
+
+	bool hit = calculateLineHelper(origin, target,
+		[&](Position point)
+		{
+			if (storeTrajectory && trajectory)
+			{				
+				trajectory->push_back(point);
+				trajectory->push_back(point + Position(rand, 0, 0));
+			}
+			
+			result = voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut);
+			
+			if (result == V_OUTOFBOUNDS)
+			{
+				if (trajectory)
+				{ // store the position of impact
+					trajectory->push_back(point);
+
+				}
+				return true;
+			}
+			return false;
+		},
+		[&](Position point)
+		{
+			//check for xy diagonal intermediate voxel step
+			result = voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut);
+			
+			if (result == V_OUTOFBOUNDS)
+			{
+				if (trajectory != 0)
+				{ // store the position of impact
+					trajectory->push_back(point);
+				}
+				return true;
+			}
+			return false;
+		}
+	);
+	if (hit)
+	{
+		return result;
+	}
+	return V_EMPTY;
+}
 
 /**
  * Calculates a parabola trajectory, used for throwing items.
@@ -6058,7 +6125,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 				originTile =		_save->getTile(pos + Position(0, size, 0));
 				neighbouringTile =	_save->getTile(pos + p + Position(0, size, 0));
 				neighbouringTile2 = _save->getTile(pos + Position(0, size + 1, 0));
-				neighbouringTile3 = _save->getTile(pos + Position(-size - 1, 0, 0));
+				neighbouringTile3 = _save->getTile(pos + Position(- 1, size, 0));
 				break;
 
 		case 7: //North-West
@@ -6171,9 +6238,9 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 				break;
 				
 		case 5: // North-East
-				if (setTarget(neighbouringTile2, O_NORTHWALL, action) ||    // 1
+				if (setTarget(neighbouringTile, O_NORTHWALL, action) ||		// 4
+					setTarget(neighbouringTile2, O_NORTHWALL, action) ||    // 1
 					setTarget(neighbouringTile2, O_WESTWALL, action) ||		// 3
-					setTarget(neighbouringTile, O_NORTHWALL, action) ||		// 4
 					setTarget(originTile, O_WESTWALL, action))	 			// 2
 				return true;
 				break;
