@@ -1062,7 +1062,7 @@ bool Projectile::move()
 	}
 
 	bool isRail = _ammo && _ammo->getRules()->getProjectileRailLevel() && !_ammo->getRules()->getShotgunPellets();
-	bool isFallenUnit = _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_UNIT && _save->getTile(getPosition().toTile())->getUnit()->getHealth() <= 0;
+	bool isFallenUnit = _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_UNIT && _save->getTile(getPosition().toTile())->getUnit() && _save->getTile(getPosition().toTile())->getUnit()->getHealth() <= 0;
 
 	for (int i = 0; i < _speed && (!isRail || (isRail && (_save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_EMPTY || _save->getBattleGame()->railPower <= 0 || isFallenUnit))); ++i)		
 	{

@@ -202,6 +202,14 @@ void ProjectileFlyBState::init()
 		return;
 	}
 
+	//BattleActionAttack attack;
+	_parent->getSave()->getBattleGame()->railPower = weapon && weapon->getRules()->getIgnoreAmmoPower() ?
+	weapon->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) - weapon->getRules()->getPowerRangeReduction(_range) :
+	_ammo ?
+	_ammo->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) - weapon->getRules()->getPowerRangeReduction(_range)
+																																																														   : 0;
+
+
 	// Check for close quarters combat
 	if (_parent->getMod()->getEnableCloseQuartersCombat() && _action.type != BA_THROW && _action.type != BA_LAUNCH && _unit->getTurretType() == -1 && !_unit->getArmor()->getIgnoresMeleeThreat())
 	{
@@ -471,9 +479,6 @@ bool ProjectileFlyBState::createNewProjectile()
 {
 	++_action.autoShotCounter;
 
-	_parent->getSave()->getBattleGame()->railPower = _action.weapon->getRules()->getIgnoreAmmoPower() ?
-	_action.weapon->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) - _action.weapon->getRules()->getPowerRangeReduction(_range) :
-	_ammo->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) -_action.weapon->getRules()->getPowerRangeReduction(_range);
 
 	/*********************\ 
 	* AKIMBO SHOTS SECTION *
@@ -781,17 +786,16 @@ void ProjectileFlyBState::think()
 
 			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && _parent->getSave()->getBattleGame()->railPower > 0)
 			{
-				int powerRailDercement = _projectileImpact == V_UNIT && tile->getUnit() ?
+				int powerRailDerceament = _projectileImpact == V_UNIT && tile->getUnit() && tile->getUnit()->getHealth() > 0 ?
 					tile->getUnit()->getArmor()->getArmor(SIDE_FRONT) + tile->getUnit()->getHealth() :
 					tile->getMapData(tp)->getArmor();
 
 				_parent->getSave()->getTileEngine()->hit(attack, _parent->getMap()->getProjectile()->getPosition(), _parent->getSave()->getBattleGame()->railPower, _ammo->getRules()->getDamageType());
-				_parent->getSave()->getBattleGame()->railPower -= powerRailDercement;
+				_parent->getSave()->getBattleGame()->railPower -= powerRailDerceament;
 
 				if (_projectileImpact == V_UNIT)
 				{ // handling live object sufferring
-					if (!_parent->areAllEnemiesNeutralized())
-					projectileHitUnit(_parent->getMap()->getProjectile()->getPosition());
+					if (!_parent->areAllEnemiesNeutralized()) projectileHitUnit(_parent->getMap()->getProjectile()->getPosition());
 					_parent->checkForCasualties(nullptr, attack, false, false);
 					_parent->getSave()->reviveUnconsciousUnits(true);
 					_parent->convertInfected();
