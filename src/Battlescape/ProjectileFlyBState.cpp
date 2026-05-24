@@ -202,14 +202,6 @@ void ProjectileFlyBState::init()
 		return;
 	}
 
-	//BattleActionAttack attack;
-	_parent->getSave()->getBattleGame()->railPower = weapon && weapon->getRules()->getIgnoreAmmoPower() ?
-	weapon->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) - weapon->getRules()->getPowerRangeReduction(_range) :
-	_ammo ?
-	_ammo->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) - weapon->getRules()->getPowerRangeReduction(_range)
-																																																														   : 0;
-
-
 	// Check for close quarters combat
 	if (_parent->getMod()->getEnableCloseQuartersCombat() && _action.type != BA_THROW && _action.type != BA_LAUNCH && _unit->getTurretType() == -1 && !_unit->getArmor()->getIgnoresMeleeThreat())
 	{
@@ -479,7 +471,6 @@ bool ProjectileFlyBState::createNewProjectile()
 {
 	++_action.autoShotCounter;
 
-
 	/*********************\ 
 	* AKIMBO SHOTS SECTION *
 	\*********************/
@@ -515,7 +506,7 @@ bool ProjectileFlyBState::createNewProjectile()
 			}
 			return false;
 		}
-		// Hand switch mechanic of proper hand (and ammo) each shot, if everything fine
+		// Hand switch mechanic of proper weapon (and ammo) usage each shot, if everything fine
 		if ( _action.actWeaponCounter < _action.actWeaponShotQnty &&
 			(_action.actWeaponCounter == _action.opWeaponCounter || _action.opWeaponCounter >= _action.opWeaponShotQnty) )
 		{
@@ -537,6 +528,19 @@ bool ProjectileFlyBState::createNewProjectile()
 		{
 			_action.waypoints.reverse();
 		}
+	}
+
+	// pierce power (capacity) variable definition;
+	if (_ammo && !_action.weapon->getRules()->getPiercePowerCap())
+	{
+		_parent->getSave()->getBattleGame()->piercePower = _action.weapon && _action.weapon->getRules()->getIgnoreAmmoPower()
+		? _action.weapon->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) - _action.weapon->getRules()->getPowerRangeReduction(_range)
+		: _ammo ? _ammo->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) - _action.weapon->getRules()->getPowerRangeReduction(_range)
+		: 0;
+	}
+	else
+	{
+		_parent->getSave()->getBattleGame()->piercePower = _ammo->getRules()->getPiercePowerCap(); 
 	}
 
 	// Special handling for "spray" auto attack, get target positions from the action's waypoints, starting from the back
@@ -621,7 +625,7 @@ bool ProjectileFlyBState::createNewProjectile()
 			return false;
 		}
 	}
-	else if (_action.weapon->getArcingShot(_action.type)) // special code for the "spit" trajectory
+	else if (_action.weapon && _action.weapon->getArcingShot(_action.type)) // special code for the "spit" trajectory
 	{
 		_projectileImpact = projectile->calculateThrow(BattleUnit::getFiringAccuracy(attack, _parent->getMod()) / accuracyDivider);
 		if (_projectileImpact != V_EMPTY && _projectileImpact != V_OUTOFBOUNDS)
@@ -777,34 +781,68 @@ void ProjectileFlyBState::think()
 	else
 	{
 		auto attack = BattleActionAttack::GetAferShoot(_action, _ammo);
-		// RailGun bullet handling injection (dirty hack)
-		if (_ammo && _ammo->getRules()->getProjectileRailLevel() && !_ammo->getRules()->getShotgunPellets() && _parent->getMap()->getProjectile())
+
+		// Pierce bullet handling injection (dirty hack)
+		if (_ammo && _ammo->getRules()->getPierceType() && !_ammo->getRules()->getShotgunPellets() && _parent->getMap()->getProjectile())
 		{
 			_projectileImpact = _parent->getTileEngine()->voxelCheck(_parent->getMap()->getProjectile()->getPosition(), _unit);
 			Tile* tile = _parent->getSave()->getTile(_parent->getMap()->getProjectile()->getPosition().toTile());
 			const auto tp = static_cast<TilePart>(_projectileImpact);
-
-			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && _parent->getSave()->getBattleGame()->railPower > 0)
+			auto dmgAOE = _ammo->getRules()->getPierceAOEDamageType();
+			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && _parent->getSave()->getBattleGame()->piercePower > 0)
 			{
-				int powerRailDerceament = _projectileImpact == V_UNIT && tile->getUnit() && tile->getUnit()->getHealth() > 0 ?
-					tile->getUnit()->getArmor()->getArmor(SIDE_FRONT) + tile->getUnit()->getHealth() :
-					tile->getMapData(tp)->getArmor();
+				int piercePowerDercement = 0;
+				if (_projectileImpact == V_UNIT && tile->getOverlappingUnit(_parent->getSave()) && tile->getOverlappingUnit(_parent->getSave())->getHealth() > 0)
+				{ // let use if-else instead of long spagetty ternary
+				piercePowerDercement = tile->getOverlappingUnit(_parent->getSave())->getArmor()->getArmor(SIDE_FRONT) + tile->getOverlappingUnit(_parent->getSave())->getHealth();
+				}
+				else
+				{
+					piercePowerDercement = tile->getMapData(tp)->getArmor();
+				}
 
-				_parent->getSave()->getTileEngine()->hit(attack, _parent->getMap()->getProjectile()->getPosition(), _parent->getSave()->getBattleGame()->railPower, _ammo->getRules()->getDamageType());
-				_parent->getSave()->getBattleGame()->railPower -= powerRailDerceament;
+				int power = 0;
+				if (_action.weapon->getRules()->getIgnoreAmmoPower())
+				{ //borrowed from shotgun section
+					power = _action.weapon->getRules()->getPowerBonus(attack) - _action.weapon->getRules()->getPowerRangeReduction(_parent->getMap()->getProjectile()->getDistance());
+				}
+				else
+				{
+					power = _ammo->getRules()->getPowerBonus(attack) - _ammo->getRules()->getPowerRangeReduction(_parent->getMap()->getProjectile()->getDistance());
+				}
 
+				_parent->getSave()->getTileEngine()->hit(attack, _parent->getMap()->getProjectile()->getPosition(),
+					_ammo->getRules()->getPierceType() == 2
+					?
+					power
+					:
+					std::min(_parent->getSave()->getBattleGame()->piercePower, power),
+					_ammo->getRules()->getDamageType()->isDirect()
+					?
+					_ammo->getRules()->getDamageType()
+					:
+					_parent->getMod()->getDamageType(dmgAOE));
+
+				_parent->getSave()->getBattleGame()->piercePower -= piercePowerDercement;
+				//Log(LOG_INFO) << "Resist type is ?" << _ammo->getRules()->getDamageType()->ResistType;
 				if (_projectileImpact == V_UNIT)
-				{ // handling live object sufferring
+				{ // let arrange further handling of impacted units
 					if (!_parent->areAllEnemiesNeutralized()) projectileHitUnit(_parent->getMap()->getProjectile()->getPosition());
 					_parent->checkForCasualties(nullptr, attack, false, false);
 					_parent->getSave()->reviveUnconsciousUnits(true);
 					_parent->convertInfected();
+					_parent->setStateInterval(BattlescapeState::DEFAULT_ANIM_SPEED / 5); // Alt solution: _parent->setStateInterval(50/3)
+				}
+				else
+				{ // let arrange further handling of impacted HE terrain objects
+					if(tile->getSavedGame()->getTileEngine()->checkForTerrainExplosions())
+					_parent->statePushNext(new ExplosionBState(_parent, _parent->getMap()->getProjectile()->getPosition(), BattleActionAttack{BA_NONE,attack.attacker,},tile, false, 0, 0));
 				}
 			}
-			else // let do not spawn hit animation at the end of map
-			{
+			else 
+			{ // do not spawn hit animation at the end of map
 				_projectileImpact = V_OUTOFBOUNDS;
-			}		
+			}
 		}
 
 		if (_action.type != BA_THROW && _ammo && _ammo->getRules()->getShotgunPellets() != 0)
@@ -815,11 +853,11 @@ void ProjectileFlyBState::think()
 		if (!_parent->getMap()->getProjectile()->move())
 		{
 			if (_ammo && _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(_parent->getMap()->getProjectile()->getPosition().toTile())))
-			{ // Projectile has special event property, when stopped at restricted range, let handle it
-				switch (_ammo->getRules()->getProjectileRangeEvent())
+			{ // Projectile has special maxRange event property, when stopped at restricted range, let handle it
+				switch (_ammo->getRules()->getMaxRangeEvent())
 				{
-					case 1:	_projectileImpact = V_EMPTY; break;
-					case 2:	_projectileImpact = V_OUTOFBOUNDS;
+					case 1:	_projectileImpact = V_EMPTY; break; // generate explosion
+					case 2:	_projectileImpact = V_OUTOFBOUNDS; // vanish
 				}
 			}
 			// impact !

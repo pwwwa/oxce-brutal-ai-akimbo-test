@@ -184,7 +184,7 @@ RuleItem::RuleItem(const std::string &type, int listOrder) :
 	_vaporColorSurface(-1), _vaporDensitySurface(0), _vaporProbabilitySurface(15),
 	_kneelBonus(-1), _oneHandedPenalty(-1),
 	_monthlySalary(0), _monthlyMaintenance(0),
-	_sprayWaypoints(0), _projectileRangeEvent(0), _projectileRailLevel()
+	_sprayWaypoints(0), _maxRangeEvent(0), _pierceType(0), _piercePowerCap(0), _pierceAOEDamageType(0)
 {
 	_accuracyMulti.setFiring();
 	_meleeMulti.setMelee();
@@ -673,8 +673,10 @@ void RuleItem::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript&
 	reader.tryRead("monthlySalary", _monthlySalary);
 	reader.tryRead("monthlyMaintenance", _monthlyMaintenance);
 	reader.tryRead("sprayWaypoints", _sprayWaypoints);
-	reader.tryRead("projectileRangeEvent", _projectileRangeEvent);
-	reader.tryRead("projectileRailLevel", _projectileRailLevel);
+	reader.tryRead("maxRangeEvent", _maxRangeEvent);
+	reader.tryRead("pierceType", _pierceType);
+	reader.tryRead("piercePowerCap", _piercePowerCap);
+	reader.tryRead("pierceAOEDamageType", _pierceAOEDamageType);
 
 	_damageBonus.load(_type, reader, parsers.bonusStatsScripts.get<ModScript::DamageBonusStatBonus>());
 	_meleeBonus.load(_type, reader, parsers.bonusStatsScripts.get<ModScript::MeleeBonusStatBonus>());
@@ -696,7 +698,7 @@ void RuleItem::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript&
 	{ // Is pistol has no akimbo feature ? let fix it within shapshot config. 
 		auto temp = _confSnap;
 		_confAkimbo = temp;
-		_confAkimbo.cost.Time.setValue((getCostAkimbo().Time + 5));
+		_confAkimbo.cost.Time.setValue((getCostAkimbo().Time + 3));
 		_confAkimbo.accuracy -= 7;
 		_confAkimbo.range = 7;
 		_confAkimbo.name = "STR_AKIMBO_SHOT";
@@ -2836,27 +2838,48 @@ int RuleItem::getSprayWaypoints() const
  * Gets Projectile behaviour type when maxRange distance is passed
  * @return 0 - vanilla, 1 - hit "empty" Voxel/explode, 2 - vanish 
  */
-int RuleItem::getProjectileRangeEvent() const
+int RuleItem::getMaxRangeEvent() const
 {
-	if (_projectileRangeEvent < 0 || _projectileRangeEvent > 2)
+	if (_maxRangeEvent < 0 || _maxRangeEvent > 2)
 	{
 		return 0;
 	}
-	return _projectileRangeEvent;
+	return _maxRangeEvent;
 }
 /**
- * Gets Projectile behaviour type when maxRange distance is passed
- * @return 0 - vanilla, 1 - hit "empty" Voxel/explode, 2 - vanish 
+ * Gets pierce projectile power handling due colliding with map objects
+ * @return 0 - vanilla (ice), 1 - dynamic (reducing) power, 2 - static power 
  */
-int RuleItem::getProjectileRailLevel() const
+int RuleItem::getPierceType() const
 {
-	if (_projectileRailLevel < 0 || _projectileRailLevel > 3)
+	if (_pierceType < 0 || _pierceType > 2)
 	{
 		return 0;
 	}
-	return _projectileRailLevel;
+	return _pierceType;
 }
 
+/**
+ * Gets projectile pierce power capacity (durability)
+ * @return overrided pierce power value (limited [0 - 1000])
+ */
+int RuleItem::getPiercePowerCap() const
+{
+	if (_piercePowerCap <= 0)
+	{
+		return 0;
+	}
+	if (_piercePowerCap > 1000)
+	{
+		return 1000;
+	}
+	return _piercePowerCap;
+}
+/// Gets projectile pierce damage type for AOE ammo
+ItemDamageType RuleItem::getPierceAOEDamageType() const
+{
+	return static_cast<ItemDamageType>(_pierceAOEDamageType < 1 ? 1 : _pierceAOEDamageType);
+}
 
 ////////////////////////////////////////////////////////////
 //					Script binding

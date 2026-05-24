@@ -4896,7 +4896,7 @@ VoxelType TileEngine::calculateLineVoxel(Position origin, Position target, bool 
 	return V_EMPTY;
 }
 /**
- * Calculates a line for Rail Guns trajectory, using bresenham algorithm in 3D.
+ * Calculates a line for "Rail" Guns projectile trajectory, using bresenham algorithm in 3D.
  * Almost full copy of calculateLineVoxel, but with straight over map trajectory result
  * @param origin Origin in voxel.
  * @param target Target in voxel.
@@ -4905,62 +4905,51 @@ VoxelType TileEngine::calculateLineVoxel(Position origin, Position target, bool 
  * @param excludeUnit Excludes this unit in the collision detection.
  * @param onlyVisible Skip invisible units? used in FPS view.
  * @param excludeAllBut [Optional] The only unit to be considered for ray hits.
- * @return the objectnumber(0-3) or unit(4) or out of map (5) or -1(hit nothing).
+ * @return out of map (5).
  */
-VoxelType TileEngine::calculateRailLineVoxel(Position origin, Position target, bool storeTrajectory, std::vector<Position> *trajectory, BattleUnit *excludeUnit, BattleUnit *excludeAllBut, bool onlyVisible)
+VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target, bool storeTrajectory, std::vector<Position> *trajectory, BattleUnit *excludeUnit, BattleUnit *excludeAllBut, bool onlyVisible)
 {
-	VoxelType result = V_EMPTY;
-	bool excludeAllUnits = false;
-	int rand = (int)RNG::generate(0, 1) ? -1 : 1;
 
+	bool excludeAllUnits = false;
 	if (_save->isBeforeGame())
 	{
 		excludeAllUnits = true; // don't start unit spotting before pre-game inventory stuff (large units on the craftInventory tile will cause a crash if they're "spotted")
 	}
-
-	bool hit = calculateLineHelper(origin, target,
+	/**/
+	int rand = (int)RNG::generate(0, 1) ? -1 : 1;
+	calculateLineHelper(origin, target,
 		[&](Position point)
 		{
 			if (storeTrajectory && trajectory)
 			{				
-				trajectory->push_back(point);
-				trajectory->push_back(point + Position(rand, 0, 0));
+				//trajectory->push_back(point);
+				trajectory->push_back(point + Position(rand, -rand, 0));
 			}
-			
-			result = voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut);
-			
-			if (result == V_OUTOFBOUNDS)
+						
+			if (voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut) == V_OUTOFBOUNDS)
 			{
 				if (trajectory)
 				{ // store the position of impact
 					trajectory->push_back(point);
-
 				}
 				return true;
 			}
 			return false;
 		},
 		[&](Position point)
-		{
-			//check for xy diagonal intermediate voxel step
-			result = voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut);
-			
-			if (result == V_OUTOFBOUNDS)
+		{	
+			//check for xy diagonal intermediate voxel step	
+			if (voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut) == V_OUTOFBOUNDS)
 			{
 				if (trajectory != 0)
 				{ // store the position of impact
-					trajectory->push_back(point);
+					trajectory->push_back(point + Position(rand, -rand, 0));
 				}
 				return true;
 			}
 			return false;
-		}
-	);
-	if (hit)
-	{
-		return result;
-	}
-	return V_EMPTY;
+		});
+	return V_OUTOFBOUNDS;
 }
 
 /**
@@ -5012,6 +5001,62 @@ int TileEngine::calculateParabolaVoxel(Position origin, Position target, bool st
 			return false;
 		}
 	);
+
+	return result;
+}
+
+/**
+ * Calculates a parabola trajectory, used for arc pierce bullets.
+ * @param origin Origin in voxelspace.
+ * @param target Target in voxelspace.
+ * @param storeTrajectory True will store the whole trajectory - otherwise it just stores the last position.
+ * @param trajectory A vector of positions in which the trajectory is stored.
+ * @param excludeUnit Makes sure the trajectory does not hit the shooter itself.
+ * @param curvature How high the parabola goes: 1.0 is almost straight throw, 3.0 is a very high throw, to throw over a fence for example.
+ * @param delta Is the deviation of the angles it should take into account, 0,0,0 is perfection.
+ * @return out of map (5).
+ */
+int TileEngine::calculatePierceParabolaVoxel(Position origin, Position target, bool storeTrajectory, std::vector<Position>* trajectory, BattleUnit* excludeUnit, double curvature, const Position delta)
+{
+	//if (target == origin)
+		//return V_EMPTY; // just in case
+
+	int result = V_EMPTY;
+	Position lastPosition = origin;
+	Position nextPosition = lastPosition;
+
+	if (storeTrajectory && trajectory)
+	{
+		// initla value for small hack to glue `calculateLineVoxel` into one continuous arc
+		trajectory->push_back(lastPosition + Position((int)RNG::generate(0,1)? -1 : 1,0,0));
+	}
+
+	calculateParabolaHelper(origin, target, curvature, delta,
+	[&](Position p)
+	{
+		// passes through this point?
+		nextPosition = p;
+
+		if (storeTrajectory && trajectory)
+		{
+			// remove end point of previous trajectory part, because next one will add this point again
+			trajectory->pop_back();
+		}
+		result = calculateLineVoxel(lastPosition, nextPosition, storeTrajectory, storeTrajectory ? trajectory : nullptr, excludeUnit);
+
+		if (result == V_OUTOFBOUNDS)
+		{
+			if (!storeTrajectory && trajectory)
+			{
+				result = calculateLineVoxel(lastPosition, nextPosition, false, trajectory, excludeUnit); // pick the INSIDE position of impact
+			}
+
+			return false;
+		}
+		lastPosition = nextPosition;
+
+		return false;
+	});
 
 	return result;
 }

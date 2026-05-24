@@ -103,7 +103,7 @@ void ExplosionBState::init()
 		}
 		else
 		{
-			if (_attack.weapon_item && !_attack.weapon_item->getRules()->getProjectileRailLevel())
+			if (_attack.weapon_item && (!itemRule->getPierceType() || !itemRule->getDamageType()->isDirect()))
 			{
 				if (_attack.weapon_item->getRules()->getIgnoreAmmoPower())
 				{

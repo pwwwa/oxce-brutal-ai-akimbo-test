@@ -486,9 +486,9 @@ int Projectile::calculateTrajectory(double accuracy, const Position& originVoxel
 	}
 
 	// finally do a line calculation and store this trajectory.
-	if (_ammo && _ammo->getRules()->getProjectileRailLevel() && !_ammo->getRules()->getShotgunPellets())
-	{	// Rail gun hack injection: let get rentgene trajectory from origin to OutOfBounds 
-		return _save->getTileEngine()->calculateRailLineVoxel(originVoxel, _targetVoxel, true, &_trajectory, bu);
+	if (_ammo && _ammo->getRules()->getPierceType() && !_ammo->getRules()->getShotgunPellets())
+	{	// Pierce bullet hack injection: let get rentgene trajectory from Origin to OutOfBounds 
+		return _save->getTileEngine()->calculatePierceLineVoxel(originVoxel, _targetVoxel, true, &_trajectory, bu);
 	}
 	return _save->getTileEngine()->calculateLineVoxel(originVoxel, _targetVoxel, true, &_trajectory, bu);
 }
@@ -519,6 +519,7 @@ int Projectile::calculateThrow(double accuracy)
 		BattleUnit* tu = targetTile->getOverlappingUnit(_save);
 		if (Options::forceFire && _save->isCtrlPressed(true) && _save->getSide() == FACTION_PLAYER)
 		{
+			targets.push_back(_action.target.toVoxel() + Position(8, 8, 4));
 			targets.push_back(_action.target.toVoxel() + Position(0, 0, 12));
 			forced = true;
 		}
@@ -592,8 +593,17 @@ int Projectile::calculateThrow(double accuracy)
 			applyAccuracy(originVoxel, &targetVoxel, accuracy, true, false); // arcing shot deviation
 			deltas = Position(0, 0, 0);
 		}
-
-		test = _save->getTileEngine()->calculateParabolaVoxel(originVoxel, targetVoxel, true, &_trajectory, _action.actor, curvature, deltas);
+		//test = _save->getTileEngine()->calculateParabolaVoxel(originVoxel, targetVoxel, true, &_trajectory, _action.actor, curvature, deltas);
+		
+		if (_ammo && _ammo->getRules()->getPierceType() && !_ammo->getRules()->getShotgunPellets())
+		{
+			test = _save->getTileEngine()->calculatePierceParabolaVoxel(originVoxel, targetVoxel, true, &_trajectory, _action.actor, curvature, deltas);
+		}
+		else
+		{
+			test = _save->getTileEngine()->calculateParabolaVoxel(originVoxel, targetVoxel, true, &_trajectory, _action.actor, curvature, deltas);
+		}
+	
 		if (forced)
 			return O_OBJECT; // fake hit
 		Position endPoint = getPositionFromEnd(_trajectory, ItemDropVoxelOffset).toTile();
@@ -1061,19 +1071,19 @@ bool Projectile::move()
 		}
 	}
 
-	bool isRail = _ammo && _ammo->getRules()->getProjectileRailLevel() && !_ammo->getRules()->getShotgunPellets();
-	bool isFallenUnit = _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_UNIT && _save->getTile(getPosition().toTile())->getUnit() && _save->getTile(getPosition().toTile())->getUnit()->getHealth() <= 0;
+	bool isRail = _ammo && _ammo->getRules()->getPierceType() && !_ammo->getRules()->getShotgunPellets();
+	bool isFallenUnit = _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_UNIT && _save->getTile(getPosition().toTile())->getOverlappingUnit(_save) && _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->getHealth() <= 0;
 
-	for (int i = 0; i < _speed && (!isRail || (isRail && (_save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_EMPTY || _save->getBattleGame()->railPower <= 0 || isFallenUnit))); ++i)		
+	for (int i = 0; i < _speed && (!isRail || (isRail && (_save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_EMPTY || _save->getBattleGame()->piercePower <= 0 || isFallenUnit))); ++i)		
 	{
-		//_save->getBattleGame()->railPower;
 		_position++;
 		if (_position == _trajectory.size() || _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_OUTOFBOUNDS)
 		{
 			_position--;
 			return false;
 		}
-		if ((_ammo && _ammo->getRules()->getProjectileRangeEvent() && _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(getPosition().toTile()))) || isRail && _save->getBattleGame()->railPower <= 0)
+
+		if ((_ammo && _ammo->getRules()->getMaxRangeEvent() && _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(getPosition().toTile()))) || isRail && _save->getBattleGame()->piercePower <= 0)
 		{ // pWWWa: stop projectile fly, if it passed defined limited range and has "special" projectile type
 			return false;
 		}

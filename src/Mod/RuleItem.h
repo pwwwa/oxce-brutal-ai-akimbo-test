@@ -481,7 +481,7 @@ private:
 	std::vector<int> _customItemPreviewIndex;
 	int _kneelBonus, _oneHandedPenalty;
 	int _monthlySalary, _monthlyMaintenance;
-	int _sprayWaypoints, _projectileRangeEvent, _projectileRailLevel;
+	int _sprayWaypoints, _maxRangeEvent, _pierceType, _piercePowerCap, _pierceAOEDamageType;
 	RuleStatBonus _damageBonus, _meleeBonus, _accuracyMulti, _meleeMulti, _throwMulti, _closeQuartersMulti;
 	ModScript::BattleItemScripts::Container _battleItemScripts;
 	ScriptValues<RuleItem> _scriptValues;
@@ -1049,8 +1049,13 @@ public:
 	/// Gets how many waypoints are used for a "spray" attack
 	int getSprayWaypoints() const;
 	/// Gets projectile behaviour type when maxRange distance is passed
-	int getProjectileRangeEvent() const;
-	int getProjectileRailLevel() const;
+	int getMaxRangeEvent() const;
+	/// Gets projectile pierce type behaviour due colliding with map objects
+	int getPierceType() const;
+	/// Gets projectile pierce power capacity (durability)
+	int getPiercePowerCap() const;
+	/// Gets projectile pierce damage type for AOE ammo
+	ItemDamageType getPierceAOEDamageType() const;
 	/// Gets script.
 	template<typename Script>
 	const typename Script::Container &getScript() const { return _battleItemScripts.get<Script>(); }
