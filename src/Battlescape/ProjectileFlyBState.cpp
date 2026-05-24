@@ -531,16 +531,18 @@ bool ProjectileFlyBState::createNewProjectile()
 	}
 
 	// pierce power (capacity) variable definition;
-	if (_ammo && !_action.weapon->getRules()->getPiercePowerCap())
+	if (_ammo && _ammo->getRules()->getPierceType())
 	{
-		_parent->getSave()->getBattleGame()->piercePower = _action.weapon && _action.weapon->getRules()->getIgnoreAmmoPower()
-		? _action.weapon->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) - _action.weapon->getRules()->getPowerRangeReduction(_range)
-		: _ammo ? _ammo->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) - _action.weapon->getRules()->getPowerRangeReduction(_range)
-		: 0;
-	}
-	else
-	{
-		_parent->getSave()->getBattleGame()->piercePower = _ammo->getRules()->getPiercePowerCap(); 
+		if (!_ammo->getRules()->getPiercePowerCap())
+		{
+			_parent->getSave()->getBattleGame()->piercePower = _action.weapon && _action.weapon->getRules()->getIgnoreAmmoPower()
+		   ? _action.weapon->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) - _action.weapon->getRules()->getPowerRangeReduction(_range)
+		   : _ammo->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) - _action.weapon->getRules()->getPowerRangeReduction(_range);
+		}
+		else
+		{
+			_parent->getSave()->getBattleGame()->piercePower = _ammo->getRules()->getPiercePowerCap();
+		}
 	}
 
 	// Special handling for "spray" auto attack, get target positions from the action's waypoints, starting from the back
@@ -789,6 +791,7 @@ void ProjectileFlyBState::think()
 			Tile* tile = _parent->getSave()->getTile(_parent->getMap()->getProjectile()->getPosition().toTile());
 			const auto tp = static_cast<TilePart>(_projectileImpact);
 			auto dmgAOE = _ammo->getRules()->getPierceAOEDamageType();
+
 			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && _parent->getSave()->getBattleGame()->piercePower > 0)
 			{
 				int piercePowerDercement = 0;
@@ -824,7 +827,7 @@ void ProjectileFlyBState::think()
 					_parent->getMod()->getDamageType(dmgAOE));
 
 				_parent->getSave()->getBattleGame()->piercePower -= piercePowerDercement;
-				//Log(LOG_INFO) << "Resist type is ?" << _ammo->getRules()->getDamageType()->ResistType;
+
 				if (_projectileImpact == V_UNIT)
 				{ // let arrange further handling of impacted units
 					if (!_parent->areAllEnemiesNeutralized()) projectileHitUnit(_parent->getMap()->getProjectile()->getPosition());
@@ -857,7 +860,7 @@ void ProjectileFlyBState::think()
 				switch (_ammo->getRules()->getMaxRangeEvent())
 				{
 					case 1:	_projectileImpact = V_EMPTY; break; // generate explosion
-					case 2:	_projectileImpact = V_OUTOFBOUNDS; // vanish
+					case 2:	_projectileImpact = V_OUTOFBOUNDS;  // vanish
 				}
 			}
 			// impact !
@@ -943,7 +946,7 @@ void ProjectileFlyBState::think()
 					));
 
 					if (_projectileImpact == V_OUTOFBOUNDS)
-					{ // Remove hit animation for perst pellet during "shotgun void hit event"
+					{ // Remove hit animation for first pellet during "shotgun void hit event"
 						_parent->getMap()->getExplosions()->clear();
 					}
 

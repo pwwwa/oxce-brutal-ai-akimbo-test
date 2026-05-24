@@ -593,7 +593,6 @@ int Projectile::calculateThrow(double accuracy)
 			applyAccuracy(originVoxel, &targetVoxel, accuracy, true, false); // arcing shot deviation
 			deltas = Position(0, 0, 0);
 		}
-		//test = _save->getTileEngine()->calculateParabolaVoxel(originVoxel, targetVoxel, true, &_trajectory, _action.actor, curvature, deltas);
 		
 		if (_ammo && _ammo->getRules()->getPierceType() && !_ammo->getRules()->getShotgunPellets())
 		{
