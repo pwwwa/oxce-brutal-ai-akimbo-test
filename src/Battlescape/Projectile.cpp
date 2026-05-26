@@ -519,8 +519,8 @@ int Projectile::calculateThrow(double accuracy)
 		BattleUnit* tu = targetTile->getOverlappingUnit(_save);
 		if (Options::forceFire && _save->isCtrlPressed(true) && _save->getSide() == FACTION_PLAYER)
 		{
-			targets.push_back(_action.target.toVoxel() + Position(8, 8, 4));
-			targets.push_back(_action.target.toVoxel() + Position(0, 0, 12));
+			_ammo && _ammo->getRules()->getPierceType() ? targets.push_back(_action.target.toVoxel() + Position(8, 8, 4))
+			: targets.push_back(_action.target.toVoxel() + Position(0, 0, 12));
 			forced = true;
 		}
 		else if (tu && ((_action.actor->getFaction() != FACTION_PLAYER) ||
@@ -1071,9 +1071,14 @@ bool Projectile::move()
 	}
 
 	bool isRail = _ammo && _ammo->getRules()->getPierceType() && !_ammo->getRules()->getShotgunPellets();
-	bool isFallenUnit = _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_UNIT && _save->getTile(getPosition().toTile())->getOverlappingUnit(_save) && _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->getHealth() <= 0;
 
-	for (int i = 0; i < _speed && (!isRail || (isRail && (_save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_EMPTY || _save->getBattleGame()->piercePower <= 0 || isFallenUnit))); ++i)		
+	for (int i = 0; (i < _speed && (!isRail || ( isRail && ( _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_EMPTY
+		|| _save->getBattleGame()->piercePower <= 0
+			|| _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_UNIT && _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)
+		&& (_save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->getHealth() <= 0
+			|| _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->getHealth() <= _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->getStunlevel())
+			 ))));
+		++i)
 	{
 		_position++;
 		if (_position == _trajectory.size() || _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_OUTOFBOUNDS)

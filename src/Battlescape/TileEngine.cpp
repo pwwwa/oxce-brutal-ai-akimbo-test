@@ -4930,7 +4930,7 @@ VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target,
 			{
 				if (trajectory)
 				{ // store the position of impact
-					trajectory->push_back(point);
+					trajectory->push_back(point + Position(rand, -rand, 0));
 				}
 				return true;
 			}

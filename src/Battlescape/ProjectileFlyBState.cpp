@@ -531,7 +531,7 @@ bool ProjectileFlyBState::createNewProjectile()
 	}
 
 	// pierce power (capacity) variable definition;
-	if (_ammo && _ammo->getRules()->getPierceType())
+	if (_ammo && _ammo->getRules()->getPierceType() && !(_action.type == BA_LAUNCH && _action.actor->getPosition() != _origin ))
 	{
 		if (!_ammo->getRules()->getPiercePowerCap())
 		{
@@ -791,27 +791,27 @@ void ProjectileFlyBState::think()
 			Tile* tile = _parent->getSave()->getTile(_parent->getMap()->getProjectile()->getPosition().toTile());
 			const auto tp = static_cast<TilePart>(_projectileImpact);
 			auto dmgAOE = _ammo->getRules()->getPierceAOEDamageType();
-
+			
 			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && _parent->getSave()->getBattleGame()->piercePower > 0)
 			{
-				int piercePowerDercement = 0;
-				if (_projectileImpact == V_UNIT && tile->getOverlappingUnit(_parent->getSave()) && tile->getOverlappingUnit(_parent->getSave())->getHealth() > 0)
-				{ // let use if-else instead of long spagetty ternary
-				piercePowerDercement = tile->getOverlappingUnit(_parent->getSave())->getArmor()->getArmor(SIDE_FRONT) + tile->getOverlappingUnit(_parent->getSave())->getHealth();
-				}
-				else
-				{
-					piercePowerDercement = tile->getMapData(tp)->getArmor();
-				}
-
 				int power = 0;
 				if (_action.weapon->getRules()->getIgnoreAmmoPower())
-				{ //borrowed from shotgun section
+				{ // borrowed from shotgun section
 					power = _action.weapon->getRules()->getPowerBonus(attack) - _action.weapon->getRules()->getPowerRangeReduction(_parent->getMap()->getProjectile()->getDistance());
 				}
 				else
 				{
 					power = _ammo->getRules()->getPowerBonus(attack) - _ammo->getRules()->getPowerRangeReduction(_parent->getMap()->getProjectile()->getDistance());
+				}
+
+				int piercePowerDercement = 0;
+				if (_projectileImpact == V_UNIT && tile->getOverlappingUnit(_parent->getSave()) && tile->getOverlappingUnit(_parent->getSave())->getHealth() > 0)
+				{ // let use if-else instead of long spagetty ternary
+					piercePowerDercement = tile->getOverlappingUnit(_parent->getSave())->getArmor()->getArmor(SIDE_FRONT) + tile->getOverlappingUnit(_parent->getSave())->getHealth();
+				}
+				else
+				{
+					piercePowerDercement = tile->getMapData(tp)->getArmor();
 				}
 
 				_parent->getSave()->getTileEngine()->hit(attack, _parent->getMap()->getProjectile()->getPosition(),
@@ -831,7 +831,7 @@ void ProjectileFlyBState::think()
 				if (_projectileImpact == V_UNIT)
 				{ // let arrange further handling of impacted units
 					if (!_parent->areAllEnemiesNeutralized()) projectileHitUnit(_parent->getMap()->getProjectile()->getPosition());
-					_parent->checkForCasualties(nullptr, attack, false, false);
+					_parent->checkForCasualties(nullptr, attack);
 					_parent->getSave()->reviveUnconsciousUnits(true);
 					_parent->convertInfected();
 					_parent->setStateInterval(BattlescapeState::DEFAULT_ANIM_SPEED / 5); // Alt solution: _parent->setStateInterval(50/3)
@@ -839,12 +839,12 @@ void ProjectileFlyBState::think()
 				else
 				{ // let arrange further handling of impacted HE terrain objects
 					if(tile->getSavedGame()->getTileEngine()->checkForTerrainExplosions())
-					_parent->statePushNext(new ExplosionBState(_parent, _parent->getMap()->getProjectile()->getPosition(), BattleActionAttack{BA_NONE,attack.attacker,},tile, false, 0, 0));
+					_parent->statePushNext(new ExplosionBState(_parent, _parent->getMap()->getProjectile()->getLastPositions(), BattleActionAttack{BA_NONE,attack.attacker,},tile, false, 0, 0));
 				}
 			}
 			else 
 			{ // do not spawn hit animation at the end of map
-				_projectileImpact = V_OUTOFBOUNDS;
+				_projectileImpact = _action.type == BA_LAUNCH && _action.waypoints.size() > 1 ? V_EMPTY: V_OUTOFBOUNDS;
 			}
 		}
 
