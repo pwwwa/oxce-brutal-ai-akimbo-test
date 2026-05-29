@@ -1525,9 +1525,9 @@ bool BattlescapeGame::checkReservedTU(BattleUnit *bu, int tu, int energy, bool j
 	cost.Time += tu;
 	cost.Energy += energy;
 
-	if ( ( (cost.type != BA_NONE || _save->getKneelReserved()) && !cost.haveTU() )		 ||
-		  ( cost.type == BA_AKIMBOSHOT && (cost.Time + tu + tuKneel > bu->getTimeUnits() ||
-			cost.Energy + energy > bu->getEnergy()) ) )
+	if ( ((cost.type != BA_NONE || _save->getKneelReserved()) && !cost.haveTU())
+	    ||( cost.type == BA_AKIMBOSHOT && (cost.Time + tu + tuKneel > bu->getTimeUnits()
+		||	cost.Energy + energy > bu->getEnergy()) ) )
 	{
 		if (!justChecking)
 		{
@@ -1814,7 +1814,7 @@ void BattlescapeGame::primaryAction(Position pos)
 	if (_currentAction.targeting && _save->getSelectedUnit())
 	{
 		if ( _currentAction.weapon->getRules()->isOutOfRange(_currentAction.actor->distance3dToPositionSq(pos)) ||
-		   ( _currentAction.type == BA_AKIMBOSHOT &&
+		   ( _currentAction.type == BA_AKIMBOSHOT && _currentAction.actor->isAkimbo() &&
 			 _currentAction.actor->getOppositeHandWeapon()->getRules()->isOutOfRange(_currentAction.actor->distance3dToPositionSq(pos)) ) )
 		{
 			_parentState->warning("STR_OUT_OF_RANGE");
@@ -1832,7 +1832,10 @@ void BattlescapeGame::primaryAction(Position pos)
 		}
 		else if (_currentAction.sprayTargeting) // Special "spray" auto shot that allows placing shots between waypoints
 		{
-			int maxWaypoints = _currentAction.weapon->getRules()->getSprayWaypoints();
+			int maxWaypoints = !(_currentAction.type == BA_AKIMBOSHOT && _currentAction.actor->isAkimbo())
+				? _currentAction.weapon->getRules()->getSprayWaypoints()
+				: std::min(_currentAction.weapon->getRules()->getSprayWaypoints(), _currentAction.actor->getOppositeHandWeapon()->getRules()->getSprayWaypoints());
+
 			if ((int)_currentAction.waypoints.size() >= maxWaypoints ||
 				(_save->isCtrlPressed(true) && _save->isShiftPressed(true)) ||
 				(!Options::battleConfirmFireMode && (int)_currentAction.waypoints.size() == maxWaypoints - 1))
@@ -1891,7 +1894,7 @@ void BattlescapeGame::primaryAction(Position pos)
 				getMap()->getWaypoints()->push_back(pos);
 			}
 		}
-		else if ( ( ( _currentAction.type == BA_AUTOSHOT && _currentAction.weapon->getRules()->getSprayWaypoints() > 0 ) ||
+		else if ( ( (_currentAction.type == BA_AUTOSHOT && _currentAction.weapon->getRules()->getSprayWaypoints() > 0) ||
 				  (_currentAction.type == BA_AKIMBOSHOT && _currentAction.actor->isAkimbo() &&
 				   _currentAction.actor->getLeftHandWeapon()->getRules()->getSprayWaypoints() > 0 &&
 			       _currentAction.actor->getRightHandWeapon()->getRules()->getSprayWaypoints() > 0) ) &&

@@ -95,7 +95,7 @@ void ProjectileFlyBState::init()
 	_unit = _action.actor;
 
 	bool reactionShoot = _unit->getFaction() != _parent->getSave()->getSide();
-	if ((_action.type != BA_THROW) && (_action.type != BA_AKIMBOSHOT))
+	if (_action.type != BA_THROW)
 	{
 		_ammo = _action.weapon->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
 		if (!_ammo)
@@ -477,7 +477,8 @@ bool ProjectileFlyBState::createNewProjectile()
 	if ( _action.type == BA_AKIMBOSHOT )
 	{	// Remember original Active Hand weapon and ammo for hand iteration mechanism (ammo address need for projectile and impact "alignment")
 		BattleItem *originWeapon = const_cast<BattleItem*>(_unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()));
-		BattleItem *originAmmo = originWeapon ? originWeapon->getAmmoForAction(_action.type) : 0; 
+		BattleItem* originAmmo = originWeapon ? originWeapon->getAmmoForAction(_action.type, _unit->getFaction() != _parent->getSave()->getSide() ? nullptr : &_action.result) : 0;
+
 		// Make possible remained shots (if it supposes) when weapon dissapeared and inactive hand asignes as active hand due ActiveHand result
 		if (originWeapon && originAmmo && !_unit->getOppositeHandWeapon() && _action.opWeaponCounter < _action.actWeaponShotQnty)
 		{
@@ -497,36 +498,24 @@ bool ProjectileFlyBState::createNewProjectile()
 		if (_action.actWeaponCounter >= _action.actWeaponShotQnty &&
 			_action.opWeaponCounter >= _action.opWeaponShotQnty)
 		{
-			_parent->popState();
-			// Lacks of weapon in any hand when shooting is finished - cancel action and return "normal" cursor
-			if (!originWeapon || !_unit->getOppositeHandWeapon())
-			{
-				_parent->cancelCurrentAction();
-				_parent->setupCursor();
-			}
 			return false;
 		}
 		// Hand switch mechanic of proper weapon (and ammo) usage each shot, if everything fine
-		if ( _action.actWeaponCounter < _action.actWeaponShotQnty &&
-			(_action.actWeaponCounter == _action.opWeaponCounter || _action.opWeaponCounter >= _action.opWeaponShotQnty) )
+		if (_action.actWeaponCounter < _action.actWeaponShotQnty &&
+			(_action.actWeaponCounter == _action.opWeaponCounter || _action.opWeaponCounter >= _action.opWeaponShotQnty))
 		{
 			++_action.actWeaponCounter;
 			_action.weapon = originWeapon;
 			_ammo = originAmmo;
 			_action.updateTU();
 		}
-		else if ( _action.opWeaponCounter < _action.opWeaponShotQnty &&
-			     (_action.actWeaponCounter > _action.opWeaponCounter || _action.actWeaponCounter >= _action.actWeaponShotQnty) )
+		else if (_action.opWeaponCounter < _action.opWeaponShotQnty &&
+				 (_action.actWeaponCounter > _action.opWeaponCounter || _action.actWeaponCounter >= _action.actWeaponShotQnty))
 		{
 			++_action.opWeaponCounter;
 			_action.weapon = _unit->getOppositeHandWeapon();
 			_ammo = _ammoOp;
 			_action.updateTU();
-		}
-		// allow player to reverse "spread" sequence with pressed "Alt" button (dynamic).
-		if ( _action.sprayTargeting && _parent->getSave()->isAltPressed(true) )
-		{
-			_action.waypoints.reverse();
 		}
 	}
 
@@ -635,7 +624,7 @@ bool ProjectileFlyBState::createNewProjectile()
 			// set the soldier in an aiming position
 			_unit->aim(true);
 			// and we have a lift-off
-			if (_ammo->getRules()->getFireSound() != Mod::NO_SOUND)
+			if (_ammo && _ammo->getRules()->getFireSound() != Mod::NO_SOUND)
 			{
 				_parent->getMod()->getSoundByDepth(_parent->getDepth(), _ammo->getRules()->getFireSound())->play(-1, _parent->getMap()->getSoundAngle(_unit->getPosition()));
 			}
@@ -678,11 +667,11 @@ bool ProjectileFlyBState::createNewProjectile()
 			// set the soldier in an aiming position
 			_unit->aim(true);
 			// and we have a lift-off
-			if (_ammo->getRules()->getFireSound() != Mod::NO_SOUND)
+			if (_ammo && _ammo->getRules()->getFireSound() != Mod::NO_SOUND)
 			{
 				_parent->getMod()->getSoundByDepth(_parent->getDepth(), _ammo->getRules()->getFireSound())->play(-1, _parent->getMap()->getSoundAngle(projectile->getOrigin()));
 			}
-			else if (_action.weapon->getRules()->getFireSound() != Mod::NO_SOUND)
+			else if (_action.weapon && _action.weapon->getRules()->getFireSound() != Mod::NO_SOUND)
 			{
 				_parent->getMod()->getSoundByDepth(_parent->getDepth(), _action.weapon->getRules()->getFireSound())->play(-1, _parent->getMap()->getSoundAngle(projectile->getOrigin()));
 			}
@@ -734,7 +723,12 @@ void ProjectileFlyBState::deinit()
 void ProjectileFlyBState::think()
 {
 	/// checks if a weapon has any more shots to fire.
-	auto noMoreShotsToShoot = [this]() { return !_action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter) || !_action.weapon->getAmmoForAction(_action.type); };
+	auto noMoreShotsToShoot = [this]()
+		{
+		return _action.type != BA_AKIMBOSHOT
+			   ? (!_action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter) || !_action.weapon->getAmmoForAction(_action.type))
+			   : (_action.actWeaponCounter >= _action.actWeaponShotQnty && _action.opWeaponCounter >= _action.opWeaponShotQnty);
+		};
 
 	_parent->getSave()->getBattleState()->clearMouseScrollingState();
 	/* TODO refactoring : store the projectile in this state, instead of getting it from the map each time? */
@@ -742,13 +736,12 @@ void ProjectileFlyBState::think()
 	{
 		bool hasFloor = _action.actor->haveNoFloorBelow() == false;
 		bool unitCanFly = _action.actor->getMovementType() == MT_FLY;
-		bool isAkimbo = _action.type == BA_AKIMBOSHOT;
 
-		if ( ( (!isAkimbo &&
-				_action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter) &&
-				_ammo->getAmmoQuantity() != 0) ||
-				isAkimbo ) &&
-				!_action.actor->isOut() && (hasFloor || unitCanFly) )
+		if ( ( _action.type != BA_AKIMBOSHOT
+			? (_action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter) && _ammo->getAmmoQuantity() != 0)
+			: (_action.actWeaponCounter < _action.actWeaponShotQnty || _action.opWeaponCounter < _action.opWeaponShotQnty ) )
+			&& !_action.actor->isOut()
+			&& (hasFloor || unitCanFly) )
 		{
 			createNewProjectile();
 			if (_action.cameraPosition.z != -1)
@@ -806,25 +799,27 @@ void ProjectileFlyBState::think()
 
 				int piercePowerDercement = 0;
 				if (_projectileImpact == V_UNIT && tile->getOverlappingUnit(_parent->getSave()) && tile->getOverlappingUnit(_parent->getSave())->getHealth() > 0)
-				{ // let use if-else instead of long spagetty ternary
-					piercePowerDercement = tile->getOverlappingUnit(_parent->getSave())->getArmor()->getArmor(SIDE_FRONT) + tile->getOverlappingUnit(_parent->getSave())->getHealth();
+				{ // ternary used for avoiding possible zero devision (etc. damage modifier == 0)
+					piercePowerDercement = (tile->getOverlappingUnit(_parent->getSave())->getArmor()->getArmor(SIDE_FRONT) * _ammo->getRules()->getDamageType()->ArmorEffectiveness + tile->getOverlappingUnit(_parent->getSave())->getHealth()) /
+					( tile->getOverlappingUnit(_parent->getSave())->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType)
+					? tile->getOverlappingUnit(_parent->getSave())->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType)
+					: 1 );
 				}
 				else
 				{
-					piercePowerDercement = tile->getMapData(tp)->getArmor();
+					piercePowerDercement = tile->getMapData(tp)->getArmor() /
+					( _ammo->getRules()->getDamageType()->ToTile
+					? _ammo->getRules()->getDamageType()->ToTile
+					: 1 );
 				}
 
 				_parent->getSave()->getTileEngine()->hit(attack, _parent->getMap()->getProjectile()->getPosition(),
 					_ammo->getRules()->getPierceType() == 2
-					?
-					power
-					:
-					std::min(_parent->getSave()->getBattleGame()->piercePower, power),
+					? power
+					: std::min(_parent->getSave()->getBattleGame()->piercePower, power),
 					_ammo->getRules()->getDamageType()->isDirect()
-					?
-					_ammo->getRules()->getDamageType()
-					:
-					_parent->getMod()->getDamageType(dmgAOE));
+					? _ammo->getRules()->getDamageType()
+					: _parent->getMod()->getDamageType(dmgAOE));
 
 				_parent->getSave()->getBattleGame()->piercePower -= piercePowerDercement;
 
@@ -844,7 +839,7 @@ void ProjectileFlyBState::think()
 			}
 			else 
 			{ // do not spawn hit animation at the end of map
-				_projectileImpact = _action.type == BA_LAUNCH && _action.waypoints.size() > 1 ? V_EMPTY: V_OUTOFBOUNDS;
+				_projectileImpact = _action.type == BA_LAUNCH && _action.waypoints.size() > 1 ? V_EMPTY : V_OUTOFBOUNDS;
 			}
 		}
 

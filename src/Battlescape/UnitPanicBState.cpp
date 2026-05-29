@@ -72,9 +72,9 @@ void UnitPanicBState::think()
 				// make akimbo shot, if possible *carefully avoid nullptr to opposite hand*
 				ba.type = BA_AKIMBOSHOT;
 				ba.updateTU();
-				bool canShoot = _unit->isAkimbo() && ba.haveTU() &&
-								_parent->getSave()->canUseWeapon(_unit->getLeftHandWeapon(), _unit, _berserking, ba.type) &&
-								_parent->getSave()->canUseWeapon(_unit->getRightHandWeapon(), _unit, _berserking, ba.type);
+				bool canShoot = _unit->isAkimbo() && ba.haveTU()
+							 && _parent->getSave()->canUseWeapon(_unit->getLeftHandWeapon(), _unit, _berserking, ba.type)
+					         &&	_parent->getSave()->canUseWeapon(_unit->getRightHandWeapon(), _unit, _berserking, ba.type);
 
 				if (!canShoot)
 				{
@@ -115,10 +115,10 @@ void UnitPanicBState::think()
 						{
 							int newDist = Position::distance2d(_unit->getPosition(), bu->getPosition());
 							if ( newDist < dist &&
-							( (!ba.type == BA_AKIMBOSHOT && !ba.weapon->getRules()->isOutOfRange(_unit->distance3dToPositionSq(bu->getPosition()))) ||
-							( ba.type == BA_AKIMBOSHOT &&
-							!_unit->getLeftHandWeapon()->getRules()->isOutOfRange(_unit->distance3dToPositionSq(bu->getPosition())) &&
-							!_unit->getRightHandWeapon()->getRules()->isOutOfRange(_unit->distance3dToPositionSq(bu->getPosition())) ) ) )
+							( (!ba.type == BA_AKIMBOSHOT && !ba.weapon->getRules()->isOutOfRange(_unit->distance3dToPositionSq(bu->getPosition())))
+							|| ( ba.type == BA_AKIMBOSHOT
+							&& !_unit->getLeftHandWeapon()->getRules()->isOutOfRange(_unit->distance3dToPositionSq(bu->getPosition()))
+							&& !_unit->getRightHandWeapon()->getRules()->isOutOfRange(_unit->distance3dToPositionSq(bu->getPosition())) ) ) )
 
 							{
 								ba.target = bu->getPosition();

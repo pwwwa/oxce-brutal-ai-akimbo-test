@@ -1742,10 +1742,10 @@ int AIModule::scoreFiringMode(BattleAction *action, BattleUnit *target, bool che
 
 	bool outOfRange =
 		action->type == BA_THROW
-			? weapon->isOutOfThrowRange(distanceSq, _save->getDepth())
+		? weapon->isOutOfThrowRange(distanceSq, _save->getDepth())
 		: action->type != BA_AKIMBOSHOT
-			? weapon->isOutOfRange(distanceSq)
-			: _unit->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || _unit->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq);
+		? weapon->isOutOfRange(distanceSq)
+		: _unit->isAkimbo() && (_unit->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || _unit->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq));
 
 	if (outOfRange)
 	{
@@ -5180,7 +5180,7 @@ float AIModule::brutalScoreFiringMode(BattleAction* action, BattleUnit* target, 
 		{
 			upperLimit = action->weapon->getRules()->getAimRange();
 		}
-		else if (action->type == BA_AKIMBOSHOT)
+		else if (action->type == BA_AKIMBOSHOT && action->actor->isAkimbo())
 		{
 			upperLimit = std::min(action->actor->getLeftHandWeapon()->getRules()->getAkimboRange(), action->actor->getRightHandWeapon()->getRules()->getAkimboRange());
 		}
@@ -5192,9 +5192,9 @@ float AIModule::brutalScoreFiringMode(BattleAction* action, BattleUnit* target, 
 		{
 			upperLimit = action->weapon->getRules()->getSnapRange();
 		}
-		int lowerLimit = action->type != BA_AKIMBOSHOT
+		int lowerLimit = !(action->type == BA_AKIMBOSHOT && action->actor->isAkimbo())
 		? action->weapon->getRules()->getMinRange()
-		: std::min(action->actor->getRightHandWeapon()->getRules()->getAkimboRange(), action->actor->getRightHandWeapon()->getRules()->getAkimboRange());
+		: std::min(action->actor->getRightHandWeapon()->getRules()->getMinRange(), action->actor->getRightHandWeapon()->getRules()->getMinRange());
 
 		if (distance > upperLimit)
 		{
@@ -5227,7 +5227,7 @@ float AIModule::brutalScoreFiringMode(BattleAction* action, BattleUnit* target, 
 
 	if ( (action->type != BA_THROW && action->type != BA_AKIMBOSHOT &&
 		  action->weapon->getRules()->isOutOfRange(distanceSq)) ||       
-	    ( action->type == BA_AKIMBOSHOT &&
+	    ( action->type == BA_AKIMBOSHOT && action->actor->isAkimbo() &&
 		 (action->actor->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) ||
 		  action->actor->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq)) ) )
 
@@ -7108,7 +7108,7 @@ float AIModule::damagePotential(Position pos, BattleUnit* target, int tuTotal, i
 				{
 					upperLimit = weapon->getRules()->getSnapRange();
 				}
-				int lowerLimit = bat != BA_AKIMBOSHOT
+				int lowerLimit = !(bat == BA_AKIMBOSHOT && _unit->isAkimbo())
 					? weapon->getRules()->getMinRange()
 					: std::min(_unit->getLeftHandWeapon()->getRules()->getMinRange(), _unit->getRightHandWeapon()->getRules()->getMinRange());
 
