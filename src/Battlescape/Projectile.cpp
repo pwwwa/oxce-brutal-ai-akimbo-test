@@ -1097,7 +1097,8 @@ bool Projectile::move()
 		}
 
 		if (isPierce && (_save->getBattleGame()->piercePower <= 0 || _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_OUTOFBOUNDS))
-		{ // pWWWa: stop pierceType projectile, if it drained their pierce power or crossed map edge
+		{ // pWWWa: stop pierceType projectile, if it drained their pierce power or crossed map edge, need position step back too for stuck avoiding in some cases
+			_position--;
 			return false;
 		}
 

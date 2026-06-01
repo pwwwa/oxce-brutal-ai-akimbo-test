@@ -784,14 +784,7 @@ void ProjectileFlyBState::think()
 			Tile* tile = _parent->getSave()->getTile(_parent->getMap()->getProjectile()->getPosition().toTile());
 			const auto tp = static_cast<TilePart>(_projectileImpact);
 			auto dmgAOE = _ammo->getRules()->getPierceAOEDamageType();
-			/**
-			if (_action.type == BA_LAUNCH && _action.target == _origin && _parent->getMap()->getProjectile()->getPosition().toTile() == _origin)
-			{
-				_parent->getSave()->getBattleGame()->piercePower = 0;
-				_action.waypoints.clear();
-				_parent->statePushNext(new ExplosionBState(_parent, _parent->getMap()->getProjectile()->getLastPositions(), attack));
-			}
-			/**/
+
 			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && _parent->getSave()->getBattleGame()->piercePower > 0)
 			{
 				int power = 0;
@@ -952,7 +945,7 @@ void ProjectileFlyBState::think()
 					));
 
 					if (_projectileImpact == V_OUTOFBOUNDS)
-					{ // Remove hit animation for first pellet during "shotgun void hit event"
+					{ // pWWWa: remove hit animation for first pellet during "shotgun void hit event", sound still plays (doesn`t want to cripple EBS)
 						_parent->getMap()->getExplosions()->clear();
 					}
 
