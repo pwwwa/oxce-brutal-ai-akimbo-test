@@ -1070,25 +1070,34 @@ bool Projectile::move()
 		}
 	}
 
-	bool isPierce = _ammo && _ammo->getRules()->getPierceType() && !_ammo->getRules()->getShotgunPellets();
+	const bool isPierce = _ammo && _ammo->getRules()->getPierceType() && !_ammo->getRules()->getShotgunPellets();
+	const bool isRangeEvent = _ammo && _ammo->getRules()->getMaxRangeEvent();
 	// pWWWa todo: need to make loop condition more readable
-	for ( int i = 0; ( i < _speed && ( !isPierce || ( isPierce && ( _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_EMPTY
-		|| _save->getBattleGame()->piercePower <= 0
-		|| _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_UNIT && _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)
+	for ( int i = 0; ( i < _speed && ( !isPierce || ( isPierce &&
+		(  _save->getBattleGame()->piercePower <= 0
+		|| _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_EMPTY
+		|| _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_UNIT
+		&& _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)
 		&& (_save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->getHealth() <= 0
 		|| _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->getHealth() <= _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->getStunlevel())
-			 ) ) ) );
-		++i )
+		) ) ) ); ++i )
 	{
 		_position++;
-		if (_position == _trajectory.size() || isPierce && (_save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_OUTOFBOUNDS || _save->getBattleGame()->piercePower <= 0))
+		if (_position == _trajectory.size())
 		{
 			_position--;
 			return false;
 		}
 
-		if (_ammo && _ammo->getRules()->getMaxRangeEvent() && _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(getPosition().toTile())))
-		{ // pWWWa: stop projectile fly, if it passed defined limited range and has "special" projectile type
+		if ( isRangeEvent && ( _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(getPosition().toTile()))
+			|| ( _action.type == BA_LAUNCH && _action.waypoints.size() == 1
+			&&   _action.actor->distance3dToPositionSq(getPosition().toTile()) > _action.actor->distance3dToPositionSq(_action.target) ) ) )
+		{ // pWWWa: stop projectile with ammo maxRangeEvent flag, if it passed maxRange distance or guided missile reached last waypoint
+			return false;
+		}
+
+		if (isPierce && (_save->getBattleGame()->piercePower <= 0 || _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_OUTOFBOUNDS))
+		{ // pWWWa: stop pierceType projectile, if it drained their pierce power or crossed map edge
 			return false;
 		}
 

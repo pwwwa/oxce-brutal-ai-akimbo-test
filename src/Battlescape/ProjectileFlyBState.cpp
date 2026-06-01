@@ -494,7 +494,7 @@ bool ProjectileFlyBState::createNewProjectile()
 		{
 			_action.opWeaponCounter = _action.opWeaponShotQnty;
 		}
-		// All shots are done or impossible - stop shooting
+		// All shots are done or impossible - stop shooting and let pass further handling to think() function
 		if (_action.actWeaponCounter >= _action.actWeaponShotQnty &&
 			_action.opWeaponCounter >= _action.opWeaponShotQnty)
 		{
@@ -519,7 +519,7 @@ bool ProjectileFlyBState::createNewProjectile()
 		}
 	}
 
-	// pierce power (capacity) variable definition;
+	// pierceType power (capacity) redefining;
 	if (_ammo && _ammo->getRules()->getPierceType() && !(_action.type == BA_LAUNCH && _action.actor->getPosition() != _origin ))
 	{
 		if (!_ammo->getRules()->getPiercePowerCap())
@@ -784,7 +784,14 @@ void ProjectileFlyBState::think()
 			Tile* tile = _parent->getSave()->getTile(_parent->getMap()->getProjectile()->getPosition().toTile());
 			const auto tp = static_cast<TilePart>(_projectileImpact);
 			auto dmgAOE = _ammo->getRules()->getPierceAOEDamageType();
-			
+			/**
+			if (_action.type == BA_LAUNCH && _action.target == _origin && _parent->getMap()->getProjectile()->getPosition().toTile() == _origin)
+			{
+				_parent->getSave()->getBattleGame()->piercePower = 0;
+				_action.waypoints.clear();
+				_parent->statePushNext(new ExplosionBState(_parent, _parent->getMap()->getProjectile()->getLastPositions(), attack));
+			}
+			/**/
 			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && _parent->getSave()->getBattleGame()->piercePower > 0)
 			{
 				int power = 0;
@@ -806,7 +813,7 @@ void ProjectileFlyBState::think()
 					: 1 );
 				}
 				else
-				{
+				{ // same zero divide avoidance method
 					piercePowerDercement = tile->getMapData(tp)->getArmor() /
 					( _ammo->getRules()->getDamageType()->ToTile
 					? _ammo->getRules()->getDamageType()->ToTile
@@ -832,7 +839,7 @@ void ProjectileFlyBState::think()
 					_parent->setStateInterval(BattlescapeState::DEFAULT_ANIM_SPEED / 5); // Alt solution: _parent->setStateInterval(50/3)
 				}
 				else
-				{ // let arrange further handling of impacted HE terrain objects
+				{ // let arrange further handling of impacted HE terrain objects with queued dummy EBS
 					if(tile->getSavedGame()->getTileEngine()->checkForTerrainExplosions())
 					_parent->statePushNext(new ExplosionBState(_parent, _parent->getMap()->getProjectile()->getLastPositions(), BattleActionAttack{BA_NONE,attack.attacker,},tile, false, 0, 0));
 				}
@@ -850,8 +857,12 @@ void ProjectileFlyBState::think()
 		}
 		if (!_parent->getMap()->getProjectile()->move())
 		{
-			if (_ammo && _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(_parent->getMap()->getProjectile()->getPosition().toTile())))
-			{ // Projectile has special maxRange event property, when stopped at restricted range, let handle it
+
+			if ( _ammo &&  _ammo->getRules()->getMaxRangeEvent()
+				&& ( _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(_parent->getMap()->getProjectile()->getPosition().toTile())) )
+				|| ( _action.type == BA_LAUNCH && _action.waypoints.size() == 1
+				&&   _action.actor->distance3dToPositionSq(_parent->getMap()->getProjectile()->getPosition().toTile()) > _action.actor->distance3dToPositionSq(_action.target) ) )
+			{ // Projectile has special maxRange event property, when reached restricted range or last guided waypoint, let handle it
 				switch (_ammo->getRules()->getMaxRangeEvent())
 				{
 					case 1:	_projectileImpact = V_EMPTY; break; // generate explosion
