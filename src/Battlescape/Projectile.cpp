@@ -319,7 +319,7 @@ Position Projectile::calculateMissingTrajectoryRA(const Position &origin, const 
  * @param targetVoxel Position the projectile is targeting.
  * @param ammo the ammo that produced this projectile, where applicable.
  */
-Projectile::Projectile(Mod* mod, SavedBattleGame* save, BattleAction action, Position origin, Position targetVoxel, BattleItem* ammo) : _mod(mod), _save(save), _action(action), _ammo(ammo), _origin(origin), _targetVoxel(targetVoxel), _position(0), _distance(0.0f), _bulletSprite(-1), _reversed(false), _vaporColor(-1), _vaporDensity(-1), _vaporProbability(5)
+Projectile::Projectile(Mod* mod, SavedBattleGame* save, BattleAction action, Position origin, Position targetVoxel, BattleItem* ammo) : _mod(mod), _save(save), _action(action), _ammo(ammo), _origin(origin), _targetVoxel(targetVoxel), _position(0), _distance(0.0f), _bulletSprite(-1), _reversed(false), _vaporColor(-1), _vaporDensity(-1), _vaporProbability(5), _piercePower(0)
 {
 	// this is the number of pixels the sprite will move between frames
 	_speed = Options::battleFireSpeed;
@@ -367,6 +367,21 @@ Projectile::Projectile(Mod* mod, SavedBattleGame* save, BattleAction action, Pos
 	if ((targetVoxel.x - origin.x) + (targetVoxel.y - origin.y) >= 0)
 	{
 		_reversed = true;
+	}
+
+	// pierceType power (capacity) redefining;
+	if (_ammo && _ammo->getRules()->getPierceType() && !(_action.type == BA_LAUNCH && _action.actor->getPosition() != _origin))
+	{
+		if (!_ammo->getRules()->getPiercePowerCap())
+		{
+			_piercePower = _action.weapon && _action.weapon->getRules()->getIgnoreAmmoPower()
+						? _action.weapon->getRules()->getPowerBonus(BattleActionAttack{}) - _action.weapon->getRules()->getPowerRangeReduction(_distance)
+						: _ammo->getRules()->getPowerBonus(BattleActionAttack{}) - _action.weapon->getRules()->getPowerRangeReduction(_distance);
+		}
+		else
+		{
+			_piercePower = _ammo->getRules()->getPiercePowerCap();
+		}
 	}
 }
 
@@ -1074,7 +1089,7 @@ bool Projectile::move()
 	const bool isRangeEvent = _ammo && _ammo->getRules()->getMaxRangeEvent();
 	// pWWWa todo: need to make loop condition more readable
 	for ( int i = 0; ( i < _speed && ( !isPierce || ( isPierce &&
-		(  _save->getBattleGame()->piercePower <= 0
+		(  !_piercePower 
 		|| _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_EMPTY
 		|| _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_UNIT
 		&& _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)
@@ -1096,7 +1111,7 @@ bool Projectile::move()
 			return false;
 		}
 
-		if (isPierce && (_save->getBattleGame()->piercePower <= 0 || _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_OUTOFBOUNDS))
+		if (isPierce && (!_piercePower || _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_OUTOFBOUNDS))
 		{ // pWWWa: stop pierceType projectile, if it drained their pierce power or crossed map edge, need position step back too for stuck avoiding in some cases
 			_position--;
 			return false;

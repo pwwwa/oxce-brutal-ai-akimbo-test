@@ -55,7 +55,7 @@ private:
 	size_t _position;
 	float _distance;
 	float _distanceMax;
-	int _speed;
+	int _speed, _piercePower;
 	int _bulletSprite;
 	bool _reversed;
 	int _vaporColor, _vaporDensity, _vaporProbability;
@@ -95,7 +95,10 @@ private:
 	bool isReversed() const;
 	/// adds a cloud of particles at the projectile's location
 	void addVaporCloud();
-
+	/// Get pierceType Power capacity
+	int getPiercePower() const { return _piercePower; };
+	/// Set pierceType Power capacity. Default value is 0;
+	void setPiercePower(int power = 0) { _piercePower = power > 0 ? power : 0; };
 	/// converts Accuracy to Chance to hit
     static int getHitChance(int distance, int accuracy, const std::vector<int>* lookupTable);
 };

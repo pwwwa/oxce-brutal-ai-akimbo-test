@@ -166,8 +166,6 @@ private:
 public:
 	/// is debug mode enabled in the battlescape?
 	static bool _debugPlay;
-	/// current bullet pierce power
-	int piercePower = 0;
 
 	/// Creates the BattlescapeGame state.
 	BattlescapeGame(SavedBattleGame *save, BattlescapeState *parentState);

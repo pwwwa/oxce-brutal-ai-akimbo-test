@@ -476,7 +476,7 @@ bool ProjectileFlyBState::createNewProjectile()
 	\*********************/
 	if ( _action.type == BA_AKIMBOSHOT )
 	{	// Remember original Active Hand weapon and ammo for hand iteration mechanism (ammo address need for projectile and impact "alignment")
-		BattleItem *originWeapon = const_cast<BattleItem*>(_unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()));
+		BattleItem* originWeapon = const_cast<BattleItem*>(_unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()));
 		BattleItem* originAmmo = originWeapon ? originWeapon->getAmmoForAction(_action.type, _unit->getFaction() != _parent->getSave()->getSide() ? nullptr : &_action.result) : 0;
 
 		// Make possible remained shots (if it supposes) when weapon dissapeared and inactive hand asignes as active hand due ActiveHand result
@@ -501,36 +501,19 @@ bool ProjectileFlyBState::createNewProjectile()
 			return false;
 		}
 		// Hand switch mechanic of proper weapon (and ammo) usage each shot, if everything fine
-		if (_action.actWeaponCounter < _action.actWeaponShotQnty &&
-			(_action.actWeaponCounter == _action.opWeaponCounter || _action.opWeaponCounter >= _action.opWeaponShotQnty))
+		if ( _action.actWeaponCounter < _action.actWeaponShotQnty &&
+			(_action.actWeaponCounter == _action.opWeaponCounter || _action.opWeaponCounter >= _action.opWeaponShotQnty) )
 		{
 			++_action.actWeaponCounter;
 			_action.weapon = originWeapon;
 			_ammo = originAmmo;
-			_action.updateTU();
 		}
-		else if (_action.opWeaponCounter < _action.opWeaponShotQnty &&
-				 (_action.actWeaponCounter > _action.opWeaponCounter || _action.actWeaponCounter >= _action.actWeaponShotQnty))
+		else if ( _action.opWeaponCounter < _action.opWeaponShotQnty &&
+				 (_action.actWeaponCounter > _action.opWeaponCounter || _action.actWeaponCounter >= _action.actWeaponShotQnty) )
 		{
 			++_action.opWeaponCounter;
 			_action.weapon = _unit->getOppositeHandWeapon();
 			_ammo = _ammoOp;
-			_action.updateTU();
-		}
-	}
-
-	// pierceType power (capacity) redefining;
-	if (_ammo && _ammo->getRules()->getPierceType() && !(_action.type == BA_LAUNCH && _action.actor->getPosition() != _origin ))
-	{
-		if (!_ammo->getRules()->getPiercePowerCap())
-		{
-			_parent->getSave()->getBattleGame()->piercePower = _action.weapon && _action.weapon->getRules()->getIgnoreAmmoPower()
-		   ? _action.weapon->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) - _action.weapon->getRules()->getPowerRangeReduction(_range)
-		   : _ammo->getRules()->getPowerBonus(BattleActionAttack::GetAferShoot(_action, _ammo)) - _action.weapon->getRules()->getPowerRangeReduction(_range);
-		}
-		else
-		{
-			_parent->getSave()->getBattleGame()->piercePower = _ammo->getRules()->getPiercePowerCap();
 		}
 	}
 
@@ -785,7 +768,7 @@ void ProjectileFlyBState::think()
 			const auto tp = static_cast<TilePart>(_projectileImpact);
 			auto dmgAOE = _ammo->getRules()->getPierceAOEDamageType();
 
-			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && _parent->getSave()->getBattleGame()->piercePower > 0)
+			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && _parent->getMap()->getProjectile()->getPiercePower())
 			{
 				int power = 0;
 				if (_action.weapon->getRules()->getIgnoreAmmoPower())
@@ -816,17 +799,17 @@ void ProjectileFlyBState::think()
 				_parent->getSave()->getTileEngine()->hit(attack, _parent->getMap()->getProjectile()->getPosition(),
 					_ammo->getRules()->getPierceType() == 2
 					? power
-					: std::min(_parent->getSave()->getBattleGame()->piercePower, power),
+					: std::min(_parent->getMap()->getProjectile()->getPiercePower(), power),
 					_ammo->getRules()->getDamageType()->isDirect()
 					? _ammo->getRules()->getDamageType()
 					: _parent->getMod()->getDamageType(dmgAOE));
 
-				_parent->getSave()->getBattleGame()->piercePower -= piercePowerDercement;
+				_parent->getMap()->getProjectile()->setPiercePower(_parent->getMap()->getProjectile()->getPiercePower() - piercePowerDercement);
 
 				if (_projectileImpact == V_UNIT)
 				{ // let arrange further handling of impacted units
 					if (!_parent->areAllEnemiesNeutralized()) projectileHitUnit(_parent->getMap()->getProjectile()->getPosition());
-					_parent->checkForCasualties(nullptr, attack);
+					_parent->checkForCasualties(_ammo ? _ammo->getRules()->getDamageType() : nullptr, attack); //checkForCasualties(nullptr, BattleActionAttack{});
 					_parent->getSave()->reviveUnconsciousUnits(true);
 					_parent->convertInfected();
 					_parent->setStateInterval(BattlescapeState::DEFAULT_ANIM_SPEED / 5); // Alt solution: _parent->setStateInterval(50/3)
@@ -834,7 +817,7 @@ void ProjectileFlyBState::think()
 				else
 				{ // let arrange further handling of impacted HE terrain objects with queued dummy EBS
 					if(tile->getSavedGame()->getTileEngine()->checkForTerrainExplosions())
-					_parent->statePushNext(new ExplosionBState(_parent, _parent->getMap()->getProjectile()->getLastPositions(), BattleActionAttack{BA_NONE,attack.attacker,},tile, false, 0, 0));
+						_parent->statePushNext(new ExplosionBState(_parent, _parent->getMap()->getProjectile()->getLastPositions(), BattleActionAttack{/** BA_NONE, attack.attacker /**/}, tile, false, 0, 0));
 				}
 			}
 			else 
