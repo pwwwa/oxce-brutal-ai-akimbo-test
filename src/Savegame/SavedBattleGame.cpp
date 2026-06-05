@@ -2621,22 +2621,28 @@ void SavedBattleGame::reviveUnconsciousUnits(bool noTU)
 /**
  * Removes the body item that corresponds to the unit.
  */
-void SavedBattleGame::removeUnconsciousBodyItem(BattleUnit *bu)
+
+void SavedBattleGame::removeUnconsciousBodyItem(BattleUnit* bu)
 {
-	int size = bu->getArmor()->getSize();
+	size_t size = bu->getArmor()->getSize();
 	size *= size;
-	// remove the unconscious body item corresponding to this unit
-	for (BattleItem* iter : *getItems()) //for (auto iter = getItems()->begin(); iter != getItems()->end(); )
+
+	std::array<BattleItem*, Armor::maxArmorSize * Armor::maxArmorSize> toRemove = {};
+
+	for (auto* item : *getItems())
 	{
-		if (iter->getUnit() && iter->getUnit() == bu)
+		if (item->getUnit() == bu)
 		{
-			removeItem(iter); // TODO: if used on anything other that corpse it will crash as it could remove MORE than one item from `getItems()` and them go pass `!= end()`
-			if (--size == 0)
+			toRemove.at(--size) = item;
+			if (size == 0)
 				break;
 		}
-		else
+	}
+	for (auto* item : toRemove)
+	{
+		if (item)
 		{
-			++iter;
+			removeItem(item);
 		}
 	}
 }
