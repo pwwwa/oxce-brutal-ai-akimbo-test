@@ -1087,14 +1087,14 @@ bool Projectile::move()
 
 	const bool isPierce = _ammo && _ammo->getRules()->getPierceType() && !_ammo->getRules()->getShotgunPellets();
 	const bool isRangeEvent = _ammo && _ammo->getRules()->getMaxRangeEvent();
-	// pWWWa todo: need to make loop condition more readable
+
+	// pWWWa todo: need to make loop condition more readable, less conditional. Maybe make additional loop ?
 	for ( int i = 0; ( i < _speed && ( !isPierce || ( isPierce &&
 		(  !_piercePower 
 		|| _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_EMPTY
 		|| _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_UNIT
 		&& _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)
-		&& (_save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->getHealth() <= 0
-		|| _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->getHealth() <= _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->getStunlevel())
+		&& _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->isOutThresholdExceed()
 		) ) ) ); ++i )
 	{
 		_position++;

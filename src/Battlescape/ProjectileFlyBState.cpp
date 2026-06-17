@@ -184,7 +184,7 @@ void ProjectileFlyBState::init()
 					_unit->setActiveLeftHand();
 				}
 			}
-			_ammo = weapon->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
+			//_ammo = weapon->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
 			_ammoOp = _unit->getOppositeHandWeapon()->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
 			_action.actWeaponShotQnty = weapon->getActionConf(BA_AKIMBOSHOT)->shots;
 			_action.opWeaponShotQnty = _unit->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots;
@@ -785,7 +785,7 @@ void ProjectileFlyBState::think()
 				{ // ternary used for avoiding possible zero devision (etc. damage modifier == 0)
 					piercePowerDercement = (tile->getOverlappingUnit(_parent->getSave())->getArmor()->getArmor(SIDE_FRONT) * _ammo->getRules()->getDamageType()->ArmorEffectiveness + tile->getOverlappingUnit(_parent->getSave())->getHealth()) /
 					( tile->getOverlappingUnit(_parent->getSave())->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType)
-					? tile->getOverlappingUnit(_parent->getSave())->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType)
+					? std::fmin(1, tile->getOverlappingUnit(_parent->getSave())->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType))
 					: 1 );
 				}
 				else

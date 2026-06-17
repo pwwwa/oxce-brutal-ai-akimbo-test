@@ -145,7 +145,7 @@ void MeleeAttackBState::init()
 
 	int height = _target->getFloatHeight() + (_target->getHeight() * 2/3) - _parent->getSave()->getTile(_action.target)->getTerrainLevel();
 
-	//Correct height for -=ForcedMeleeToFloor=- feature
+	// Correct height for -=ForcedMeleeToFloor=- feature
 	if (_parent->getSave()->isCtrlPressed(true) && _parent->getSave()->getSide() == FACTION_PLAYER && _unit->getFaction() == FACTION_PLAYER && !_unit->getTile()->hasNoFloor())
 	{
 		// Check presence of any alive unit under feet and apply their height (it usually is 0, but let check)
