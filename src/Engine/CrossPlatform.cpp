@@ -1266,7 +1266,7 @@ void setWindowIcon(int winResource, const std::string &)
 	HINSTANCE handle = GetModuleHandle(NULL);
 	HICON icon = LoadIcon(handle, MAKEINTRESOURCE(winResource));
 
-	SDL_SysWMinfo wminfo;
+	SDL_SysWMinfo wminfo{};
 	SDL_VERSION(&wminfo.version)
 	if (SDL_GetWMInfo(&wminfo))
 	{

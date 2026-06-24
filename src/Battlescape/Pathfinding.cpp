@@ -163,7 +163,7 @@ void Pathfinding::calculate(BattleUnit *unit, Position startPosition, Position e
 	{
 		auto direction = -1;
 		vectorToDirection(endPosition - startPosition, direction);
-		if (direction == -1 || std::min(abs(8 + direction - _unit->getDirection()), std::min(abs(_unit->getDirection() - direction), abs(8 + _unit->getDirection() - direction))) > 2)
+		if (direction == -1) //|| std::min(abs(8 + direction - _unit->getDirection()), std::min(abs(_unit->getDirection() - direction), abs(8 + _unit->getDirection() - direction))) > 2)
 		{
 			// Strafing backwards-ish currently unsupported, turn it off and continue.
 			_strafeMove = false;

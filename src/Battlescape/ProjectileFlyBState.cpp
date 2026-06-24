@@ -517,6 +517,21 @@ bool ProjectileFlyBState::createNewProjectile()
 		}
 	}
 
+	// pierceType power (capacity) redefining;
+	if (_ammo && _ammo->getRules()->getPierceType() && !(_action.type == BA_LAUNCH && _action.actor->getPosition() != _origin))
+	{
+		if (!_ammo->getRules()->getPiercePowerCap())
+		{
+			_parent->setPiercePower( _action.weapon && _action.weapon->getRules()->getIgnoreAmmoPower()
+								   ? _action.weapon->getRules()->getPowerBonus(BattleActionAttack{}) //- _action.weapon->getRules()->getPowerRangeReduction(_distance)
+								   : _ammo->getRules()->getPowerBonus(BattleActionAttack{}) );        // - _action.weapon->getRules()->getPowerRangeReduction(_distance);
+		}
+		else
+		{
+			_parent->setPiercePower(_ammo->getRules()->getPiercePowerCap());
+		}
+	}
+
 	// Special handling for "spray" auto attack, get target positions from the action's waypoints, starting from the back
 	if (_action.sprayTargeting)
 	{
@@ -765,10 +780,11 @@ void ProjectileFlyBState::think()
 		{
 			_projectileImpact = _parent->getTileEngine()->voxelCheck(_parent->getMap()->getProjectile()->getPosition(), _unit);
 			Tile* tile = _parent->getSave()->getTile(_parent->getMap()->getProjectile()->getPosition().toTile());
+			BattleUnit* victim = tile->getOverlappingUnit(_parent->getSave());
 			const auto tp = static_cast<TilePart>(_projectileImpact);
 			auto dmgAOE = _ammo->getRules()->getPierceAOEDamageType();
 
-			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && _parent->getMap()->getProjectile()->getPiercePower())
+			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && !(_projectileImpact == V_UNIT && victim->isOutThresholdExceed()) && _parent->getPiercePower()) //_parent->getMap()->getProjectile()->getPiercePower())
 			{
 				int power = 0;
 				if (_action.weapon->getRules()->getIgnoreAmmoPower())
@@ -781,35 +797,38 @@ void ProjectileFlyBState::think()
 				}
 
 				int piercePowerDercement = 0;
-				if (_projectileImpact == V_UNIT && tile->getOverlappingUnit(_parent->getSave()) && tile->getOverlappingUnit(_parent->getSave())->getHealth() > 0)
+				if (_projectileImpact == V_UNIT)
 				{ // ternary used for avoiding possible zero devision (etc. damage modifier == 0)
-					piercePowerDercement = (tile->getOverlappingUnit(_parent->getSave())->getArmor()->getArmor(SIDE_FRONT) * _ammo->getRules()->getDamageType()->ArmorEffectiveness + tile->getOverlappingUnit(_parent->getSave())->getHealth()) /
-					( tile->getOverlappingUnit(_parent->getSave())->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType)
-					? std::fmin(1, tile->getOverlappingUnit(_parent->getSave())->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType))
-					: 1 );
+					piercePowerDercement = (victim->getArmor()->getArmor(SIDE_FRONT) *
+											_ammo->getRules()->getDamageType()->ArmorEffectiveness +
+											victim->getHealth()) /
+					( victim->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType)
+						? std::fmin(1, victim->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType))
+						: 1 );
 				}
 				else
 				{ // same zero divide avoidance method
 					piercePowerDercement = tile->getMapData(tp)->getArmor() /
 					( _ammo->getRules()->getDamageType()->ToTile
-					? _ammo->getRules()->getDamageType()->ToTile
-					: 1 );
+						? _ammo->getRules()->getDamageType()->ToTile
+						: 1 );
 				}
+				// hit processing
 
-				_parent->getSave()->getTileEngine()->hit(attack, _parent->getMap()->getProjectile()->getPosition(),
-					_ammo->getRules()->getPierceType() == 2
-					? power
-					: std::min(_parent->getMap()->getProjectile()->getPiercePower(), power),
-					_ammo->getRules()->getDamageType()->isDirect()
-					? _ammo->getRules()->getDamageType()
-					: _parent->getMod()->getDamageType(dmgAOE));
+					_parent->getSave()->getTileEngine()->hit(attack, _parent->getMap()->getProjectile()->getPosition(),
+															 _ammo->getRules()->getPierceType() == 2
+																 ? power
+																 : std::min(_parent->getPiercePower(), power),
+															 _ammo->getRules()->getDamageType()->isDirect()
+																 ? _ammo->getRules()->getDamageType()
+																 : _parent->getMod()->getDamageType(dmgAOE));
 
-				_parent->getMap()->getProjectile()->setPiercePower(_parent->getMap()->getProjectile()->getPiercePower() - piercePowerDercement);
+					_parent->setPiercePower(_parent->getPiercePower() - piercePowerDercement);
 
 				if (_projectileImpact == V_UNIT)
 				{ // let arrange further handling of impacted units
 					if (!_parent->areAllEnemiesNeutralized()) projectileHitUnit(_parent->getMap()->getProjectile()->getPosition());
-					_parent->checkForCasualties(_ammo ? _ammo->getRules()->getDamageType() : nullptr, attack); //checkForCasualties(nullptr, BattleActionAttack{});
+					_parent->checkForCasualties(nullptr, attack);
 					_parent->getSave()->reviveUnconsciousUnits(true);
 					_parent->convertInfected();
 					_parent->setStateInterval(BattlescapeState::DEFAULT_ANIM_SPEED / 5); // Alt solution: _parent->setStateInterval(50/3)

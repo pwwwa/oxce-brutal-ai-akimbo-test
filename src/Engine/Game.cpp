@@ -76,9 +76,6 @@ Game::Game(const std::string &title) : _screen(0), _cursor(0), _lang(0), _save(0
 	// trap the mouse inside the window
 	SDL_WM_GrabInput(Options::captureMouse);
 
-	// Set the window icon
-	CrossPlatform::setWindowIcon(IDI_ICON1, "openxcom.png");
-
 	// Set the window caption
 	SDL_WM_SetCaption(title.c_str(), 0);
 
@@ -163,6 +160,9 @@ void Game::run()
 		{
 			_init = true;
 			_states.back()->init();
+
+			// Set the window icon
+//			CrossPlatform::setWindowIcon(IDI_ICON1, "openxcom.png");
 
 			// Unpress buttons
 			_states.back()->resetAll();
@@ -271,6 +271,9 @@ void Game::run()
 					runningState = RUNNING;
 					// Go on, feed the event to others
 					FALLTHROUGH;
+				case SDL_VIDEOEXPOSE:
+					// Set the window icon
+					CrossPlatform::setWindowIcon(IDI_ICON1, "openxcom.png");
 				default:
 					Action action = Action(&_event, _screen->getXScale(), _screen->getYScale(), _screen->getCursorTopBlackBand(), _screen->getCursorLeftBlackBand());
 					_screen->handle(&action);

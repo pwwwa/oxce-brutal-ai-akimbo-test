@@ -4072,7 +4072,7 @@ BattleItem *BattleUnit::getLeftHandWeapon() const
 /**
  *  Gets the item from inactive hand.
  * @return Item in inactive hand. Akimbo hands switching.
- * thanks to aka Kever.
+ * thanks to aka Kewer.
  */
 
 BattleItem* BattleUnit::getOppositeHandWeapon() const

@@ -99,6 +99,9 @@ private:
 	Uint8 _barHealthColor;
 	int _numberOfDirectlyVisibleUnits, _numberOfEnemiesTotal, _numberOfEnemiesTotalPlusWounded;
 	Uint8 _indicatorTextColor, _indicatorGreen, _indicatorBlue, _indicatorPurple;
+	int _numpadMoveDir;       // held numpad direction for continuous movement (-1 = none)
+	int _numpadTurnDelta;     // tank mode: -1=turning left, +1=turning right, 0=moving
+	Uint32 _numpadRepeatTime; // SDL tick for next allowed repeat
 	/// Popups a context sensitive list of actions the user can choose from.
 	void handleItemClick(BattleItem *item, bool rightClick);
 	/// Shifts the red colors of the visible unit buttons backgrounds.

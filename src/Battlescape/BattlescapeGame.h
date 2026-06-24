@@ -81,10 +81,7 @@ struct BattleAction : BattleActionCost
 	bool kneel = false;
 	int diff;
 	int autoShotCounter;
-	int actWeaponCounter = 0;
-	int opWeaponCounter = 0;
-	int actWeaponShotQnty = 0;
-	int opWeaponShotQnty = 0;
+	int actWeaponCounter, opWeaponCounter, actWeaponShotQnty, opWeaponShotQnty; // akimbo stuff
 	Position cameraPosition;
 	bool desperate; // ignoring newly-spotted units
 	int finalFacing;
@@ -96,7 +93,7 @@ struct BattleAction : BattleActionCost
 	int tuBefore = 0; // used to check if we actually did anyting in popState, if not we mark this unit for wanting to be skipped
 
 	/// Default constructor
-	BattleAction() : target(-1, -1, -1), targeting(false), value(0), diff(0), autoShotCounter(0), actWeaponCounter(0), opWeaponCounter(0), cameraPosition(0, 0, -1), desperate(false), finalFacing(-1), finalAction(false), number(0), sprayTargeting(false) { }
+	BattleAction() : target(-1, -1, -1), targeting(false), value(0), diff(0), autoShotCounter(0), actWeaponCounter(0), opWeaponCounter(0), cameraPosition(0, 0, -1), desperate(false), finalFacing(-1), finalAction(false), number(0), sprayTargeting(false) {}
 
 	/// Get move type
 	BattleActionMove getMoveType() const
@@ -148,6 +145,7 @@ private:
 	bool _endTurnRequested;
 	bool _endConfirmationHandled;
 	bool _allEnemiesNeutralized;
+	int _piercePower;
 
 	helper::SingleRun _endTurnProcessed;
 	helper::SingleRun _triggerProcessed;
@@ -235,6 +233,14 @@ public:
 	void psiAttackMessage(BattleActionAttack attack, BattleUnit *victim);
 	/// Moves a unit up or down.
 	void moveUpDown(BattleUnit *unit, int dir);
+	/// Moves a unit in a horizontal direction (0-7).
+	void moveDirection(BattleUnit* unit, int dir);
+	/// Turns a unit to face a given direction (0-7).
+	void turnUnit(BattleUnit* unit, int dir);
+	// Get current piercing power of projectile
+	int getPiercePower() { return _piercePower > 0 ? _piercePower : 0; };
+	// Set current piercing power of projectile
+	void setPiercePower(int power = 0) { _piercePower = power; };
 	/// Requests the end of the turn (wait for explosions etc to really end the turn).
 	void requestEndTurn(bool askForConfirmation);
 	/// Sets the TU reserved type.

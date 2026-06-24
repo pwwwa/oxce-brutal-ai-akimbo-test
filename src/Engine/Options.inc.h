@@ -73,6 +73,7 @@ OPT SDLKey keyBasescapeBuildNewBase, keyBasescapeBaseInfo, keyBasescapeSoldiers,
 	keyBasescapePurchase, keyBasescapeSell;
 
 // OXCE, accessible via GUI
+OPT bool oxceNumpadUnitMovement, oxceNumpadTankControls;
 OPT bool oxceUpdateCheck;
 OPT int autosaveSlots;
 OPT int oxceGeoAutosaveFrequency;
