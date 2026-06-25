@@ -3225,92 +3225,113 @@ inline void BattlescapeState::handle(Action *action)
 				}
 
 				// numpad tank controls (takes priority over absolute mode)
-				if (Options::oxceNumpadTankControls)
+				switch (Options::oxceNumpadMove)
 				{
-					BattleUnit* unit = _save->getSelectedUnit();
-					if (unit)
+					case 1:
 					{
-						int facing = unit->getDirection();
+						BattleUnit* unit = _save->getSelectedUnit();
+						if (unit)
+						{
+							int facing = unit->getDirection();
+							int numpadDir = -1;
+							int turnDelta = 0;
+							switch (key)
+							{
+							case SDLK_KP8:
+								numpadDir = facing;
+								break; // forward
+							case SDLK_KP5:
+								numpadDir = (facing + 4) % 8;
+								break; // backward
+							case SDLK_KP4:
+								numpadDir = (facing - 1 + 8) % 8;
+								turnDelta = -1;
+								break; // turn left
+							case SDLK_KP6:
+								numpadDir = (facing + 1) % 8;
+								turnDelta = 1;
+								break; // turn right
+							default:
+								break;
+							}
+							if (numpadDir >= 0)
+							{
+								_numpadMoveDir = numpadDir;
+								_numpadTurnDelta = turnDelta;
+								if (turnDelta != 0)
+									_numpadRepeatTime = SDL_GetTicks() + 400; // initial delay before repeat
+								if (!_battleGame->isBusy() && playableUnitSelected())
+								{
+									_battleGame->cancelAllActions();
+									if (turnDelta != 0)
+										_battleGame->turnUnit(unit, numpadDir);
+									else
+										_battleGame->moveDirection(unit, numpadDir);
+								}
+							}
+						}
+						break;
+					}
+					// numpad absolute movement
+					case 2:
+					{
 						int numpadDir = -1;
-						int turnDelta = 0;
+
 						switch (key)
 						{
 						case SDLK_KP8:
-							numpadDir = facing;
-							break; // forward
-						case SDLK_KP5:
-							numpadDir = (facing + 4) % 8;
-							break; // backward
-						case SDLK_KP4:
-							numpadDir = (facing - 1 + 8) % 8;
-							turnDelta = -1;
-							break; // turn left
+							numpadDir = 7;
+							break; // up → NW	8
+						case SDLK_KP9:
+							numpadDir = 0;
+							break; // up-right → N 9
 						case SDLK_KP6:
-							numpadDir = (facing + 1) % 8;
-							turnDelta = 1;
-							break; // turn right
+							numpadDir = 1;
+							break; // right → NE 6
+						case SDLK_KP3:
+							numpadDir = 2;
+							break; // down-right → E 3
+						case SDLK_KP2:
+							numpadDir = 3;
+							break; // down → SE 2
+						case SDLK_KP1:
+							numpadDir = 4;
+							break; // down-left → S 1
+						case SDLK_KP4:
+							numpadDir = 5;
+							break; // left → SW 4
+						case SDLK_KP7:
+							numpadDir = 6;
+							break; // up-left → W 7
 						default:
 							break;
 						}
 						if (numpadDir >= 0)
 						{
 							_numpadMoveDir = numpadDir;
-							_numpadTurnDelta = turnDelta;
-							if (turnDelta != 0)
-								_numpadRepeatTime = SDL_GetTicks() + 400; // initial delay before repeat
+							_numpadTurnDelta = 0;
+
 							if (!_battleGame->isBusy() && playableUnitSelected())
 							{
 								_battleGame->cancelAllActions();
-								if (turnDelta != 0)
-									_battleGame->turnUnit(unit, numpadDir);
-								else
-									_battleGame->moveDirection(unit, numpadDir);
-							}
-						}
-					}
-				}
-				// numpad absolute movement
-				else if (Options::oxceNumpadUnitMovement)
-				{
-					int numpadDir = -1;
-
-					switch (key)
-					{
-					case SDLK_KP8: numpadDir = 7; break; // up → NW	8
-					case SDLK_KP9: numpadDir = 0; break; // up-right → N 9
-					case SDLK_KP6: numpadDir = 1; break; // right → NE 6
-					case SDLK_KP3: numpadDir = 2; break; // down-right → E 3
-					case SDLK_KP2: numpadDir = 3; break; // down → SE 2
-					case SDLK_KP1: numpadDir = 4; break; // down-left → S 1
-					case SDLK_KP4: numpadDir = 5; break; // left → SW 4
-					case SDLK_KP7: numpadDir = 6; break; // up-left → W 7
-					default: break;
-					}
-					if (numpadDir >= 0)
-					{
-						_numpadMoveDir = numpadDir;
-						_numpadTurnDelta = 0;
-
-						if (!_battleGame->isBusy() && playableUnitSelected())
-						{
-							_battleGame->cancelAllActions();
-							if (numpadDir == _save->getSelectedUnit()->getDirection())
-							{
-								if (Options::strafe && _save->isAltPressed(true))
-								{
-									_battleGame->getCurrentAction()->sneak = _save->getSelectedUnit()->getArmor()->allowsSneaking(_save->getSelectedUnit()->isSmallUnit());
-								}
-								_battleGame->moveDirection(_save->getSelectedUnit(), numpadDir);
-							}
-							else
-							{
-								if (Options::strafe && _save->isCtrlPressed(true))
-								{
-									_battleGame->getCurrentAction()->strafe = _save->getSelectedUnit()->getArmor()->allowsStrafing(_save->getSelectedUnit()->isSmallUnit());
+								if (numpadDir == _save->getSelectedUnit()->getDirection())
+								{ //
+									if (Options::strafe && _save->isAltPressed(true))
+									{
+										_battleGame->getCurrentAction()->sneak = _save->getSelectedUnit()->getArmor()->allowsSneaking(_save->getSelectedUnit()->isSmallUnit());
+									}
 									_battleGame->moveDirection(_save->getSelectedUnit(), numpadDir);
 								}
 								else
-									_battleGame->turnUnit(_save->getSelectedUnit(), numpadDir);
+								{ // Let add strafe & sneak support
+									if (Options::strafe && _save->isCtrlPressed(true))
+									{
+										_battleGame->getCurrentAction()->strafe = _save->getSelectedUnit()->getArmor()->allowsStrafing(_save->getSelectedUnit()->isSmallUnit());
+										_battleGame->moveDirection(_save->getSelectedUnit(), numpadDir);
+									}
+									else
+										_battleGame->turnUnit(_save->getSelectedUnit(), numpadDir); // Let turn before moving if it needed.
+								}
 							}
 						}
 					}

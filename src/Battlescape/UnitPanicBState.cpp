@@ -115,7 +115,7 @@ void UnitPanicBState::think()
 						{
 							int newDist = Position::distance2d(_unit->getPosition(), bu->getPosition());
 							if ( newDist < dist &&
-							( (!ba.type == BA_AKIMBOSHOT && !ba.weapon->getRules()->isOutOfRange(_unit->distance3dToPositionSq(bu->getPosition())))
+							( (ba.type != BA_AKIMBOSHOT && !ba.weapon->getRules()->isOutOfRange(_unit->distance3dToPositionSq(bu->getPosition())))
 							|| ( ba.type == BA_AKIMBOSHOT
 							&& !_unit->getLeftHandWeapon()->getRules()->isOutOfRange(_unit->distance3dToPositionSq(bu->getPosition()))
 							&& !_unit->getRightHandWeapon()->getRules()->isOutOfRange(_unit->distance3dToPositionSq(bu->getPosition())) ) ) )

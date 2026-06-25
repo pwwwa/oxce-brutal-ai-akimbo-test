@@ -528,6 +528,11 @@ void OptionsAdvancedState::lstOptionsClick(Action *action)
 			min = 0;
 			max = 2;
 		}
+		else if (i == &Options::oxceNumpadMove)
+		{
+			min = 0;
+			max = 2;
+		}
 
 		if (*i < min)
 		{

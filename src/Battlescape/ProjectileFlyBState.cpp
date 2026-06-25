@@ -852,7 +852,7 @@ void ProjectileFlyBState::think()
 		}
 		if (!_parent->getMap()->getProjectile()->move())
 		{
-
+			// impact !
 			if ( _ammo &&  _ammo->getRules()->getMaxRangeEvent()
 				&& ( _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(_parent->getMap()->getProjectile()->getPosition().toTile())) )
 				|| ( _action.type == BA_LAUNCH && _action.waypoints.size() == 1
@@ -864,7 +864,7 @@ void ProjectileFlyBState::think()
 					case 2:	_projectileImpact = V_OUTOFBOUNDS;  // vanish
 				}
 			}
-			// impact !
+			
 			if (_action.type == BA_THROW)
 			{
 				_parent->getMap()->resetCameraSmoothing();

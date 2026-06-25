@@ -33,7 +33,7 @@ OPT SDLKey keyAIList;
 // Battlescape options
 OPT ScrollType battleEdgeScroll;
 OPT PathPreview battleNewPreviewPath;
-OPT int shootingSpreadMode, battleRealisticShotDispersion, battleRealisticCoverEfficiency, battleScrollSpeed, battleDragScrollButton, battleFireSpeed, battleXcomSpeed, battleAlienSpeed, battleExplosionHeight, battlescapeScale, battleTerrainSquishyness, preprimeGrenades, battleThrownSpeed, moraleAttackSuccessNotify, akimboMod;
+OPT int shootingSpreadMode, battleRealisticShotDispersion, battleRealisticCoverEfficiency, battleScrollSpeed, battleDragScrollButton, battleFireSpeed, battleXcomSpeed, battleAlienSpeed, battleExplosionHeight, battlescapeScale, battleTerrainSquishyness, preprimeGrenades, battleThrownSpeed, moraleAttackSuccessNotify, akimboMod, oxceNumpadMove;
 OPT bool traceAI, battleInstantGrenade, battleNotifyDeath, battleTooltips, battleHairBleach, battleAutoEnd,
 	strafe, forceFire, showMoreStatsInInventoryView, allowPsionicCapture, skipNextTurnScreen, disableAutoEquip, battleDragScrollInvert,
 	battleUFOExtenderAccuracy, useChanceToHit, battleRealisticAccuracy, battleRealisticImprovedAimed, battleRealisticImprovedLof, battleRealisticDisplayRolls, battleRealisticDisplayOthersRolls, battleAltGrenades, battleConfirmFireMode, battleSmoothCamera, noAlienPanicMessages, alienBleeding, instantPrime, strictBlockedChecking, updateTurnsSinceSeenByClue, diagTerrainMelee;
@@ -73,7 +73,6 @@ OPT SDLKey keyBasescapeBuildNewBase, keyBasescapeBaseInfo, keyBasescapeSoldiers,
 	keyBasescapePurchase, keyBasescapeSell;
 
 // OXCE, accessible via GUI
-OPT bool oxceNumpadUnitMovement, oxceNumpadTankControls;
 OPT bool oxceUpdateCheck;
 OPT int autosaveSlots;
 OPT int oxceGeoAutosaveFrequency;

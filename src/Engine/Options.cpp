@@ -585,8 +585,7 @@ void createAdvancedOptionsOTHER()
 	_info.push_back(OptionInfo(OPTION_OTHER, "baseDetectionProbability", &baseDetectionProbability, false, "STR_DISPLAY_BASE_DETECTION_PROBABILITY", "STR_BASESCAPE"));
 
 	// OTHER options Battlescape
-	_info.push_back(OptionInfo(OPTION_OTHER, "oxceNumpadUnitMovement", &oxceNumpadUnitMovement, false, "STR_NUMPAD_UNIT_MOVEMENT", "STR_BATTLESCAPE"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "oxceNumpadTankControls", &oxceNumpadTankControls, false, "STR_NUMPAD_TANK_CONTROLS", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "oxceNumpadUnitMovement", &oxceNumpadMove, false, "STR_NUMPAD_MOVE", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "moraleAttackSuccessNotify", &moraleAttackSuccessNotify, 0, "STR_MORALE_ATTACK_SUCCESS_NOTIFY", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "diagTerrainMelee", &diagTerrainMelee, false, "STR_DIAG_TERRAIN_MELEE", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "forcedAbsoluteCosts", &forcedAbsoluteCosts, false, "STR_FORCED_ABSOLUTE_COSTS", "STR_BATTLESCAPE"));
