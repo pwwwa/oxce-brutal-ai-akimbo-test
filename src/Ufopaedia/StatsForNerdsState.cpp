@@ -1983,6 +1983,7 @@ void StatsForNerdsState::initItemList()
 	addInteger(ss, itemRule->getDropoff(), "dropoff", dropoffDefault);
 	addInteger(ss, itemRule->getPierceType(), "pierceType");
 	addInteger(ss, itemRule->getPiercePowerCap(), "piercePowerCap");
+	addDamageType(ss, itemRule->getPierceAOEDamageType(), "pierceAOEDamageType");
 
 	addRuleStatBonus(ss, *itemRule->getAccuracyMultiplierRaw(), "accuracyMultiplier");
 	addIntegerPercent(ss, itemRule->getConfigAimed()->accuracy, "accuracyAimed");

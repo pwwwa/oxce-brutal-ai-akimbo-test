@@ -931,7 +931,7 @@ void ProjectileFlyBState::think()
 
 				if (_projectileImpact != V_OUTOFBOUNDS || (_ammo && _ammo->getRules()->getShotgunPellets()))
 				{
-					bool shotgun = _ammo && _ammo->getRules()->getShotgunPellets() != 0 && _ammo->getRules()->getDamageType()->isDirect();
+					bool shotgun = _ammo && _ammo->getRules()->getShotgunPellets() != 0; // && _ammo->getRules()->getDamageType()->isDirect();
 					int offset = 0;
 					// explosions impact not inside the voxel but two steps back (projectiles generally move 2 voxels at a time)
 					if (_ammo && _ammo->getRules()->getExplosionRadius(attack) != 0 && _projectileImpact != V_UNIT)
@@ -1023,14 +1023,16 @@ void ProjectileFlyBState::think()
 									{
 										power = _ammo->getRules()->getPowerBonus(attack) - _ammo->getRules()->getPowerRangeReduction(proj->getDistance());
 									}
-									_parent->getMap()->getExplosions()->push_back(new Explosion(proj->getPosition(offset), _ammo->getRules()->getHitAnimation(), 0, false, false, _ammo->getRules()->getHitAnimationFrames()));
-									_parent->getSave()->getTileEngine()->hit(attack, proj->getPosition(offset), power, _ammo->getRules()->getDamageType());
-
-									//do not work yet
-//									if (_ammo->getRules()->getExplosionRadius(_unit) != 0)
-//									{
-//										_parent->getTileEngine()->explode({ _action, _ammo }, proj->getPosition(offset), _ammo->getRules()->getPower(), _ammo->getRules()->getDamageType(), _ammo->getRules()->getExplosionRadius(), _unit);
-//									}
+									_parent->getMap()->getExplosions()->push_back(new Explosion(proj->getPosition(offset), _ammo->getRules()->getDamageType()->isDirect() ? _ammo->getRules()->getHitAnimation() : 0, 0, _ammo->getRules()->getExplosionRadius(attack), false, _ammo->getRules()->getHitAnimationFrames()));
+								
+									if (_ammo->getRules()->getExplosionRadius(attack))
+									{	// handle explosion routine
+										_parent->getTileEngine()->explode(attack, proj->getPosition(offset), _ammo->getRules()->getPower(), _ammo->getRules()->getDamageType(), _ammo->getRules()->getExplosionRadius(attack));
+									}
+									else
+									{	// handle direct hit
+										_parent->getSave()->getTileEngine()->hit(attack, proj->getPosition(offset), power, _ammo->getRules()->getDamageType());
+									}
 								}
 							}
 							++i;

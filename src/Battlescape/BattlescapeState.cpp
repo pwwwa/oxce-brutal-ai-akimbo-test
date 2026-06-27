@@ -3315,16 +3315,16 @@ inline void BattlescapeState::handle(Action *action)
 							{
 								_battleGame->cancelAllActions();
 								if (numpadDir == _save->getSelectedUnit()->getDirection())
-								{ //
-									if (Options::strafe && _save->isAltPressed(true))
+								{ // Allow sneak
+									if (Options::strafe && altPressed)
 									{
 										_battleGame->getCurrentAction()->sneak = _save->getSelectedUnit()->getArmor()->allowsSneaking(_save->getSelectedUnit()->isSmallUnit());
 									}
 									_battleGame->moveDirection(_save->getSelectedUnit(), numpadDir);
 								}
 								else
-								{ // Let add strafe & sneak support
-									if (Options::strafe && _save->isCtrlPressed(true))
+								{ // Allow strafe
+									if (Options::strafe && ctrlPressed)
 									{
 										_battleGame->getCurrentAction()->strafe = _save->getSelectedUnit()->getArmor()->allowsStrafing(_save->getSelectedUnit()->isSmallUnit());
 										_battleGame->moveDirection(_save->getSelectedUnit(), numpadDir);

@@ -125,3 +125,17 @@ ru:
  # Diagonal Terrain melee
   STR_DIAG_TERRAIN_MELEE: "Рукопашно местность по диагонали "
   STR_DIAG_TERRAIN_MELEE_DESC: "Атака объектов ландшафта по диагонали в ближнем бою.{NEWLINE}Требует включения опции \"terrainMeleeExtended\".{NEWLINE}Alt+клик - бить объекты на текущей и соседних клетках."
+  # Control unit movement via NUMPAD
+  STR_NUMPAD_MOVE: "Движение цифр. клавиатурой"
+  STR_NUMPAD_MOVE_DESC: "Управление движением цифровой клавиатурой.{NEWLINE}{ALT}0{ALT} - Отключено, {ALT}1{ALT} - Движение в относительном направлении, {NEWLINE}{ALT}2{ALT} - Движение в абсолютном направлении."
+  # Technical strings
+  pierceType: "Пронизывающий тип"
+  piercePowerCap: "Мощность пронизывания"
+  pierceAOEDamageType: "Тип урона прониз. врывч."
+  accuracyAkimbo: "Меткость с двух рук"
+  tuAkimbo: "ОД с двух рук"
+  akimboRange: "Дальность с двух рук"
+  flatAkimbo: "Абсолютные знач. с 2х рук?"
+  costAkimbo: "Стоимость с 2х рук"
+  maxRangeEvent: "Событие макс.дальн. пули"
+  
