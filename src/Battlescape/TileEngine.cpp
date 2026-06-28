@@ -6185,7 +6185,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			Position origin = tt->getSavedGame()->getTileEngine()->getSightOriginVoxel(aa->actor, tt) + Position(0, 0, -4);
 			Position target;
 
-			if (!tt->getSavedGame()->getTileEngine()->canTargetTile(&origin, tt, tp, &target, aa->actor, false))
+			if (aa->actor->getDirection() % 2 && !tt->getSavedGame()->getTileEngine()->canTargetTile(&origin, tt, tp, &target, aa->actor, false))
 			{ // is tile reachable (more predictable targeting queue at diagonals)
 				return false;
 			}
