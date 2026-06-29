@@ -24,6 +24,7 @@
 #include "../Savegame/BattleItem.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/SavedBattleGame.h"
+#include "BattlescapeGame.h"
 #include "../Mod/RuleInventory.h"
 #include "../Mod/Mod.h"
 #include "../Engine/Exception.h"
@@ -368,7 +369,12 @@ void UnitSprite::drawRoutine0()
 	const int offXAiming = 0;
 	const int soldierHeight = 22;
 
-	const int unitDir = _unit->getDirection();
+	// pWWWa: OXCE strafe animation fix (hack)
+	BattlescapeGame* battlegame = const_cast<BattlescapeGame*>(_save->getBattleGame());
+	const int unitDir = battlegame->getCurrentAction()->strafe && _unit == _save->getSelectedUnit() && (_unit->getStatus() == STATUS_WALKING || _unit->getStatus() == STATUS_FLYING)
+		? _unit->getFaceDirection() 
+	    : _unit->getDirection();
+
 	const int walkPhase = _unit->getWalkingPhase();
 
 	if (_unit->getStatus() == STATUS_COLLAPSING)
