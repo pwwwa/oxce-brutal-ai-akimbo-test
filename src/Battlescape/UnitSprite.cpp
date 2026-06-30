@@ -371,9 +371,8 @@ void UnitSprite::drawRoutine0()
 
 	// pWWWa: OXCE strafe animation fix (hack)
 	BattlescapeGame* battlegame = const_cast<BattlescapeGame*>(_save->getBattleGame());
-	const int unitDir = battlegame->getCurrentAction()->strafe && _unit == _save->getSelectedUnit() && (_unit->getStatus() == STATUS_WALKING || _unit->getStatus() == STATUS_FLYING)
-		? _unit->getFaceDirection() 
-	    : _unit->getDirection();
+	const bool isStrafe = battlegame->getCurrentAction()->strafe && _unit->getFaceDirection() > -1 && _unit == _save->getSelectedUnit() && (_unit->getStatus() == STATUS_WALKING || _unit->getStatus() == STATUS_FLYING);
+	const int unitDir = isStrafe ? _unit->getFaceDirection() : _unit->getDirection();
 
 	const int walkPhase = _unit->getWalkingPhase();
 
