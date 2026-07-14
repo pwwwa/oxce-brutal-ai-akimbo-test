@@ -3173,7 +3173,12 @@ inline void BattlescapeState::handle(Action *action)
 								{
 									debug("Have you paid your taxes yet?");
 									unitUnderTheCursor->moraleChange(-moraleLoss);
-									_game->pushState(new InfoboxState(_game->getLanguage()->getString("STR_MORALE_ATTACK_SUCCESSFUL")));
+									switch (Options::moraleAttackSuccessNotify)
+									{
+									case 1:	_battleGame->psiAttackMessage(BattleActionAttack{BA_PANIC, unitUnderTheCursor}, unitUnderTheCursor); break;
+									case 2:	_game->pushState(new InfoboxState(_game->getLanguage()->getString("STR_MORALE_ATTACK_SUCCESSFUL")));
+									}
+									
 								}
 							}
 							else
@@ -3224,7 +3229,7 @@ inline void BattlescapeState::handle(Action *action)
 					saveVoxelView();
 				}
 
-				// numpad tank controls (takes priority over absolute mode)
+				// numpad relative controls (takes priority over absolute mode)
 				switch (Options::oxceNumpadMove)
 				{
 					case 1:

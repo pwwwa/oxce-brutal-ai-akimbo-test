@@ -143,36 +143,44 @@ void MeleeAttackBState::init()
 		throw Exception("This is a known (but tricky) bug... still fixing it, sorry. In the meantime, try save scumming option or kill all aliens in debug mode to finish the mission.");
 	}
 
-	int height = _target->getFloatHeight() + (_target->getHeight() * 2/3) - _parent->getSave()->getTile(_action.target)->getTerrainLevel();
+	int height = _target->getFloatHeight() + (_target->getHeight() / 2) - _parent->getSave()->getTile(_action.target)->getTerrainLevel(_target);
 
-	// Correct height for -=ForcedMeleeToFloor=- feature
+	// pWWWa: adjust height coordinates for -=ForcedMeleeToFloor=- feature (todo: make more unified)
 	if (_parent->getSave()->isCtrlPressed(true) && _parent->getSave()->getSide() == FACTION_PLAYER && _unit->getFaction() == FACTION_PLAYER && !_unit->getTile()->hasNoFloor())
 	{
-		// Check presence of any alive unit under feet and apply their height (it usually is 0, but let check)
+		// Check presence of any alive unit under feet and apply their height (it is 0 usually, but let check)
 		if (_target->getTile()->getTopItem() && _target->getTile()->getTopItem()->getUnit() && _target->getTile()->getTopItem()->getUnit()->getStatus() == STATUS_UNCONSCIOUS)
 		{
 			height = _target->getTile()->getTopItem()->getUnit()->getPosition().toTile().z;
 		}
 		else if (Mod::EXTENDED_TERRAIN_MELEE <= 0 || _action.weapon && (!_action.weapon->getRules()->getDamageType()->ToTile || !_action.weapon->getRules()->getMeleeType()->ToTile))
-		{ // Do not allow to hit floor without activated Terrain Melee feature or for not suitable items for this
+		{ // Do not allow to dig terrain without activated Terrain Melee feature or for not suitable items for this
 			_action.result = "STR_THERE_IS_NO_ONE_THERE";
-			_parent->getCurrentAction()->type = BA_NONE;
+			_parent->getCurrentAction()->type = BA_NONE; // stucking cursor fix, hello to BattleScapeGame
 			_parent->popState();
 			return;
 		}
 		else
-		{
-			if (!_parent->getSave()->isAltPressed(true))
-			{ // Default height 
-				 height = 1 - _target->getTile()->getTerrainLevel() / 2;
-			}
-			else
-			{ // Adjust height withing pressed Alt button for hitting "uncommon" tileparts (floor objects on wall position and etc.) 
-				height = 3 - _target->getTile()->getTerrainLevel();
+		{ // Let dive in & check till any terrain stuff is met 
+			while (height > 0 && _parent->getTileEngine()->voxelCheck(_action.target.toVoxel() + Position(8, 8, --height), _unit) == V_EMPTY)
+			{
+				height--;
 			}
 		}
 	}
-	_voxel = _action.target.toVoxel() + Position(8, 8, height);
+	
+	_voxel = _action.target.toVoxel() + Position(8, 8, height); // Alt solution: _voxel = _target->getPositionVexels() + Position(0, 0, height);
+
+	if (_parent->getTileEngine()->voxelCheck(_voxel, _unit) != V_UNIT)
+	{ // Miss unit, let recheck tile height from the top
+		for (int z = 24; z >= 0; z--)
+		{
+			if (_parent->getTileEngine()->voxelCheck(_action.target.toVoxel() + Position(8, 8, z), _unit) == V_UNIT)
+			{
+				_voxel = _action.target.toVoxel() + Position(8, 8, z); break;
+			}
+		}
+	}
 
 	if (!_parent->getSave()->getTile(_voxel.toTile()))
 	{
@@ -255,16 +263,23 @@ void MeleeAttackBState::performMeleeAttack(int terrainMeleeTilePart)
 	_parent->getMap()->setCursorType(CT_NONE);
 
 	// offset the damage voxel ever so slightly so that the target knows which side the attack came from
-	Position difference = _unit->getPosition() - _action.target;
+	int attackerHeight = -_parent->getSave()->getTile(_unit->getPosition())->getTerrainLevel(_unit) + _unit->getHeight() / 2;
+	Position attackerPos = _unit->getPositionVexels() + Position(0, 0, attackerHeight);
+	Position difference = !_target ? _unit->getPosition() - _action.target : attackerPos - _voxel;
+
 	// large units may cause it to offset too much, so we'll clamp the values.
 	difference.x = Clamp<Sint16>(difference.x, -1, 1);
 	difference.y = Clamp<Sint16>(difference.y, -1, 1);
+	difference.z = Clamp<Sint16>(difference.z, -1, 1);
 
-	Position damagePosition = _voxel + difference;
-
+	while ( _parent->getTileEngine()->voxelCheck((_voxel + difference), _unit) == V_UNIT &&
+		   (_voxel.x != attackerPos.x || _voxel.y != attackerPos.y || _voxel.z != attackerPos.z) )
+	{
+		_voxel += difference;
+	}
 
 	// make an explosion action
-	_parent->statePushFront(new ExplosionBState(_parent, damagePosition, BattleActionAttack::GetAferShoot(_action, _ammo), 0, true, 0, 0, terrainMeleeTilePart));
+	_parent->statePushFront(new ExplosionBState(_parent, _voxel, BattleActionAttack::GetAferShoot(_action, _ammo), 0, true, 0, 0, terrainMeleeTilePart));
 
 
 	_reaction = true;

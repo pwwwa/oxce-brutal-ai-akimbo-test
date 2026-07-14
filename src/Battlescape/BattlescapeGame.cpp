@@ -2182,9 +2182,8 @@ void BattlescapeGame::psiAttackMessage(BattleActionAttack attack, BattleUnit *vi
 			{
 				switch (Options::moraleAttackSuccessNotify)
 				{
-				case 1:	_parentState->warning("STR_MORALE_ATTACK_SUCCESSFUL"); // show flash message
-					break;
-				case 2:	game->pushState(new InfoboxState(game->getLanguage()->getString("STR_MORALE_ATTACK_SUCCESSFUL"))); // show Info box
+					case 1:	_parentState->warning("STR_MORALE_ATTACK_SUCCESSFUL"); break;									   // show flash message
+					case 2:	game->pushState(new InfoboxState(game->getLanguage()->getString("STR_MORALE_ATTACK_SUCCESSFUL"))); // show Info box
 				}
 			}
 			else if (attack.type == BA_MINDCONTROL)
@@ -2233,16 +2232,24 @@ void BattlescapeGame::moveUpDown(BattleUnit *unit, int dir)
  */
 void BattlescapeGame::moveDirection(BattleUnit* unit, int dir)
 {
-	_currentAction.actor = unit;
 	Position dirVec;
 	Pathfinding::directionToVector(dir, &dirVec);
 	_currentAction.target = unit->getPosition() + dirVec;
+	int unitHeight = _save->getTile(unit->getPosition())->getTerrainLevel(unit);
+
+	if (unitHeight <= 16 && unitHeight < _save->getTile(_currentAction.target)->getTerrainLevel() && !_save->getTile(_currentAction.target + Position(0, 0, 1))->hasNoFloor())
+	{ // todo: big units on stairs
+		++_currentAction.target.z; 
+	}
+
 	getMap()->setCursorType(CT_NONE);
 	_parentState->getGame()->getCursor()->setVisible(false);
+
 	if (_save->getSelectedUnit()->isKneeled())
 	{
 		kneel(_save->getSelectedUnit());
 	}
+
 	_save->getPathfinding()->calculate(_currentAction.actor, _currentAction.target, _currentAction.getMoveType());
 	statePushBack(new UnitWalkBState(this, _currentAction));
 }

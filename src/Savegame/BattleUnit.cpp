@@ -1792,16 +1792,18 @@ int BattleUnit::damage(Position relative, int damage, const RuleDamageType *type
 				}
 			}
 
+			bool isMelee = attack.type == BA_HIT ? RNG::generate(0, 1) : RNG::generate(0, 2) < 2;
+
 			switch((relativeDirection - _direction) % 8)
 			{
-			case 0:	side = SIDE_FRONT; 										break;
-			case 1:	side = RNG::generate(0,2) < 2 ? SIDE_FRONT:SIDE_RIGHT; 	break;
-			case 2:	side = SIDE_RIGHT; 										break;
-			case 3:	side = RNG::generate(0,2) < 2 ? SIDE_REAR:SIDE_RIGHT; 	break;
-			case 4:	side = SIDE_REAR; 										break;
-			case 5:	side = RNG::generate(0,2) < 2 ? SIDE_REAR:SIDE_LEFT; 	break;
-			case 6:	side = SIDE_LEFT; 										break;
-			case 7:	side = RNG::generate(0,2) < 2 ? SIDE_FRONT:SIDE_LEFT; 	break;
+			case 0:	side = SIDE_FRONT; 							break;
+			case 1:	side = isMelee ? SIDE_FRONT : SIDE_RIGHT;	break;
+			case 2:	side = SIDE_RIGHT; 							break;
+			case 3:	side = isMelee ? SIDE_REAR : SIDE_RIGHT; 	break;
+			case 4:	side = SIDE_REAR; 							break;
+			case 5:	side = isMelee ? SIDE_REAR : SIDE_LEFT; 	break;
+			case 6:	side = SIDE_LEFT; 							break;
+			case 7:	side = isMelee ? SIDE_FRONT : SIDE_LEFT; 	break;
 			}
 			if (relative.z >= getHeight())
 			{
@@ -4074,7 +4076,6 @@ BattleItem *BattleUnit::getLeftHandWeapon() const
  * @return Item in inactive hand. Akimbo hands switching.
  * thanks to aka Kewer.
  */
-
 BattleItem* BattleUnit::getOppositeHandWeapon() const
 {
 	BattleItem* activeHand = const_cast<BattleItem*>(getActiveHand(getLeftHandWeapon(), getRightHandWeapon())); 
@@ -4094,7 +4095,6 @@ BattleItem* BattleUnit::getOppositeHandWeapon() const
 /**
  * Check if unit able to perform akimbo shot
  */
-
 bool BattleUnit::isAkimbo() const
 {
 	if (Options::akimboMod && getLeftHandWeapon() && getRightHandWeapon())

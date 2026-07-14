@@ -1552,7 +1552,7 @@ void TileEngine::calculateTilesInFOV(BattleUnit* unit, const Position eventPos, 
 	const int signY[8] = {-1, -1, -1, +1, +1, +1, -1, -1};
 	int y1, y2;
 
-	if ((unit->getHeight() + unit->getFloatHeight() + -_save->getTile(unit->getPosition())->getTerrainLevel()) >= 24 + 4)
+	if ((unit->getHeight() + unit->getFloatHeight() + -_save->getTile(unit->getPosition())->getTerrainLevel(unit)) >= 24 + 4)
 	{
 		Tile* tileAbove = _save->getTile(posSelf + Position(0, 0, 1));
 		if (tileAbove && tileAbove->hasNoFloor(0))
@@ -2144,7 +2144,7 @@ double TileEngine::checkVoxelExposure(Position *originVoxel, Tile *tile, BattleU
 	if (targetUnit == excludeUnit) return 0; //skip self
 	Position targetVoxel = targetUnit->getPosition().toVoxel();
 
-	int targetMinHeight = targetVoxel.z - tile->getTerrainLevel();
+	int targetMinHeight = targetVoxel.z - tile->getTerrainLevel(targetUnit);
 	int targetFloatHeight = targetUnit->getFloatHeight();
 	targetMinHeight += targetFloatHeight;
 
@@ -2274,7 +2274,7 @@ double TileEngine::checkVoxelExposure(Position *originVoxel, Tile *tile, BattleU
 		if (targetFloatHeight > 1 && heightRange % 2 == 0 && height - bottomHeight == 1) ++height;
 	}
 	double exposure = (double)visible / total;
-
+	/** /
 	if (isDebug)
 	{
 		Log(LOG_INFO) << " ";
@@ -2282,7 +2282,7 @@ double TileEngine::checkVoxelExposure(Position *originVoxel, Tile *tile, BattleU
 			Log(LOG_INFO) << line;
 		Log(LOG_INFO) << " ";
 	}
-
+	/**/
 	if (exposure < 0.1) // Check near/far parts of target cylinder
 	{
 		bool aimFromAbove = originVoxel->z > targetMaxHeight;
@@ -2381,7 +2381,7 @@ bool TileEngine::canTargetUnit(Position *originVoxel, Tile *tile, Position *scan
 
 	Position targetVoxel = targetUnit->getPosition().toVoxel();
 
-	int targetMinHeight = targetVoxel.z - tile->getTerrainLevel();
+	int targetMinHeight = targetVoxel.z - tile->getTerrainLevel(targetUnit);
 	int targetFloatHeight = targetUnit->getFloatHeight();
 	targetMinHeight += targetFloatHeight;
 
@@ -3747,8 +3747,9 @@ void TileEngine::hit(BattleActionAttack attack, Position center, int power, cons
 			{
 				verticaloffset = 24;
 			}
-			const int sz = bu->getArmor()->getSize() * 8;
-			const Position target = bu->getPosition().toVoxel() + Position(sz,sz, bu->getFloatHeight() - tile->getTerrainLevel());
+			//const int sz = bu->getArmor()->getSize() * 8;
+			//const Position target = bu->getPosition().toVoxel() + Position(sz,sz, bu->getFloatHeight() - tile->getTerrainLevel(bu));
+			const Position target = bu->getPositionVexels() + Position(0, 0, bu->getFloatHeight() - tile->getTerrainLevel(bu));
 			const Position relative = (center - target) - Position(0,0,verticaloffset);
 
 			hitUnit(attack, bu, relative, damage, type, rangeAtack);
@@ -4922,15 +4923,14 @@ VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target,
 		{
 			if (storeTrajectory && trajectory)
 			{				
-				//trajectory->push_back(point);
-				trajectory->push_back(point + Position(rand, -rand, 0));
+				trajectory->push_back(point + Position(rand, 0, 0));
 			}
 						
 			if (voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut) == V_OUTOFBOUNDS)
 			{
 				if (trajectory)
 				{ // store the position of impact
-					trajectory->push_back(point + Position(rand, -rand, 0));
+					trajectory->push_back(point + Position(rand, 0, 0));
 				}
 				return true;
 			}
@@ -4943,7 +4943,7 @@ VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target,
 			{
 				if (trajectory != 0)
 				{ // store the position of impact
-					trajectory->push_back(point + Position(rand, -rand, 0));
+					trajectory->push_back(point + Position(rand, 0, 0));
 				}
 				return true;
 			}
@@ -6001,11 +6001,11 @@ bool TileEngine::validMeleeRange(Position pos, int direction, BattleUnit *attack
 				Tile *aboveTargetTile = _save->getAboveTile(targetTile);
 				Tile *belowTargetTile = _save->getBelowTile(targetTile);
 
-				if (origin->getTerrainLevel() <= -16 && aboveTargetTile && !aboveTargetTile->hasNoFloor(_save))
+				if (origin->getTerrainLevel(origin->getUnit()) <= -16 && aboveTargetTile && !aboveTargetTile->hasNoFloor(_save))
 				{
 					targetTile = aboveTargetTile;
 				}
-				else if (belowTargetTile && targetTile->hasNoFloor(_save) && !targetTile->getUnit() && belowTargetTile->getTerrainLevel() <= -16)
+				else if (belowTargetTile && targetTile->hasNoFloor(_save) && !targetTile->getUnit() && belowTargetTile->getTerrainLevel(belowTargetTile->getUnit()) <= -16)
 				{
 					targetTile = belowTargetTile;
 				}
@@ -6013,16 +6013,13 @@ bool TileEngine::validMeleeRange(Position pos, int direction, BattleUnit *attack
 				{
 					if (target == 0 || targetTile->getUnit() == target)
 					{
-						Position originVoxel = getSightOriginVoxel(attacker, targetTile, BattleActionOrigin::CENTRE) + Position(0, 0, meleeOriginVoxelVerticalOffset - 4);
-							/** Position(origin->getPosition().toVoxel())
-							+ Position(8,8,attacker->getHeight() + attacker->getFloatHeight() - 4 -origin->getTerrainLevel() + meleeOriginVoxelVerticalOffset);*/
-						Position targetVoxel;
-						Position originLeft = getSightOriginVoxel(attacker, targetTile, BattleActionOrigin::LEFT) + Position(0, 0, meleeOriginVoxelVerticalOffset - 4);
-						Position originRight = getSightOriginVoxel(attacker, targetTile, BattleActionOrigin::RIGHT) + Position(0, 0, meleeOriginVoxelVerticalOffset - 4);
-
-						if (canTargetUnit(&originVoxel, targetTile, &targetVoxel, attacker, false) ||
-							canTargetUnit(&originLeft, targetTile, &targetVoxel, attacker, false)  ||
-							canTargetUnit(&originRight, targetTile, &targetVoxel, attacker, false) )
+						Position originVoxel = getSightOriginVoxel(attacker, targetTile, BattleActionOrigin::CENTRE) + Position(0, 0, meleeOriginVoxelVerticalOffset - 3); //was:  Position originVoxel = Position(origin->getPosition().toVoxel()) + Position(8, 8, attacker->getHeight() + attacker->getFloatHeight() - 4 - origin->getTerrainLevel() + meleeOriginVoxelVerticalOffset);
+						Position originLeft = getSightOriginVoxel(attacker, targetTile, BattleActionOrigin::LEFT) + Position(0, 0, meleeOriginVoxelVerticalOffset - 3);
+						Position originRight = getSightOriginVoxel(attacker, targetTile, BattleActionOrigin::RIGHT) + Position(0, 0, meleeOriginVoxelVerticalOffset - 3);
+						//Position targetVoxel; // = targetTile->getPosition().toVoxel() + voxelTileCenter;
+						if (canTargetUnit(&originVoxel, targetTile, nullptr, attacker, false) ||
+							canTargetUnit(&originLeft, targetTile, nullptr, attacker, false) ||
+							canTargetUnit(&originRight, targetTile, nullptr, attacker, false))
 						{
 							if (dest)
 							{
@@ -6060,7 +6057,7 @@ bool TileEngine::validMeleeRange(Position pos, int direction, BattleUnit *attack
 		}
 	}
 
-	if (dest && chosenTarget)
+	if (dest && chosenTarget && chosenTarget->getArmor()->getSize() == 1) // pWWWa: exclude big units due it can to change possible hit position and they can't be medikited
 	{
 		*dest = chosenTarget->getPosition();
 	}
@@ -6193,22 +6190,25 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			MapData* obj = tt->getMapData(tp);
 			if (obj)
 			{
-				if (dir > -1 && tp == O_OBJECT && !(Options::diagTerrainMelee && tt->getSavedGame()->isAltPressed(true)))
-				{ 
-					auto bigWall = obj->getBigWall();
-					if (dir == 0 /*north*/ && bigWall != Pathfinding::BIGWALLNORTH && bigWall != Pathfinding::BIGWALLWESTANDNORTH) return false;
-					if (dir == 2 /*east */ && bigWall != Pathfinding::BIGWALLEAST  && bigWall != Pathfinding::BIGWALLEASTANDSOUTH) return false;
-					if (dir == 4 /*south*/ && bigWall != Pathfinding::BIGWALLSOUTH && bigWall != Pathfinding::BIGWALLEASTANDSOUTH) return false;
-					if (dir == 6 /*west */ && bigWall != Pathfinding::BIGWALLWEST  && bigWall != Pathfinding::BIGWALLWESTANDNORTH) return false;
-					if (dir == 1 /*NW   */ && bigWall != Pathfinding::BIGWALLNWSE) return false;
-					if (dir == 3 /*NE   */ && bigWall != Pathfinding::BIGWALLNESW  && bigWall != Pathfinding::BIGWALLEASTANDSOUTH) return false;
-					if (dir == 5 /*SE   */ && bigWall != Pathfinding::BIGWALLNWSE) return false;
-					if (dir == 7 /*SW   */ && bigWall != Pathfinding::BIGWALLNESW  && bigWall != Pathfinding::BIGWALLWESTANDNORTH) return false;
-				} 
-				if (tp != O_OBJECT && !obj->isDoor() && !obj->isUFODoor() && tt->getTUCost(tp, MT_WALK) != Pathfinding::INVALID_MOVE_COST)
+				if (!(Options::diagTerrainMelee && tt->getSavedGame()->isAltPressed(true))) // Agressive forced hit helper
 				{
-					// it is possible to walk through this (rubble) wall... no need to attack it
-					return false;
+					if (dir > -1 && tp == O_OBJECT)
+					{
+						auto bigWall = obj->getBigWall();
+						if (dir == 0 /*north*/ && bigWall != Pathfinding::BIGWALLNORTH && bigWall != Pathfinding::BIGWALLWESTANDNORTH) return false;
+						if (dir == 2 /*east */ && bigWall != Pathfinding::BIGWALLEAST && bigWall != Pathfinding::BIGWALLEASTANDSOUTH)  return false;
+						if (dir == 4 /*south*/ && bigWall != Pathfinding::BIGWALLSOUTH && bigWall != Pathfinding::BIGWALLEASTANDSOUTH) return false;
+						if (dir == 6 /*west */ && bigWall != Pathfinding::BIGWALLWEST && bigWall != Pathfinding::BIGWALLWESTANDNORTH)  return false;
+						if (dir == 1 /*NW   */ && bigWall != Pathfinding::BIGWALLNWSE)												   return false;
+						if (dir == 3 /*NE   */ && bigWall != Pathfinding::BIGWALLNESW && bigWall != Pathfinding::BIGWALLEASTANDSOUTH)  return false;
+						if (dir == 5 /*SE   */ && bigWall != Pathfinding::BIGWALLNWSE)                                                 return false;
+						if (dir == 7 /*SW   */ && bigWall != Pathfinding::BIGWALLNESW && bigWall != Pathfinding::BIGWALLWESTANDNORTH)  return false;
+					}
+					if (tp != O_OBJECT && !obj->isDoor() && !obj->isUFODoor() && tt->getTUCost(tp, MT_WALK) != Pathfinding::INVALID_MOVE_COST)
+					{
+						// it is possible to walk through this (rubble) wall... no need to attack it
+						return false;
+					}
 				}
 				bool isHighEnough = false;
 				for (int i = Mod::EXTENDED_TERRAIN_MELEE; i < 12; ++i)
@@ -6239,61 +6239,61 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		switch (direction)
 		{
 		case 0: // North
-				if (setTarget(originTile, O_NORTHWALL, action) ||
-					setTarget(originTile2, O_NORTHWALL, action) ||
+				if (setTarget(originTile, O_NORTHWALL, action)		  ||
+					setTarget(originTile2, O_NORTHWALL, action)		  ||
 					setTarget(neighbouringTile2, O_WESTWALL, action) && size)
 				return true;
 				break;
 
 		case 2: // East
-				if (setTarget(neighbouringTile, O_WESTWALL, action) ||
-					setTarget(neighbouringTile2, O_WESTWALL, action) ||
+				if (setTarget(neighbouringTile, O_WESTWALL, action)   ||
+					setTarget(neighbouringTile2, O_WESTWALL, action)  ||
 					setTarget(neighbouringTile2, O_NORTHWALL, action) && size)
 				return true;
 				break;
 
 		case 4: // South
-				if (setTarget(neighbouringTile, O_NORTHWALL, action) ||
+				if (setTarget(neighbouringTile, O_NORTHWALL, action)  ||
 					setTarget(neighbouringTile2, O_NORTHWALL, action) ||
 					setTarget(neighbouringTile2, O_WESTWALL, action) && size)
 				return true;
 				break;
 
 		case 6: // West
-				if (setTarget(originTile, O_WESTWALL, action) ||
-					setTarget(originTile2, O_WESTWALL, action) ||
+				if (setTarget(originTile, O_WESTWALL, action)		  ||
+					setTarget(originTile2, O_WESTWALL, action)		  ||
 					setTarget(neighbouringTile2, O_NORTHWALL, action) && size)
 				return true;
 				break;
 
 		case 1:	 // North-East
-				if (setTarget(neighbouringTile, O_WESTWALL, action) ||		// 3
+				if (setTarget(neighbouringTile, O_WESTWALL, action)	  ||	// 3
 					setTarget(neighbouringTile3, O_NORTHWALL, action) ||	// 4
-					setTarget(originTile, O_NORTHWALL, action) ||			// 1
+					setTarget(originTile, O_NORTHWALL, action)		  ||	// 1
 					setTarget(neighbouringTile3, O_WESTWALL, action))		// 2
 				return true;
 				break;
 				
 		case 3: // South-East 
-				if (setTarget(neighbouringTile, O_WESTWALL, action) ||      // 3
-					setTarget(neighbouringTile, O_NORTHWALL, action) ||     // 4
+				if (setTarget(neighbouringTile, O_WESTWALL, action)   ||    // 3
+					setTarget(neighbouringTile, O_NORTHWALL, action)  ||    // 4
 					setTarget(neighbouringTile3, O_NORTHWALL, action) ||	// 1
 					setTarget(neighbouringTile2, O_WESTWALL, action))		// 2
 				return true;
 				break;
 				
 		case 5: // North-East
-				if (setTarget(neighbouringTile, O_NORTHWALL, action) ||		// 4
+				if (setTarget(neighbouringTile, O_NORTHWALL, action)  ||	// 4
 					setTarget(neighbouringTile2, O_NORTHWALL, action) ||    // 1
-					setTarget(neighbouringTile2, O_WESTWALL, action) ||		// 3
+					setTarget(neighbouringTile2, O_WESTWALL, action)  ||	// 3
 					setTarget(originTile, O_WESTWALL, action))	 			// 2
 				return true;
 				break;
 
 		case 7: // North-West
-				if (setTarget(neighbouringTile3, O_WESTWALL, action) ||     // 4
+				if (setTarget(neighbouringTile3, O_WESTWALL, action)  ||    // 4
 					setTarget(neighbouringTile2, O_NORTHWALL, action) ||	// 3
-					setTarget(originTile, O_NORTHWALL, action) ||			// 2
+					setTarget(originTile, O_NORTHWALL, action)		  ||    // 2
 					setTarget(originTile, O_WESTWALL, action))				// 1
 				return true;
 		}
@@ -6313,7 +6313,6 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -6871,7 +6870,7 @@ std::set<Tile*> TileEngine::visibleTilesFrom(BattleUnit* unit, Position pos, int
 	int y1, y2;
 	Position posTest;
 
-	if ((unit->getHeight() + unit->getFloatHeight() + -_save->getTile(pos)->getTerrainLevel()) >= 24 + 4)
+	if ((unit->getHeight() + unit->getFloatHeight() + -_save->getTile(pos)->getTerrainLevel(unit)) >= 24 + 4)
 	{
 		Tile* tileAbove = _save->getTile(pos + Position(0, 0, 1));
 		if (tileAbove && tileAbove->hasNoFloor(0))

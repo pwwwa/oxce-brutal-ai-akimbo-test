@@ -161,9 +161,6 @@ void Game::run()
 			_init = true;
 			_states.back()->init();
 
-			// Set the window icon
-//			CrossPlatform::setWindowIcon(IDI_ICON1, "openxcom.png");
-
 			// Unpress buttons
 			_states.back()->resetAll();
 

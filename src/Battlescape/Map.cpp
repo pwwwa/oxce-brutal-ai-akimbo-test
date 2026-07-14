@@ -1531,7 +1531,7 @@ void Map::drawTerrain(Surface *surface)
 										auto* ammo = attack.damage_item;
 										const RuleItem *ammoRule = (ammo != nullptr) ? ammo->getRules() : nullptr;
 
-										bool isShotgun = ammoRule && ammoRule->getShotgunPellets() != 0 && ammoRule->getDamageType()->isDirect();
+										bool isShotgun = ammoRule && ammoRule->getShotgunPellets(); // != 0 && ammoRule->getDamageType()->isDirect();
 										bool isArcingShot = action->weapon->getArcingShot(action->type);
 										bool isSpray = action->sprayTargeting;
 										disableRA = isShotgun || isArcingShot || isSpray;

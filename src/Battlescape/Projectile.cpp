@@ -120,7 +120,7 @@ Position Projectile::calculateMissingTrajectoryRA(const Position &origin, const 
 	int targetSize = 1;
 	int heightRange = 12; // Targeting to empty terrain tile will use this size for fire deviation
 	int unitRadius = 4; // and this radius
-	int targetMinHeight = target->z - target->z % Position::TileZ - targetTile->getTerrainLevel();
+	int targetMinHeight = target->z - target->z % Position::TileZ - targetTile->getTerrainLevel(targetTile->getUnit());
 	int unitMin_X{ target->x - unitRadius - 1 };
 	int unitMin_Y{ target->y - unitRadius - 1 };
 	int unitMax_X{ target->x + unitRadius + 1 };

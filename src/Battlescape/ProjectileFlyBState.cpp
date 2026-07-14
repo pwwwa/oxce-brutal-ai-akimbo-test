@@ -523,8 +523,8 @@ bool ProjectileFlyBState::createNewProjectile()
 		if (!_ammo->getRules()->getPiercePowerCap())
 		{
 			_parent->setPiercePower( _action.weapon && _action.weapon->getRules()->getIgnoreAmmoPower()
-								   ? _action.weapon->getRules()->getPowerBonus(BattleActionAttack{}) //- _action.weapon->getRules()->getPowerRangeReduction(_distance)
-								   : _ammo->getRules()->getPowerBonus(BattleActionAttack{}) );        // - _action.weapon->getRules()->getPowerRangeReduction(_distance);
+								   ? _action.weapon->getRules()->getPowerBonus(BattleActionAttack{}) 
+								   : _ammo->getRules()->getPowerBonus(BattleActionAttack{}) );
 		}
 		else
 		{
@@ -783,9 +783,10 @@ void ProjectileFlyBState::think()
 			BattleUnit* victim = tile->getOverlappingUnit(_parent->getSave());
 			const auto tp = static_cast<TilePart>(_projectileImpact);
 			auto dmgAOE = _ammo->getRules()->getPierceAOEDamageType();
+			auto dmgType = _ammo->getRules()->getDamageType()->isDirect() ? _ammo->getRules()->getDamageType() : _parent->getMod()->getDamageType(dmgAOE);
 
-			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && !(_projectileImpact == V_UNIT && victim->isOutThresholdExceed()) && _parent->getPiercePower()) //_parent->getMap()->getProjectile()->getPiercePower())
-			{
+			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && !(_projectileImpact == V_UNIT && victim->isOutThresholdExceed()) && _parent->getPiercePower())
+			{ // Projectile faces something "tasty" on their way. Let prepare to hit
 				int power = 0;
 				if (_action.weapon->getRules()->getIgnoreAmmoPower())
 				{ // borrowed from shotgun section
@@ -814,21 +815,19 @@ void ProjectileFlyBState::think()
 						: 1 );
 				}
 				// hit processing
-
-					_parent->getSave()->getTileEngine()->hit(attack, _parent->getMap()->getProjectile()->getPosition(),
+					_parent->getSave()->getTileEngine()->hit(attack,
+															 _parent->getMap()->getProjectile()->getPosition(),
 															 _ammo->getRules()->getPierceType() == 2
 																 ? power
 																 : std::min(_parent->getPiercePower(), power),
-															 _ammo->getRules()->getDamageType()->isDirect()
-																 ? _ammo->getRules()->getDamageType()
-																 : _parent->getMod()->getDamageType(dmgAOE));
+															 dmgType);
 
 					_parent->setPiercePower(_parent->getPiercePower() - piercePowerDercement);
-
+					
 				if (_projectileImpact == V_UNIT)
 				{ // let arrange further handling of impacted units
 					if (!_parent->areAllEnemiesNeutralized()) projectileHitUnit(_parent->getMap()->getProjectile()->getPosition());
-					_parent->checkForCasualties(nullptr, attack);
+					_parent->checkForCasualties(dmgType, BattleActionAttack{_action.type, attack.attacker});
 					_parent->getSave()->reviveUnconsciousUnits(true);
 					_parent->convertInfected();
 					_parent->setStateInterval(BattlescapeState::DEFAULT_ANIM_SPEED / 5); // Alt solution: _parent->setStateInterval(50/3)
@@ -840,7 +839,7 @@ void ProjectileFlyBState::think()
 				}
 			}
 			else 
-			{ // do not spawn hit animation at the end of map
+			{ // do not spawn hit animation at the end of map, blaster bomb can to continue their next waypoint journey 
 				_projectileImpact = _action.type == BA_LAUNCH && _action.waypoints.size() > 1 ? V_EMPTY : V_OUTOFBOUNDS;
 			}
 		}
@@ -1113,7 +1112,7 @@ bool ProjectileFlyBState::validThrowRange(BattleAction *action, Position origin,
 	double realDistance = sqrt((double)realDistanceSq);
 
 	int offset = 2;
-	int zd = (origin.z)-((action->target.z * 24 + offset) - target->getTerrainLevel());
+	int zd = (origin.z)-((action->target.z * 24 + offset) - target->getTerrainLevel(target->getUnit()));
 	int weight = action->weapon->getTotalWeight();
 	double maxDistance = (getMaxThrowDistance(weight, action->actor->getBaseStats()->strength, zd) + 8) / 16.0;
 

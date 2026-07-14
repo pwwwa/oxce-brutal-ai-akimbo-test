@@ -764,7 +764,7 @@ BattleUnit *Tile::getOverlappingUnit(const SavedBattleGame *saveBattleGame, Tile
 	{
 		auto tileBelow = saveBattleGame->getBelowTile(this);
 		bu = tileBelow->getUnit();
-		if (bu && bu->getHeight() + bu->getFloatHeight() - tileBelow->getTerrainLevel() <= static_cast<int>(range))
+		if (bu && bu->getHeight() + bu->getFloatHeight() - tileBelow->getTerrainLevel(bu) <= static_cast<int>(range))
 		{
 			bu = nullptr; // if the unit below has no voxels poking into the tile, don't select it.
 		}
@@ -1137,6 +1137,30 @@ int Tile::getLastExplored(UnitFaction faction)
 	if (lastExplored > _save->getTurn())
 		lastExplored = 0;
 	return lastExplored;
+}
+
+/**
+ * Gets the height of the terrain (dirt/stairs/etc.) on this tile.
+ * @param optional: unit, if is big - check actual terrain height.
+ * @return the height in voxels (more negative values are higher, e.g. -8 = lower stairs, -16 = higher stairs)
+ */
+int Tile::getTerrainLevel(BattleUnit* unit) const
+{
+	if (unit && unit == _unit && unit->getArmor()->getSize() == 2)
+	{
+		Position unitPos = unit->getPosition();
+		int lowerLevel = 0;
+		for (int x = 0; x < 2; x++)
+		{
+			for (int y = 0; y < 2; y++)
+			{
+				int curLevel = _save->getTile(unitPos + Position(x, y, 0))->_cache.terrainLevel;
+				lowerLevel = std::min(lowerLevel, curLevel);
+			}
+		}
+		return lowerLevel;
+	}
+	return _cache.terrainLevel;
 }
 
 ////////////////////////////////////////////////////////////
