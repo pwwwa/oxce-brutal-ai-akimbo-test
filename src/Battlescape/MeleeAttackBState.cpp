@@ -120,7 +120,15 @@ void MeleeAttackBState::init()
 	if (terrainMeleeTilePart > 0)
 	{
 		_voxel = _action.target.toVoxel() + Position(8, 8, 12);
-		performMeleeAttack(terrainMeleeTilePart);
+
+		if (terrainMeleeTilePart == 4)
+		{
+			while (_voxel.z > _action.target.toVoxel().z && _parent->getSave()->getTileEngine()->voxelCheck(_voxel, _unit) == V_EMPTY)
+			{
+				--_voxel.z;
+			}
+		}
+		performMeleeAttack(terrainMeleeTilePart != 4 ? terrainMeleeTilePart : 0);
 		return;
 	}
 
@@ -145,7 +153,11 @@ void MeleeAttackBState::init()
 
 	int height = _target->getFloatHeight() + (_target->getHeight() / 2) - _parent->getSave()->getTile(_action.target)->getTerrainLevel(_target);
 
-	// pWWWa: adjust height coordinates for -=ForcedMeleeToFloor=- feature (todo: make more unified)
+	/********************************\
+	* -=ForcedMeleeToFloor=- section *
+	\********************************/
+
+	// pWWWa: adjust height coordinates (todo: make more unified)
 	if (_parent->getSave()->isCtrlPressed(true) && _parent->getSave()->getSide() == FACTION_PLAYER && _unit->getFaction() == FACTION_PLAYER && !_unit->getTile()->hasNoFloor())
 	{
 		// Check presence of any alive unit under feet and apply their height (it is 0 usually, but let check)
@@ -153,27 +165,31 @@ void MeleeAttackBState::init()
 		{
 			height = _target->getTile()->getTopItem()->getUnit()->getPosition().toTile().z;
 		}
-		else if (Mod::EXTENDED_TERRAIN_MELEE <= 0 || _action.weapon && (!_action.weapon->getRules()->getDamageType()->ToTile || !_action.weapon->getRules()->getMeleeType()->ToTile))
-		{ // Do not allow to dig terrain without activated Terrain Melee feature or for not suitable items for this
+		else if (Mod::EXTENDED_TERRAIN_MELEE <= 0 ||
+			     _action.weapon &&
+			    (!_action.weapon->getRules()->getDamageType()->ToTile || !_action.weapon->getRules()->getMeleeType()->ToTile))
+		{
+			// Do not allow to dig terrain without activated Terrain Melee feature or for not suitable items for this
 			_action.result = "STR_THERE_IS_NO_ONE_THERE";
 			_parent->getCurrentAction()->type = BA_NONE; // stucking cursor fix, hello to BattleScapeGame
 			_parent->popState();
 			return;
 		}
 		else
-		{ // Let dive in & check till any terrain stuff is met 
+		{
+			// Let dive in & check till any terrain stuff is met 
 			while (height > 0 && _parent->getTileEngine()->voxelCheck(_action.target.toVoxel() + Position(8, 8, --height), _unit) == V_EMPTY)
 			{
-				height--;
+				--height;
 			}
 		}
 	}
 	
-	_voxel = _action.target.toVoxel() + Position(8, 8, height); // Alt solution: _voxel = _target->getPositionVexels() + Position(0, 0, height);
+	_voxel = _action.target.toVoxel() + Position(8, 8, height);
 
 	if (_parent->getTileEngine()->voxelCheck(_voxel, _unit) != V_UNIT)
-	{ // Miss unit, let recheck tile height from the top
-		for (int z = 24; z >= 0; z--)
+	{ // Miss unit ? Recheck tile from the top
+		for (int z = 24; z >= 0; --z)
 		{
 			if (_parent->getTileEngine()->voxelCheck(_action.target.toVoxel() + Position(8, 8, z), _unit) == V_UNIT)
 			{
@@ -267,11 +283,12 @@ void MeleeAttackBState::performMeleeAttack(int terrainMeleeTilePart)
 	Position attackerPos = _unit->getPositionVexels() + Position(0, 0, attackerHeight);
 	Position difference = !_target ? _unit->getPosition() - _action.target : attackerPos - _voxel;
 
-	// large units may cause it to offset too much, so we'll clamp the values.
+	// clamp the values for further "one step shifting" closer to attacker
 	difference.x = Clamp<Sint16>(difference.x, -1, 1);
 	difference.y = Clamp<Sint16>(difference.y, -1, 1);
 	difference.z = Clamp<Sint16>(difference.z, -1, 1);
 
+	// pWWWa: shift the impact position in victim's voxel space closer to the attacker's location
 	while ( _parent->getTileEngine()->voxelCheck((_voxel + difference), _unit) == V_UNIT &&
 		   (_voxel.x != attackerPos.x || _voxel.y != attackerPos.y || _voxel.z != attackerPos.z) )
 	{

@@ -778,8 +778,9 @@ void ProjectileFlyBState::think()
 		// Pierce bullet handling injection (dirty hack)
 		if (_ammo && _ammo->getRules()->getPierceType() && !_ammo->getRules()->getShotgunPellets() && _parent->getMap()->getProjectile())
 		{
-			_projectileImpact = _parent->getTileEngine()->voxelCheck(_parent->getMap()->getProjectile()->getPosition(), _unit);
-			Tile* tile = _parent->getSave()->getTile(_parent->getMap()->getProjectile()->getPosition().toTile());
+			Projectile* bullet = _parent->getMap()->getProjectile();
+			_projectileImpact = _parent->getTileEngine()->voxelCheck(bullet->getPosition(), _unit);
+			Tile* tile = _parent->getSave()->getTile(bullet->getPosition().toTile());
 			BattleUnit* victim = tile->getOverlappingUnit(_parent->getSave());
 			const auto tp = static_cast<TilePart>(_projectileImpact);
 			auto dmgAOE = _ammo->getRules()->getPierceAOEDamageType();
@@ -804,29 +805,30 @@ void ProjectileFlyBState::think()
 											_ammo->getRules()->getDamageType()->ArmorEffectiveness +
 											victim->getHealth()) /
 					( victim->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType)
-						? std::fmin(1, victim->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType))
-						: 1 );
+					  ? std::fmin(1, victim->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType))
+					  : 1 );
 				}
 				else
 				{ // same zero divide avoidance method
 					piercePowerDercement = tile->getMapData(tp)->getArmor() /
 					( _ammo->getRules()->getDamageType()->ToTile
-						? _ammo->getRules()->getDamageType()->ToTile
-						: 1 );
+					  ? _ammo->getRules()->getDamageType()->ToTile
+					  : 1 );
 				}
 				// hit processing
 					_parent->getSave()->getTileEngine()->hit(attack,
-															 _parent->getMap()->getProjectile()->getPosition(),
-															 _ammo->getRules()->getPierceType() == 2
-																 ? power
-																 : std::min(_parent->getPiercePower(), power),
-															 dmgType);
+														 bullet->getPosition(),
+														 (_ammo->getRules()->getPierceType() == 2)
+														 ? power
+														 : std::min(_parent->getPiercePower(), power),
+														 dmgType);
 
 					_parent->setPiercePower(_parent->getPiercePower() - piercePowerDercement);
 					
 				if (_projectileImpact == V_UNIT)
 				{ // let arrange further handling of impacted units
-					if (!_parent->areAllEnemiesNeutralized()) projectileHitUnit(_parent->getMap()->getProjectile()->getPosition());
+					if (!_parent->areAllEnemiesNeutralized())
+						projectileHitUnit(bullet->getPosition());
 					_parent->checkForCasualties(dmgType, BattleActionAttack{_action.type, attack.attacker});
 					_parent->getSave()->reviveUnconsciousUnits(true);
 					_parent->convertInfected();
@@ -835,7 +837,7 @@ void ProjectileFlyBState::think()
 				else
 				{ // let arrange further handling of impacted HE terrain objects with queued dummy EBS
 					if(tile->getSavedGame()->getTileEngine()->checkForTerrainExplosions())
-						_parent->statePushNext(new ExplosionBState(_parent, _parent->getMap()->getProjectile()->getLastPositions(), BattleActionAttack{/** BA_NONE, attack.attacker /**/}, tile, false, 0, 0));
+						_parent->statePushNext(new ExplosionBState(_parent, bullet->getLastPositions(), BattleActionAttack{/** BA_NONE, attack.attacker /**/}, tile, false, 0, 0));
 				}
 			}
 			else 

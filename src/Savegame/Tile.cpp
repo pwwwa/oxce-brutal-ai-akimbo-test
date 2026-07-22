@@ -244,6 +244,58 @@ void Tile::setMapData(MapData *dat, int mapDataID, int mapDataSetID, TilePart pa
 	_objectsCache[part].isUfoDoor = dat ? dat->isUFODoor() : 0;
 	_objectsCache[part].offsetY = dat ? dat->getYOffset() : 0;
 	_objectsCache[part].isBackTileObject = dat ? dat->isBackTileObject() : 0;
+
+	switch (part)
+	{
+		case O_FLOOR:
+						  _cache.isNoFloor =		_objects[part] ? _objects[part]->isNoFloor() : 1;
+						  _cache.isGravLift =		_objects[part] && _objects[part]->isGravLift();
+						  break;
+		case O_WESTWALL:
+						  _cache.isLadderOnWest =   _objects[part] && _objects[part]->isGravLift();
+						  break;
+		case O_NORTHWALL:
+			              _cache.isLadderOnNorth =  _objects[part] && _objects[part]->isGravLift();
+						  break;
+		case O_OBJECT:
+			              _cache.isLadderOnObject = _objects[part] && _objects[part]->isGravLift();
+						  _cache.bigWall =		    _objects[part] && _objects[part]->getBigWall() != 0;
+	}
+
+	_cache.terrainLevel = std::min(_objects[O_FLOOR] ? _objects[O_FLOOR]->getTerrainLevel() : 0,
+								   _objects[O_OBJECT] ? _objects[O_OBJECT]->getTerrainLevel() : 0);
+
+	/** /
+	if (_save->getTile(getPosition() + Position(0, 0, -1)) && _save->getTile(getPosition() + Position(0, 0, -1))->isVoid())
+	{
+			Log(LOG_INFO) << "Tile void is detected";
+
+		for (int z = 1; z >= 0; --z)
+		{
+			for (int y = 1; y >= -1; --y)
+			{
+				for (int x = 1; x >= -1; --x)
+				{
+					if (!_save->getTile(getPosition() + Position(x, y, z)) || _save->getTile(getPosition() + Position(x, y, z))->isVoid())
+					{
+						_save->getTile(getPosition() + Position(0, 0, -1))->setMapData(dat, mapDataID, mapDataSetID, part);
+						goto noCollapse;
+					}
+				}
+			}
+		}
+	}
+noCollapse:
+/**/
+
+	/** /
+	_objects[part] = dat;
+	_mapData->ID[part] = mapDataID;
+	_mapData->SetID[part] = mapDataSetID;
+	_objectsCache[part].isDoor = dat ? dat->isDoor() : 0;
+	_objectsCache[part].isUfoDoor = dat ? dat->isUFODoor() : 0;
+	_objectsCache[part].offsetY = dat ? dat->getYOffset() : 0;
+	_objectsCache[part].isBackTileObject = dat ? dat->isBackTileObject() : 0;
 	if (part == O_FLOOR || part == O_OBJECT)
 	{
 		int level = 0;
@@ -283,6 +335,8 @@ void Tile::setMapData(MapData *dat, int mapDataID, int mapDataSetID, TilePart pa
 	{
 		_cache.isLadderOnWest = _objects[O_WESTWALL] && _objects[O_WESTWALL]->isGravLift();
 	}
+	/**/
+
 	updateSprite(part);
 }
 
@@ -1146,21 +1200,23 @@ int Tile::getLastExplored(UnitFaction faction)
  */
 int Tile::getTerrainLevel(BattleUnit* unit) const
 {
-	if (unit && unit == _unit && unit->getArmor()->getSize() == 2)
+	if (!unit || unit != _unit || unit->isSmallUnit())
 	{
-		Position unitPos = unit->getPosition();
-		int lowerLevel = 0;
-		for (int x = 0; x < 2; x++)
-		{
-			for (int y = 0; y < 2; y++)
-			{
-				int curLevel = _save->getTile(unitPos + Position(x, y, 0))->_cache.terrainLevel;
-				lowerLevel = std::min(lowerLevel, curLevel);
-			}
-		}
-		return lowerLevel;
+		return _cache.terrainLevel;
 	}
-	return _cache.terrainLevel;
+
+	const Position unitPos = unit->getPosition();
+	int lowLevel = 24;
+
+	for (int x = 0; x < 2; ++x)
+	{ 
+		for (int y = 0; y < 2; ++y)
+		{
+			int curLevel = _save->getTile(unitPos + Position(x, y, 0))->_cache.terrainLevel;
+			lowLevel = std::min(lowLevel, curLevel);
+		}
+	}
+	return lowLevel;
 }
 
 ////////////////////////////////////////////////////////////

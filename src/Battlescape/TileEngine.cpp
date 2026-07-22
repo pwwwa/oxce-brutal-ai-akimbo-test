@@ -4923,14 +4923,14 @@ VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target,
 		{
 			if (storeTrajectory && trajectory)
 			{				
-				trajectory->push_back(point + Position(rand, 0, 0));
+				trajectory->push_back(point + Position(rand, -rand, 0));
 			}
 						
 			if (voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut) == V_OUTOFBOUNDS)
 			{
 				if (trajectory)
 				{ // store the position of impact
-					trajectory->push_back(point + Position(rand, 0, 0));
+					trajectory->push_back(point + Position(rand, -rand, 0));
 				}
 				return true;
 			}
@@ -4943,7 +4943,7 @@ VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target,
 			{
 				if (trajectory != 0)
 				{ // store the position of impact
-					trajectory->push_back(point + Position(rand, 0, 0));
+					trajectory->push_back(point + Position(rand, -rand, 0));
 				}
 				return true;
 			}
@@ -5024,11 +5024,12 @@ int TileEngine::calculatePierceParabolaVoxel(Position origin, Position target, b
 	int result = V_EMPTY;
 	Position lastPosition = origin;
 	Position nextPosition = lastPosition;
+	int rand = (int)RNG::generate(0, 1) ? -1 : 1;
 
 	if (storeTrajectory && trajectory)
 	{
-		// initla value for small hack to glue `calculateLineVoxel` into one continuous arc
-		trajectory->push_back(lastPosition + Position((int)RNG::generate(0,1)? -1 : 1,0,0));
+		// init a value for small hack to glue `calculateLineVoxel` into one continuous arc
+		trajectory->push_back(lastPosition + Position(rand, -rand, 0));
 	}
 
 	calculateParabolaHelper(origin, target, curvature, delta,
@@ -5479,7 +5480,7 @@ int TileEngine::meleeAttackCalculate(BattleActionAttack::ReadOnly attack, const 
  */
 bool TileEngine::meleeAttack(BattleActionAttack attack, BattleUnit *victim, int terrainMeleeTilePart)
 {
-	if (terrainMeleeTilePart > 0)
+	if (terrainMeleeTilePart > 0 || _save->isAltPressed())
 	{
 		// terrain melee doesn't miss
 		return true;
@@ -6016,7 +6017,7 @@ bool TileEngine::validMeleeRange(Position pos, int direction, BattleUnit *attack
 						Position originVoxel = getSightOriginVoxel(attacker, targetTile, BattleActionOrigin::CENTRE) + Position(0, 0, meleeOriginVoxelVerticalOffset - 3); //was:  Position originVoxel = Position(origin->getPosition().toVoxel()) + Position(8, 8, attacker->getHeight() + attacker->getFloatHeight() - 4 - origin->getTerrainLevel() + meleeOriginVoxelVerticalOffset);
 						Position originLeft = getSightOriginVoxel(attacker, targetTile, BattleActionOrigin::LEFT) + Position(0, 0, meleeOriginVoxelVerticalOffset - 3);
 						Position originRight = getSightOriginVoxel(attacker, targetTile, BattleActionOrigin::RIGHT) + Position(0, 0, meleeOriginVoxelVerticalOffset - 3);
-						//Position targetVoxel; // = targetTile->getPosition().toVoxel() + voxelTileCenter;
+						//Position targetVoxel = targetTile->getPosition().toVoxel() + voxelTileCenter;
 						if (canTargetUnit(&originVoxel, targetTile, nullptr, attacker, false) ||
 							canTargetUnit(&originLeft, targetTile, nullptr, attacker, false) ||
 							canTargetUnit(&originRight, targetTile, nullptr, attacker, false))
@@ -6110,7 +6111,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 	Pathfinding::directionToVector(direction, &p);
 	Tile* originTile = _save->getTile(pos);
 
-	if (originTile && originTile->getTerrainLevel() <= -16 && !_save->isAltPressed(true))
+	if (originTile && originTile->getTerrainLevel(action->actor) <= -16 && !_save->isAltPressed(true))
 	{
 		// if we are on the upper part of stairs, target one tile above. pWWWa: let leave at the same tile altitude with pressed Alt (if there are need to hit stair under feet).
 		pos += Position(0, 0, 1);
@@ -6121,7 +6122,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 	Tile* neighbouringTile =	_save->getTile(pos + p);
 	Tile* neighbouringTile2 =	nullptr;
 	Tile* neighbouringTile3 =	nullptr;
-	int size = action->actor->getArmor()->getSize() - 1; // pWWWa: attacker variable removed, cause it used only once
+	int size = action->actor->getArmor()->getSize() - 1; // pWWWa: attacker variable is removed, cause it used only once
 
 	switch (direction)
 	{
@@ -6179,8 +6180,8 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 	{
 		auto setTarget = [](Tile* tt, TilePart tp, BattleAction* aa, int dir = -1) -> bool
 		{
-			Position origin = tt->getSavedGame()->getTileEngine()->getSightOriginVoxel(aa->actor, tt) + Position(0, 0, -4);
-			Position target;
+			Position origin = tt->getSavedGame()->getTileEngine()->getSightOriginVoxel(aa->actor, tt);
+			Position target = tt->getPosition().toVoxel() + voxelTileCenter;
 
 			if (aa->actor->getDirection() % 2 && !tt->getSavedGame()->getTileEngine()->canTargetTile(&origin, tt, tp, &target, aa->actor, false))
 			{ // is tile reachable (more predictable targeting queue at diagonals)
@@ -6190,7 +6191,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			MapData* obj = tt->getMapData(tp);
 			if (obj)
 			{
-				if (!(Options::diagTerrainMelee && tt->getSavedGame()->isAltPressed(true))) // Agressive forced hit helper
+				if (!(Options::diagTerrainMelee && tt->getSavedGame()->isAltPressed(true))) // Forced hit terrain melee (helper) 
 				{
 					if (dir > -1 && tp == O_OBJECT)
 					{
@@ -6222,7 +6223,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 				if (isHighEnough)
 				{
 					aa->target = tt->getPosition();
-					aa->terrainMeleeTilePart = tp;
+					aa->terrainMeleeTilePart = tp ? tp : 4;
 					return true;
 				}
 			}
@@ -6305,13 +6306,21 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			return true;
 		}
 
-		if ( _save->isAltPressed(true) && direction % 2 &&
-		   ( setTarget(neighbouringTile2, O_OBJECT, action) ||
-			 setTarget(neighbouringTile3, O_OBJECT, action) ) )
+		if (_save->isAltPressed(true))
 		{
-			// Diagonal terrain object targeting helper. Suitable for hitting big walls and terrain stuff at adjacent tiles.
+			if (setTarget(neighbouringTile, O_NORTHWALL, action) ||
+				setTarget(neighbouringTile, O_WESTWALL, action)||
+				setTarget(neighbouringTile, O_FLOOR, action))
 			return true;
+
+			if (direction % 2)
+			{
+				if (setTarget(neighbouringTile2, O_OBJECT, action) ||
+					setTarget(neighbouringTile3, O_OBJECT, action))
+				return true;
+			}
 		}
+
 	}
 	return false;
 }
