@@ -475,13 +475,13 @@ private:
 
 	int _targetMatrix;
 	bool _convertToCivilian;
-	bool _LOSRequired, _underwaterOnly, _landOnly, _psiReqiured, _manaRequired;
+	bool _LOSRequired, _underwaterOnly, _landOnly, _psiReqiured, _manaRequired, _isScanAll;
 	int _meleePower, _specialType, _vaporColor, _vaporDensity, _vaporProbability;
 	int _vaporColorSurface, _vaporDensitySurface, _vaporProbabilitySurface;
 	std::vector<int> _customItemPreviewIndex;
 	int _kneelBonus, _oneHandedPenalty;
 	int _monthlySalary, _monthlyMaintenance;
-	int _sprayWaypoints, _maxRangeEvent, _pierceType, _piercePowerCap, _pierceAOEDamageType;
+	int _sprayWaypoints, _maxRangeEvent, _pierceType, _piercePowerCap, _pierceAOEDamageType, _scanRange;
 	RuleStatBonus _damageBonus, _meleeBonus, _accuracyMulti, _meleeMulti, _throwMulti, _closeQuartersMulti;
 	ModScript::BattleItemScripts::Container _battleItemScripts;
 	ScriptValues<RuleItem> _scriptValues;
@@ -1056,6 +1056,10 @@ public:
 	int getPiercePowerCap() const;
 	/// Gets projectile pierce damage type for AOE ammo
 	ItemDamageType getPierceAOEDamageType() const;
+	// Gets scanner radius range
+	int getScanRange() const { return _scanRange; }
+	// Is scanner item able to detect static units too ?
+	bool isScanAll() const { return _isScanAll; }
 	/// Gets script.
 	template<typename Script>
 	const typename Script::Container &getScript() const { return _battleItemScripts.get<Script>(); }

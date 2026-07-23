@@ -108,21 +108,14 @@ void MeleeAttackBState::init()
 			_unit->turn(_unit->getTurretType() != -1);
 		}
 	}
-
-	//spend TU
-	if (!_action.spendTU(&_action.result))
-	{
-		_parent->popState();
-		return;
-	}
-
+	
 	// terrain melee
 	if (terrainMeleeTilePart > 0)
 	{
 		_voxel = _action.target.toVoxel() + Position(8, 8, 12);
 
 		if (terrainMeleeTilePart == 4)
-		{
+		{ // Terrain melee higher floor object hit hack & helper
 			while (_voxel.z > _action.target.toVoxel().z && _parent->getSave()->getTileEngine()->voxelCheck(_voxel, _unit) == V_EMPTY)
 			{
 				--_voxel.z;
@@ -152,6 +145,7 @@ void MeleeAttackBState::init()
 	}
 
 	int height = _target->getFloatHeight() + (_target->getHeight() / 2) - _parent->getSave()->getTile(_action.target)->getTerrainLevel(_target);
+	_voxel = _action.target.toVoxel() + Position(8, 8, height);
 
 	/********************************\
 	* -=ForcedMeleeToFloor=- section *
@@ -163,7 +157,7 @@ void MeleeAttackBState::init()
 		// Check presence of any alive unit under feet and apply their height (it is 0 usually, but let check)
 		if (_target->getTile()->getTopItem() && _target->getTile()->getTopItem()->getUnit() && _target->getTile()->getTopItem()->getUnit()->getStatus() == STATUS_UNCONSCIOUS)
 		{
-			height = _target->getTile()->getTopItem()->getUnit()->getPosition().toTile().z;
+			_voxel.z = _target->getTile()->getTopItem()->getUnit()->getPosition().z;
 		}
 		else if (Mod::EXTENDED_TERRAIN_MELEE <= 0 ||
 			     _action.weapon &&
@@ -177,18 +171,18 @@ void MeleeAttackBState::init()
 		}
 		else
 		{
-			// Let dive in & check till any terrain stuff is met 
-			while (height > 0 && _parent->getTileEngine()->voxelCheck(_action.target.toVoxel() + Position(8, 8, --height), _unit) == V_EMPTY)
+			// Let dive in & check till any terrain stuff will be found 
+			while (_voxel.z > _action.target.toVoxel().z && _parent->getTileEngine()->voxelCheck(_voxel, _unit) == V_EMPTY)
 			{
-				--height;
+				--_voxel.z;
 			}
 		}
+		goto endForceMeleeFloor;
 	}
-	
-	_voxel = _action.target.toVoxel() + Position(8, 8, height);
 
+	// Miss unit, really ? Recheck tile's vertical axis
 	if (_parent->getTileEngine()->voxelCheck(_voxel, _unit) != V_UNIT)
-	{ // Miss unit ? Recheck tile from the top
+	{ 
 		for (int z = 24; z >= 0; --z)
 		{
 			if (_parent->getTileEngine()->voxelCheck(_action.target.toVoxel() + Position(8, 8, z), _unit) == V_UNIT)
@@ -197,6 +191,8 @@ void MeleeAttackBState::init()
 			}
 		}
 	}
+
+	endForceMeleeFloor:
 
 	if (!_parent->getSave()->getTile(_voxel.toTile()))
 	{
@@ -237,9 +233,7 @@ void MeleeAttackBState::think()
 		// whose target is still alive or at least conscious
 		_target && !_target->isOutThresholdExceed() &&
 		// and we still have ammo to make the attack
-		_weapon->getAmmoForAction(BA_HIT) &&
-		// spend the TUs immediately
-		_action.spendTU())
+		_weapon->getAmmoForAction(BA_HIT))
 	{
 		--_hitNumber;
 		performMeleeAttack();
@@ -271,6 +265,9 @@ void MeleeAttackBState::think()
  */
 void MeleeAttackBState::performMeleeAttack(int terrainMeleeTilePart)
 {
+	// sdend TU and go on or get out here
+	if (!_action.spendTU(&_action.result)) return;
+		
 	// set the soldier in an aiming position
 	_unit->aim(true);
 

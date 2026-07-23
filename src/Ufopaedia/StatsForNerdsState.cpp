@@ -1967,10 +1967,12 @@ void StatsForNerdsState::initItemList()
 	}
 	addBoolean(ss, itemRule->isTwoHanded(), "twoHanded");
 	addBoolean(ss, itemRule->isBlockingBothHands(), "blockBothHands");
+	addBoolean(ss, itemRule->isScanAll(), "isScanAll");
 	int oneHandedPenaltyCurrent = itemRule->getOneHandedPenalty(mod);
 	int oneHandedPenaltyDefault = itemRule->isTwoHanded() ? 80 : oneHandedPenaltyCurrent;
 	addIntegerPercent(ss, oneHandedPenaltyCurrent, "oneHandedPenalty", oneHandedPenaltyDefault); // not raw!
 
+	addInteger(ss, itemRule->getScanRange() == 9 ? 0 : itemRule->getScanRange(), "scanRange");
 	addInteger(ss, itemRule->getMinRange(), "minRange");
 	addInteger(ss, itemRule->getMaxRange(), "maxRange", 200);
 	addInteger(ss, itemRule->getMaxRangeEvent(), "maxRangeEvent");

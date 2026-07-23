@@ -25,6 +25,8 @@
 #include "../Savegame/Tile.h"
 #include "../Savegame/SavedGame.h"
 #include "../Savegame/SavedBattleGame.h"
+#include "../fmath.h"
+#include "BattlescapeGame.h"
 
 namespace OpenXcom
 {
@@ -38,7 +40,7 @@ namespace OpenXcom
  * @param game Pointer to the core game.
  * @param unit The current unit.
  */
-ScannerView::ScannerView (int w, int h, int x, int y, Game * game, BattleUnit *unit) : InteractiveSurface(w, h, x, y), _game(game), _unit(unit), _frame(0)
+ScannerView::ScannerView (int w, int h, int x, int y, Game * game, BattleAction *action) : InteractiveSurface(w, h, x, y), _game(game), _action(action), _frame(0)
 {
 	_redraw = true;
 }
@@ -50,18 +52,23 @@ void ScannerView::draw()
 {
 	SurfaceSet *set = _game->getMod()->getSurfaceSet("DETBLOB.DAT");
 	Surface *surface = 0;
+	const int scanRad = _action->weapon->getRules()->getScanRange();
+	const bool isScanAll = _action->weapon->getRules()->isScanAll(); 
 
 	clear();
 
 	this->lock();
-	for (int x = -9; x < 10; x++)
+
+
+
+	for (int x = -scanRad; x <= scanRad; x++)
 	{
-		for (int y = -9; y < 10; y++)
+		for (int y = -scanRad; y <= scanRad; y++)
 		{
 			for (int z = 0; z < _game->getSavedGame()->getSavedBattle()->getMapSizeZ(); z++)
 			{
-				Tile *t = _game->getSavedGame()->getSavedBattle()->getTile(Position(x,y,z) + Position(_unit->getPosition().x, _unit->getPosition().y, 0));
-				if (t && t->getUnit() && t->getUnit()->getMotionPoints())
+				Tile* t = _game->getSavedGame()->getSavedBattle()->getTile(Position(x, y, z) + Position(_action->actor->getPosition().x, _action->actor->getPosition().y, 0));
+				if (t && t->getUnit() && (t->getUnit()->getMotionPoints() || isScanAll))
 				{
 					int frame = (t->getUnit()->getMotionPoints() / 5);
 					if (frame >= 0)
@@ -69,7 +76,9 @@ void ScannerView::draw()
 						t->getUnit()->setScannedTurn(_game->getSavedGame()->getSavedBattle()->getTurn());
 						if (frame > 5) frame = 5;
 						surface = set->getFrame(frame + _frame);
-						surface->blitNShade(this, ((9+x)*8)-4, ((9+y)*8)-4, 0);
+						int cX = Clamp<Sint16>(x, -9, 9);
+						int cY = Clamp<Sint16>(y, -9, 9);
+						surface->blitNShade(this, ((9+cX)*8)-4, ((9+cY)*8)-4, 0);
 					}
 				}
 			}
@@ -77,7 +86,7 @@ void ScannerView::draw()
 	}
 
 	// the arrow of the direction the unit is pointed
-	surface = set->getFrame(7 + _unit->getDirection());
+	surface = set->getFrame(7 + _action->actor->getDirection());
 
 	surface->blitNShade(this, (9*8)-4, (9*8)-4, 0);
 	this->unlock();
