@@ -2883,6 +2883,12 @@ ItemDamageType RuleItem::getPierceAOEDamageType() const
 	return static_cast<ItemDamageType>(_pierceAOEDamageType < 1 ? 1 : _pierceAOEDamageType);
 }
 
+// Gets scanner radius range
+int RuleItem::getScanRange() const { return _scanRange > 0 ? _scanRange : 0; }
+
+// Is scanner item able to detect static units too ?
+bool RuleItem::isScanAll() const { return _isScanAll; }
+
 ////////////////////////////////////////////////////////////
 //					Script binding
 ////////////////////////////////////////////////////////////

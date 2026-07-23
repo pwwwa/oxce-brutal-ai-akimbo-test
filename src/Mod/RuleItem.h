@@ -1057,9 +1057,9 @@ public:
 	/// Gets projectile pierce damage type for AOE ammo
 	ItemDamageType getPierceAOEDamageType() const;
 	// Gets scanner radius range
-	int getScanRange() const { return _scanRange; }
+	int getScanRange() const;
 	// Is scanner item able to detect static units too ?
-	bool isScanAll() const { return _isScanAll; }
+	bool isScanAll() const;
 	/// Gets script.
 	template<typename Script>
 	const typename Script::Container &getScript() const { return _battleItemScripts.get<Script>(); }
