@@ -126,17 +126,21 @@ en-US:
   STR_AKIMBO_MOD_DESC: "Allow dual-wield shooting mode for weapons.{NEWLINE}{ALT}0{ALT} - Disable, {ALT}1{ALT} - Enable, but {ALT}CTRL+click{ALT} on the weapon to access.{NEWLINE}{ALT}2{ALT} - Fully Enable. Each pistol gets this feature."
   # Diagonal Terrain melee
   STR_DIAG_TERRAIN_MELEE: "Diagonal Terrain Melee"
-  STR_DIAG_TERRAIN_MELEE_DESC: "Hitting terrain objects at diagonal directions with melee.{NEWLINE}Requires activated \"TerrainMeleeExtended\" feature.{NEWLINE}Alt+click - to hit objects at current and adjacent tiles."
+  STR_DIAG_TERRAIN_MELEE_DESC: "Hitting terrain objects at diagonal directions with melee.{NEWLINE}Requires activated {ALT}TerrainMeleeExtended{ALT} feature.{NEWLINE}{ALT}Alt+click{ALT} - forced hit objects at current and adjacent tiles."
   # Control unit movement via NUMPAD
   STR_NUMPAD_MOVE: "Numpad movement control"
-  STR_NUMPAD_MOVE_DESC: "Control unit movement via Numpad.{NEWLINE}{ALT}0{ALT} - Disabled, {ALT}1{ALT} - Movement to relative direction , {NEWLINE}{ALT}2{ALT} - Movement to absolute direction."
+  STR_NUMPAD_MOVE_DESC: "Control unit movement via Numpad.{NEWLINE}{ALT}0{ALT} - Disabled, {ALT}1{ALT} - Movement to relative direction, {NEWLINE}{ALT}2{ALT} - Movement to absolute direction."
   # Technical strings
   pierceType: "Pierce through type"
   piercePowerCap: "Pierce power capacity"
   pierceAOEDamageType: "Pierce damage type (HE)"
+  confAkimbo: "Akimbo shot configuration"
   accuracyAkimbo: "Akimbo shot accuracy"
   tuAkimbo: "Akimbo TU"
   akimboRange: "Akimbo shot range"
   flatAkimbo: "Is akimbo cost flat?"
   costAkimbo: "Akimbo shot cost"
   maxRangeEvent: "Bullet max. range event"
+  # Scanner
+  scanRange: "Scanning range"
+  isScanAll: "Detect static units"

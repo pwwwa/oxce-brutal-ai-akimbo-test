@@ -238,9 +238,9 @@ public:
 	/// Turns a unit to face a given direction (0-7).
 	void turnUnit(BattleUnit* unit, int dir);
 	// Get current piercing power of projectile
-	int getPiercePower() { return _piercePower > 0 ? _piercePower : 0; };
+	int getPiercePower() const;
 	// Set current piercing power of projectile
-	void setPiercePower(int power = 0) { _piercePower = power; };
+	void setPiercePower(int power = 0);
 	/// Requests the end of the turn (wait for explosions etc to really end the turn).
 	void requestEndTurn(bool askForConfirmation);
 	/// Sets the TU reserved type.

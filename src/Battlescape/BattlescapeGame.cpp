@@ -2268,6 +2268,11 @@ void BattlescapeGame::turnUnit(BattleUnit* unit, int dir)
 	statePushBack(new UnitTurnBState(this, _currentAction));
 }
 
+// Get current piercing power of projectile
+int BattlescapeGame::getPiercePower() const { return _piercePower > 0 ? _piercePower : 0; };
+// Set current piercing power of projectile
+void BattlescapeGame::setPiercePower(int power) { _piercePower = power; };
+
 /**
  * Requests the end of the turn (waits for explosions etc to really end the turn).
  */

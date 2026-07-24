@@ -1983,10 +1983,12 @@ void StatsForNerdsState::initItemList()
 	addInteger(ss, itemRule->getAkimboRange(), "akimboRange", 7);
 	int dropoffDefault = itemBattleType == BT_PSIAMP ? 1 : 2;
 	addInteger(ss, itemRule->getDropoff(), "dropoff", dropoffDefault);
-	addInteger(ss, itemRule->getPierceType(), "pierceType");
-	addInteger(ss, itemRule->getPiercePowerCap(), "piercePowerCap");
-	addDamageType(ss, itemRule->getPierceAOEDamageType(), "pierceAOEDamageType");
-
+	if (itemRule->getPierceType())
+	{
+		addInteger(ss, itemRule->getPierceType(), "pierceType");
+		addInteger(ss, itemRule->getPiercePowerCap(), "piercePowerCap");
+		if (!itemRule->getDamageType()->isDirect())	addDamageType(ss, itemRule->getPierceAOEDamageType(), "pierceAOEDamageType");
+	}
 	addRuleStatBonus(ss, *itemRule->getAccuracyMultiplierRaw(), "accuracyMultiplier");
 	addIntegerPercent(ss, itemRule->getConfigAimed()->accuracy, "accuracyAimed");
 	addIntegerPercent(ss, itemRule->getConfigAuto()->accuracy, "accuracyAuto");

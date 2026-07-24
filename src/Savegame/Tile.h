@@ -227,15 +227,6 @@ public:
 	int getTerrainLevel(BattleUnit* unit = nullptr) const;
 
 	/**
-	/
-	int getTerrainLevel() const
-
-	{
-		return _cache.terrainLevel;
-	}
-	/**/
-
-	/**
 	 * Gets the tile's position.
 	 * @return position
 	 */

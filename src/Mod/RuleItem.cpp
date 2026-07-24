@@ -2877,6 +2877,7 @@ int RuleItem::getPiercePowerCap() const
 	}
 	return _piercePowerCap;
 }
+
 /// Gets projectile pierce damage type for AOE ammo
 ItemDamageType RuleItem::getPierceAOEDamageType() const
 {
