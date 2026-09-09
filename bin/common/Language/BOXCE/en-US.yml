@@ -61,13 +61,19 @@ en-US:
   STR_AUTOCOMBAT_DEFAULT_REMAIN_DESC: "Default Remain Autocombat"
   STR_AUTOCOMBAT_DEFAULT_SOLDIER: "Default Soldier Autocombat"
   STR_AUTOCOMBAT_DEFAULT_SOLDIER_DESC: "Default Soldier Autocombat"
-  STR_AUTOCOMBAT_DESC: "Control of player-units is handed to the AI. Toggle-shortcut can be set under Controls => BOXCE. The default is {ALT}Ctrl+a{ALT}"
+  STR_AUTOCOMBAT_DESC: "Control of player-units is handed to the AI. Toggle-shortcut can be set under {ALT}Controls{ALT} {ALT}>{ALT} {ALT}BOXCE{ALT}. The default is {ALT}Ctrl+A{ALT}"
   STR_AUTOCOMBAT_EACH_COMBAT: "Autocombat keep @ new Combat"
   STR_AUTOCOMBAT_EACH_COMBAT_DESC: "Keep autocombat enabled when a new combat starts."
   STR_AUTOCOMBAT_EACH_TURN: "Autocombat keep @ new Turn"
   STR_AUTOCOMBAT_EACH_TURN_DESC: "Keep autocombat enabled when a new turn starts."
   STR_AUTOCOMBAT_PER_UNIT: "Control autocombat per unit"
   STR_AUTOCOMBAT_PER_UNIT_DESC: "Allows to exclude units from the AI autocombat"
+  
+  # GeaScape
+  STR_DISPLAY_HIDDEN_ALIEN_ACTIVITY: "Display hidden alien activity"
+  STR_DISPLAY_HIDDEN_ALIEN_ACTIVITY_DESC: "{ALT}0>{ALT} Disable {ALT}1>{ALT} Display sectors with 5+ hours of continuous undetected UFO activity {ALT}2>{ALT} Display most detailed activity change"
+  STR_DOGFIGHTAI: "Enhanced dogfighting behavior"
+  STR_DOGFIGHTAI_DESC: "Once faster UFOs are being fired at they will come close enough to also fire."
   
   # BaseScape
   STR_BATTLECHANCETOHIT: "Calculated chance-to-hit numbers"
@@ -118,22 +124,16 @@ en-US:
   STR_STRICTBLOCKEDCHECKING: "Strict checking for blockages"
   STR_STRICTBLOCKEDCHECKING_DESC: "Can prevent units from being spawned into walls and helps the AI to find better cover but also may block off areas on the map if the map wasn't built properly."
   STR_UPDATETURNSSINCESEENBYCLUE: "Precise projectile-tracking"
-  STR_UPDATETURNSSINCESEENBYCLUE_DESC: "Allows both the player, when holding the alt-key, and Brutal-AI to tell the exact tile an enemy projectile was fired from without having seen the unit that fired."
+  STR_UPDATETURNSSINCESEENBYCLUE_DESC: "Allows both the player (when holding the {ALT}Alt{ALT} key) and Brutal-AI to tell the exact tile an enemy projectile was fired from without having seen the unit that fired."
+  STR_FORCED_ABSOLUTE_COSTS: "Forced flat costs"
+  STR_FORCED_ABSOLUTE_COSTS_DESC: "When enabled, any percentage consumation of attributes will be converted to absolute value."
   # Diagonal Terrain melee
   STR_DIAG_TERRAIN_MELEE: "Diagonal Terrain Melee"
   STR_DIAG_TERRAIN_MELEE_DESC: "Hitting terrain objects at diagonal directions with melee.{NEWLINE}Requires activated {ALT}terrainMeleeExtended{ALT} feature.{NEWLINE}{ALT}Alt+click{ALT} - forced hit objects at current and adjacent tiles."
   # Floating unit Bobbing
   STR_FLOAT_UNIT_BOBBING: "Bobbing of floating unit"
   STR_FLOAT_UNIT_BOBBING_DESC: "Each unit will bob slightly when in flying/floating state."
-
-  #GeaScape
-  STR_DISPLAY_HIDDEN_ALIEN_ACTIVITY: "Display hidden alien activity"
-  STR_DISPLAY_HIDDEN_ALIEN_ACTIVITY_DESC: "{ALT}0>{ALT} Disable {ALT}1>{ALT} Display sectors with 5+ hours of continuous undetected UFO activity {ALT}2>{ALT} Display most detailed activity change"
-  STR_DOGFIGHTAI: "Enhanced dogfighting behavior"
-  STR_DOGFIGHTAI_DESC: "Once faster UFOs are being fired at they will come close enough to also fire."
-  STR_FORCED_ABSOLUTE_COSTS: "Forced flat costs"
-  STR_FORCED_ABSOLUTE_COSTS_DESC: "When enabled, any percentage consumation of attributes will be converted to absolute value."
-  
+ 
   #Morale attack success info
   STR_MORALE_ATTACK_SUCCESS_NOTIFY: "Morale Attack Success Notification"
   STR_MORALE_ATTACK_SUCCESS_NOTIFY_DESC: "Notify player about morale attack success.{NEWLINE}{ALT}0>{ALT} No notify (Vanilla), {ALT}1>{ALT} Flash message, {ALT}2>{ALT} Info Box."
