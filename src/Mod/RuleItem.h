@@ -475,7 +475,7 @@ private:
 
 	int _targetMatrix;
 	bool _convertToCivilian;
-	bool _LOSRequired, _underwaterOnly, _landOnly, _psiReqiured, _manaRequired, _isScanAll;
+	bool _LOSRequired, _underwaterOnly, _landOnly, _psiReqiured, _manaRequired, _isScanAll, _isPanicLOS, _isMindControlLOS;
 	int _meleePower, _specialType, _vaporColor, _vaporDensity, _vaporProbability;
 	int _vaporColorSurface, _vaporDensitySurface, _vaporProbabilitySurface;
 	std::vector<int> _customItemPreviewIndex;
@@ -1060,6 +1060,11 @@ public:
 	int getScanRange() const;
 	// Is scanner item able to detect static units too ?
 	bool isScanAll() const;
+	// Is panic attack action of that item require line of sight ?
+	bool isPanicLOS() const;
+	// Is mind control action of that item require line of sight ?
+	bool isMindControlLOS() const;
+
 	/// Gets script.
 	template<typename Script>
 	const typename Script::Container &getScript() const { return _battleItemScripts.get<Script>(); }

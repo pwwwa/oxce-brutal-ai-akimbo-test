@@ -184,7 +184,8 @@ RuleItem::RuleItem(const std::string &type, int listOrder) :
 	_vaporColorSurface(-1), _vaporDensitySurface(0), _vaporProbabilitySurface(15),
 	_kneelBonus(-1), _oneHandedPenalty(-1),
 	_monthlySalary(0), _monthlyMaintenance(0),
-	_sprayWaypoints(0), _maxRangeEvent(0), _pierceType(0), _piercePowerCap(0), _pierceAOEDamageType(0), _scanRange(9), _isScanAll(false)
+	_sprayWaypoints(0), _maxRangeEvent(0), _pierceType(0), _piercePowerCap(0), _pierceAOEDamageType(0), _scanRange(9), _isScanAll(false),
+	_isPanicLOS(false), _isMindControlLOS(false)
 {
 	_accuracyMulti.setFiring();
 	_meleeMulti.setMelee();
@@ -673,12 +674,18 @@ void RuleItem::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript&
 	reader.tryRead("monthlySalary", _monthlySalary);
 	reader.tryRead("monthlyMaintenance", _monthlyMaintenance);
 	reader.tryRead("sprayWaypoints", _sprayWaypoints);
+
 	reader.tryRead("maxRangeEvent", _maxRangeEvent);
+
 	reader.tryRead("pierceType", _pierceType);
 	reader.tryRead("piercePowerCap", _piercePowerCap);
 	reader.tryRead("pierceAOEDamageType", _pierceAOEDamageType);
+
 	reader.tryRead("scanRange", _scanRange);
 	reader.tryRead("isScanAll", _isScanAll);
+	
+	reader.tryRead("isPanicLOS", _isPanicLOS);
+	reader.tryRead("isMindControlLOS", _isMindControlLOS);
 
 	_damageBonus.load(_type, reader, parsers.bonusStatsScripts.get<ModScript::DamageBonusStatBonus>());
 	_meleeBonus.load(_type, reader, parsers.bonusStatsScripts.get<ModScript::MeleeBonusStatBonus>());
@@ -2889,6 +2896,10 @@ int RuleItem::getScanRange() const { return _scanRange > 0 ? _scanRange : 0; }
 
 // Is scanner item able to detect static units too ?
 bool RuleItem::isScanAll() const { return _isScanAll; }
+// Is panic action of that item require line of sight ?
+bool RuleItem::isPanicLOS() const { return _isPanicLOS; }
+// Is mind control action of that item require line of sight ?
+bool RuleItem::isMindControlLOS() const { return _isMindControlLOS; }
 
 ////////////////////////////////////////////////////////////
 //					Script binding

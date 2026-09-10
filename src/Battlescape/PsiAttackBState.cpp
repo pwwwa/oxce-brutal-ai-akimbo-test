@@ -95,7 +95,7 @@ void PsiAttackBState::init()
 		return;
 	}
 
-	int height = _target->getFloatHeight() + (_target->getHeight() / 2) - _parent->getSave()->getTile(_action.target)->getTerrainLevel();
+	int height = _target->getFloatHeight() + (_target->getHeight() / 2) - _parent->getSave()->getTile(_action.target)->getTerrainLevel(_target);
 	Position voxel = _action.target.toVoxel() + Position(8, 8, height);
 	_parent->statePushFront(new ExplosionBState(_parent, voxel, BattleActionAttack::GetAferShoot(_action, _action.weapon)));
 }

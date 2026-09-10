@@ -1983,8 +1983,13 @@ void BattlescapeGame::primaryAction(Position pos)
 				{
 					_currentAction.updateTU();
 					_currentAction.target = pos;
-					if (!_currentAction.weapon->getRules()->isLOSRequired() ||
-						(attackerFaction == FACTION_PLAYER && targetFaction != FACTION_HOSTILE) ||
+
+					const RuleItem &item = *_currentAction.weapon->getRules(); // pWWWa: slightly non-common for OXC style, but works
+					bool needLOS = ( item.isLOSRequired() ||
+								   ( (_currentAction.type == BA_PANIC && item.isPanicLOS()) ||
+									 (_currentAction.type == BA_MINDCONTROL && item.isMindControlLOS()) ) );
+
+					if (!needLOS ||	 // pWWWa: what a point to apply LoS check only for alien-targets ? What about civilians ? Removed: (attackerFaction == FACTION_PLAYER && targetFaction != FACTION_HOSTILE) ||
 						std::find(_currentAction.actor->getVisibleUnits()->begin(), _currentAction.actor->getVisibleUnits()->end(), targetUnit) != _currentAction.actor->getVisibleUnits()->end())
 					{
 						// get the sound/animation started
