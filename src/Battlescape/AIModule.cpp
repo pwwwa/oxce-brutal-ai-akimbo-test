@@ -658,7 +658,7 @@ void AIModule::think(BattleAction *action)
 				_reserve = BA_AUTOSHOT;
 				break;
 			case 2:
-				_reserve = BA_SNAPSHOT;
+				_reserve = action->actor->isAkimbo() ? BA_AKIMBOSHOT : BA_SNAPSHOT;
 				break;
 			default:
 				break;

@@ -148,7 +148,7 @@ void MeleeAttackBState::init()
 		// Check presence of any alive unit under feet and apply their height (it is 0 usually, but let check)
 		if (_target->getTile()->getTopItem() && _target->getTile()->getTopItem()->getUnit() && _target->getTile()->getTopItem()->getUnit()->getStatus() == STATUS_UNCONSCIOUS)
 		{ 
-			_target = _target->getTile()->getTopItem()->getUnit(); // could be abused for Extra XP gain, but why not ? todo: But damageUnit script still returns Attacker == Victim
+			_target = _target->getTile()->getTopItem()->getUnit();
 			_voxel.z = _target->getPosition().toVoxel().z;
 		}
 		else if (Mod::EXTENDED_TERRAIN_MELEE <= 0 || (!_action.weapon->getRules()->getDamageType()->ToTile || !_action.weapon->getRules()->getMeleeType()->ToTile))
@@ -266,7 +266,7 @@ void MeleeAttackBState::performMeleeAttack(int terrainMeleeTilePart)
 		difference.y = Clamp<Sint8>(difference.y, -1, 1);
 		difference.z = Clamp<Sint8>(difference.z, -1, 1);
 
-		// pWWWa: shift the damage voxel inside of victim's voxel space to the closest possible to attacker's location
+		// pWWWa: shift the damage voxel inside of victim's voxel space to the closest possible attacker's location
 		while (_parent->getTileEngine()->voxelCheck((_voxel + difference), _unit) == V_UNIT &&
 			  (_voxel.x != attackerPos.x || _voxel.y != attackerPos.y || _voxel.z != attackerPos.z))
 		{

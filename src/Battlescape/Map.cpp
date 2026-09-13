@@ -2055,8 +2055,8 @@ void Map::drawTerrain(Surface *surface)
 						offset.y -= 2;
 					}
 
-					const Sint8 arrowShade = getArrowBobForFrame(_animFrame) + (myUnit->getPosition().z == _camera->getViewLevel() ? 0 : 6);
-					const Sint8 arrowColor = _isTFTD ? 12 : 3; //pWWWa: red for EU & TFTD
+					const int arrowShade = getArrowBobForFrame(_animFrame) + (myUnit->getPosition().z == _camera->getViewLevel() ? 0 : 6);
+					const int arrowColor = _isTFTD ? 12 : 3; //pWWWa: red for EU & TFTD
 
 					_arrow->blitNShade(
 						surface,

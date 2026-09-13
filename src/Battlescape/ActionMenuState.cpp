@@ -509,7 +509,7 @@ void ActionMenuState::handleAction()
 				_action->target = _action->actor->getPosition();
 
 				if (_action->actor->isBigUnit())
-				{ // big unit aim tile by their part in dependence of their facing direction
+				{ // reassign target tile for big unit by their part in dependence of their facing direction
 					switch (_action->actor->getDirection())
 					{
 					case 1: case 2: _action->target = _action->actor->getPosition() + Position(1, 0, 0); break; // NE & E -> 2nd part
