@@ -1485,6 +1485,7 @@ bool BattlescapeGame::checkReservedTU(BattleUnit *bu, int tu, int energy, bool j
 		{
 		case BA_SNAPSHOT: cost.Time += (bu->getBaseStats()->tu / 3); break; // 33%
 		case BA_AUTOSHOT: cost.Time += ((bu->getBaseStats()->tu / 5)*2); break; // 40%
+		case BA_AKIMBOSHOT: cost.Time += (bu->getBaseStats()->tu * 0.45); break; // 45%
 		case BA_AIMEDSHOT: cost.Time += (bu->getBaseStats()->tu / 2); break; // 50%
 		default: break;
 		}
@@ -1989,8 +1990,8 @@ void BattlescapeGame::primaryAction(Position pos)
 								   ( (_currentAction.type == BA_PANIC && item.isPanicLOS()) ||
 									 (_currentAction.type == BA_MINDCONTROL && item.isMindControlLOS()) ) );
 
-					if (!needLOS ||	 // pWWWa: what a point to apply LoS check only for alien-targets ? What about civilians ? Removed: (attackerFaction == FACTION_PLAYER && targetFaction != FACTION_HOSTILE) ||
-						std::find(_currentAction.actor->getVisibleUnits()->begin(), _currentAction.actor->getVisibleUnits()->end(), targetUnit) != _currentAction.actor->getVisibleUnits()->end())
+					if (!needLOS ||	(attackerFaction == FACTION_PLAYER && targetFaction != FACTION_HOSTILE) || // pWWWa: perhaps, there are need to add civilians in player's units visibleUnits vector too ?
+					_currentAction.actor->hasVisibleUnit(targetUnit))
 					{
 						// get the sound/animation started
 						getMap()->setCursorType(CT_NONE);
