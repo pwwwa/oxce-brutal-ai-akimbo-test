@@ -3807,6 +3807,7 @@ void TileEngine::explode(BattleActionAttack attack, Position center, int power, 
 	std::map<Tile*, int> tilesAffected;
 	std::vector<BattleItem*> toRemove;
 	std::pair<std::map<Tile*, int>::iterator, bool> ret;
+	std::vector<BattleUnit*> hittedVictims;
 
 	if (type->FireBlastCalc)
 	{
@@ -3871,7 +3872,7 @@ void TileEngine::explode(BattleActionAttack attack, Position center, int power, 
 						BattleUnit *bu = dest->getOverlappingUnit(_save);
 
 						toRemove.clear();
-						if (bu)
+						if (bu && (!Options::noMultiHitHE || std::find(hittedVictims.begin(), hittedVictims.end(), bu) == hittedVictims.end()))
 						{
 							if (dest->getPosition() == centetTile)
 							{
@@ -3894,6 +3895,11 @@ void TileEngine::explode(BattleActionAttack attack, Position center, int power, 
 								// directional damage relative to explosion position.
 								// units above the explosion will be hit in the legs, units lateral to or below will be hit in the torso
 								hitUnit(attack, bu, centetTile + Position(0, 0, 5) - dest->getPosition(), damage, type, rangeAtack);
+							}
+
+							if (Options::noMultiHitHE && bu)
+							{ // pWWWa: unit is still exist ? Let place it to already hitted victim list and do not allow further extra HE hits
+								hittedVictims.push_back(bu);
 							}
 
 							// Affect all items and units in inventory

@@ -166,3 +166,7 @@ en-US:
   # Scanner
   scanRange: "Scanning range"
   isScanAll: "Detect static units"
+  
+  # No HE multy hit
+  STR_NO_MULTI_HIT_HE: "No extra hits for explosion"
+  STR_NO_MULTI_HIT_HE_DESC: "Prevention of multiple hitting big units and units on highground for explosion."

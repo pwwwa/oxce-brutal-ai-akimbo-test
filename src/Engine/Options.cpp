@@ -588,6 +588,7 @@ void createAdvancedOptionsOTHER()
 	_info.push_back(OptionInfo(OPTION_OTHER, "baseDetectionProbability", &baseDetectionProbability, false, "STR_DISPLAY_BASE_DETECTION_PROBABILITY", "STR_BASESCAPE"));
 
 	// OTHER options Battlescape
+	_info.push_back(OptionInfo(OPTION_OTHER, "noMultiHitHE", &noMultiHitHE, false, "STR_NO_MULTI_HIT_HE", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "floatUnitBobbing", &floatUnitBobbing, false, "STR_FLOAT_UNIT_BOBBING", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "oxceNumpadUnitMovement", &oxceNumpadMove, false, "STR_NUMPAD_MOVE", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "diagTerrainMelee", &diagTerrainMelee, false, "STR_DIAG_TERRAIN_MELEE", "STR_BATTLESCAPE"));
