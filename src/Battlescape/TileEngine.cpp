@@ -3807,7 +3807,7 @@ void TileEngine::explode(BattleActionAttack attack, Position center, int power, 
 	std::map<Tile*, int> tilesAffected;
 	std::vector<BattleItem*> toRemove;
 	std::pair<std::map<Tile*, int>::iterator, bool> ret;
-	std::vector<BattleUnit*> hittedVictims;
+	std::map<BattleUnit*, std::pair<Position, int>> victims;
 
 	if (type->FireBlastCalc)
 	{
@@ -3872,49 +3872,52 @@ void TileEngine::explode(BattleActionAttack attack, Position center, int power, 
 						BattleUnit *bu = dest->getOverlappingUnit(_save);
 
 						toRemove.clear();
-						if (bu && (!Options::noMultiHitHE || std::find(hittedVictims.begin(), hittedVictims.end(), bu) == hittedVictims.end()))
+						if (bu)
+
 						{
-							if (dest->getPosition() == centetTile)
-							{
-								// direct hit, similar to ground zero but AI will remember attacker, done for compatibility
-								hitUnit(attack, bu, Position(0, 0, 0), damage, type, rangeAtack);
-							}
-							else if (
-									(
-										Position::distance2dSq(dest->getPosition(), centetTile) < 4
-										&& dest->getPosition().z == centetTile.z
-									)
-									|| dest->getPosition().z > centetTile.z
-								)
-							{
-								// ground zero effect is in effect, or unit is above explosion
-								hitUnit(attack, bu, Position(0, 0, -1), damage, type, rangeAtack);
-							}
-							else
-							{
-								// directional damage relative to explosion position.
-								// units above the explosion will be hit in the legs, units lateral to or below will be hit in the torso
-								hitUnit(attack, bu, centetTile + Position(0, 0, 5) - dest->getPosition(), damage, type, rangeAtack);
-							}
+							Position hitPos = Position(0, 0, 0);
 
-							if (Options::noMultiHitHE && bu)
-							{ // pWWWa: unit is still exist ? Let place it to already hitted victim list and do not allow further extra HE hits
-								hittedVictims.push_back(bu);
-							}
-
-							// Affect all items and units in inventory
-							const int itemDamage = bu->getOverKillDamage();
-							if (itemDamage > 0)
+							if (dest->getPosition() != centetTile)
 							{
-								for (auto* bi : *bu->getInventory())
+								// pWWWa: let leave direct hit position unchanged, similar to ground zero but AI will remember attacker, done for compatibility
+
+								if ((Position::distance2dSq(dest->getPosition(), centetTile) < 4 && dest->getPosition().z == centetTile.z) ||
+									dest->getPosition().z > centetTile.z)
 								{
-									if (!hitUnit(attack, bi->getUnit(), Position(0, 0, 0), itemDamage, type, rangeAtack) && type->getItemFinalDamage(itemDamage) > bi->getRules()->getArmor())
+									// ground zero effect is in effect, or unit is above explosion
+									hitPos = Position(0, 0, -1);
+								}
+								else
+								{
+									// directional damage relative to explosion position.
+									// units above the explosion will be hit in the legs, units lateral to or below will be hit in the torso
+									hitPos = centetTile + Position(0, 0, 5) - dest->getPosition();
+								}
+							}				
+
+							if (!Options::noMultiHitHE)
+							{
+								hitUnit(attack, bu, hitPos, damage, type, rangeAtack);
+								// Affect all items and units in inventory
+								const int itemDamage = bu->getOverKillDamage();
+								if (itemDamage > 0)
+								{
+									for (auto* bi : *bu->getInventory())
 									{
-										toRemove.push_back(bi);
+										if (!hitUnit(attack, bi->getUnit(), Position(0, 0, 0), itemDamage, type, rangeAtack) && type->getItemFinalDamage(itemDamage) > bi->getRules()->getArmor())
+										{
+											toRemove.push_back(bi);
+										}
 									}
 								}
 							}
+							else
+							{ // pWWWa: Collect victims to one place for further handling. Reassign victim if it got greater hit power in that iteration 
+								if (victims.find(bu) == victims.end() || victims[bu].second > power_)
+								victims.insert({bu, {hitPos, power_}});
+							}
 						}
+
 						// Affect all items and units on ground
 						for (auto* bi : *dest->getInventory())
 						{
@@ -3984,6 +3987,28 @@ void TileEngine::explode(BattleActionAttack attack, Position center, int power, 
 				}
 			}
 		}
+	}
+
+	if (!victims.empty())
+	{ // pWWWa: it is time for our victims to be hitted only once, but with the most powerful result.
+		for (const auto &victim : victims)
+		{
+			toRemove.clear();
+			hitUnit(attack, victim.first, victim.second.first, victim.second.second, type, rangeAtack);
+
+			const int itemDamage = victim.first->getOverKillDamage();
+			if (itemDamage > 0)
+			{	// Affect all items and units on ground (pWWWa: sorry for copy-paste)
+				for (auto* bi : *victim.first->getInventory())
+				{
+					if (!hitUnit(attack, bi->getUnit(), Position(0, 0, 0), itemDamage, type, rangeAtack) && type->getItemFinalDamage(itemDamage) > bi->getRules()->getArmor())
+					{
+						toRemove.push_back(bi);
+					}
+				}
+			}
+		}
+		victims.clear(); // pWWWa: duuno why (it is local and loop is alredy finished), but let it be... until.
 	}
 
 	// now detonate the tiles affected by explosion
