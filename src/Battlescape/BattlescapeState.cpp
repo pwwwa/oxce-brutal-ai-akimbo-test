@@ -3261,10 +3261,9 @@ inline void BattlescapeState::handle(Action *action)
 							}
 							if (numpadDir >= 0)
 							{
-								_numpadMoveDir = numpadDir;
-								_numpadTurnDelta = turnDelta;
-								if (turnDelta != 0)
-									_numpadRepeatTime = SDL_GetTicks() + 400; // initial delay before repeat
+								//_numpadMoveDir = numpadDir;
+								//_numpadTurnDelta = turnDelta;
+								//if (turnDelta != 0) _numpadRepeatTime = SDL_GetTicks() + 400; // initial delay before repeat
 								if (!_battleGame->isBusy() && playableUnitSelected())
 								{
 									_battleGame->cancelAllActions();
@@ -3295,9 +3294,7 @@ inline void BattlescapeState::handle(Action *action)
 						}
 						if (numpadDir >= 0)
 						{
-							_numpadMoveDir = numpadDir;
-							_numpadTurnDelta = 0;
-
+							// _numpadMoveDir = numpadDir;	_numpadTurnDelta = 0;
 							if (!_battleGame->isBusy() && playableUnitSelected())
 							{
 								_battleGame->cancelAllActions();
