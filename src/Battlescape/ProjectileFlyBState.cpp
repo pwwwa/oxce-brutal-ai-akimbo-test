@@ -789,7 +789,7 @@ void ProjectileFlyBState::think()
 			auto dmgAOE = _ammo->getRules()->getPierceAOEDamageType();
 			auto dmgType = _ammo->getRules()->getDamageType()->isDirect() ? _ammo->getRules()->getDamageType() : _parent->getMod()->getDamageType(dmgAOE);
 
-			if (_projectileImpact >= V_FLOOR && _projectileImpact <= V_UNIT && !(_projectileImpact == V_UNIT && victim->isPierced() /** / isOutThresholdExceed() /**/) && _parent->getPiercePower())
+			if (_projectileImpact > V_EMPTY && _projectileImpact < V_OUTOFBOUNDS && !(_projectileImpact == V_UNIT && victim->isPierced() /** / isOutThresholdExceed() /**/) && _parent->getPiercePower())
 			{ // Projectile faces something "tasty" on their way. Let prepare to hit
 				int power = 0;
 				if (_action.weapon->getRules()->getIgnoreAmmoPower())
@@ -804,29 +804,27 @@ void ProjectileFlyBState::think()
 				int piercePowerDercement = 0;
 				if (_projectileImpact == V_UNIT)
 				{ // ternary used for avoiding possible zero devision (etc. damage modifier == 0)
-					piercePowerDercement = (victim->getArmor()->getArmor(SIDE_FRONT) *
-											_ammo->getRules()->getDamageType()->ArmorEffectiveness +
-											victim->getHealth()) /
-					( victim->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType)
-					  ? std::fmin(1, victim->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType))
-					  : 1 );
+					piercePowerDercement = ( victim->getArmor()->getArmor(SIDE_FRONT) *
+											 _ammo->getRules()->getDamageType()->ArmorEffectiveness +
+											 victim->getHealth() ) / ( victim->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType)
+																   ? std::fmin(1, victim->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType))
+																   : 1 );
 				}
 				else
 				{ // same zero divide avoidance method
-					piercePowerDercement = tile->getMapData(tp)->getArmor() /
-					( _ammo->getRules()->getDamageType()->ToTile
-					  ? _ammo->getRules()->getDamageType()->ToTile
-					  : 1 );
+					piercePowerDercement = tile->getMapData(tp)->getArmor() / ( _ammo->getRules()->getDamageType()->ToTile
+																			  ? _ammo->getRules()->getDamageType()->ToTile
+																			  : 1 );
 				}
 				// hit processing
 					_parent->getSave()->getTileEngine()->hit(attack,
-														 bullet->getPosition(),
-														 (_ammo->getRules()->getPierceType() == 2)
-														 ? power
-														 : std::min(_parent->getPiercePower(), power),
-														 dmgType);
+															 bullet->getPosition(),
+														     (_ammo->getRules()->getPierceType() == 2)
+														      ? power
+														      : std::min(_parent->getPiercePower(), power),
+														     dmgType);
 
-					_parent->setPiercePower(_parent->getPiercePower() - piercePowerDercement);
+				_parent->setPiercePower(_parent->getPiercePower() - piercePowerDercement);
 					
 				if (_projectileImpact == V_UNIT)
 				{ // let arrange further handling of impacted units
@@ -856,15 +854,18 @@ void ProjectileFlyBState::think()
 		if (!_parent->getMap()->getProjectile()->move())
 		{
 			// impact !
-			if ( _ammo &&  _ammo->getRules()->getMaxRangeEvent() &&
-			   ( _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(_parent->getMap()->getProjectile()->getPosition().toTile())) ) ||
-			   ( _action.type == BA_LAUNCH && _action.waypoints.size() == 1 &&
-				 _action.actor->distance3dToPositionSq(_parent->getMap()->getProjectile()->getPosition().toTile()) > _action.actor->distance3dToPositionSq(_action.target) ) )
-			{ // Projectile has special -=maxRange event=- property, when reached restricted range or last guided waypoint, let handle it
-				switch (_ammo->getRules()->getMaxRangeEvent())
-				{
-					case 1:	_projectileImpact = V_EMPTY; break; // generate hit/explosion
-					case 2:	_projectileImpact = V_OUTOFBOUNDS;  // vanish
+
+			if (_ammo && _ammo->getRules()->getMaxRangeEvent())
+			{ // Projectile -=maxRange event=- property: when restricted distance is crossed or last guided waypoint is arrived to final destination, let handle it
+				if ( _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(_parent->getMap()->getProjectile()->getPosition().toTile())) ||
+				    (_action.type == BA_LAUNCH && _action.waypoints.size() == 1  &&
+				     _action.actor->distance3dToPositionSq(_parent->getMap()->getProjectile()->getPosition().toTile()) > _action.actor->distance3dToPositionSq(_action.target)) )
+				{ 
+					switch (_ammo->getRules()->getMaxRangeEvent())
+					{
+						case 1: _projectileImpact = V_EMPTY; break; // generate hit/explosion
+						case 2:	_projectileImpact = V_OUTOFBOUNDS;  // vanish
+					}
 				}
 			}
 			

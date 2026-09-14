@@ -291,10 +291,12 @@ BattlescapeState::BattlescapeState() :
 
 	// Add in custom reserve akimbo button
 	add(_btnReserveAkimbo, "akimboReserveIco", "battlescape", _icons);
+	_btnReserveAkimbo->setVisible(false);
 	if (_game->getMod()->getSurfaceSet("akimboReserveIco", false) && Options::akimboMod > 1)
 	{
 		_btnReserveAkimbo->initSurfaces(_game->getMod()->getSurfaceSet("akimboReserveIco")->getFrame(1));
 		_game->getMod()->getSurfaceSet("akimboReserveIco")->getFrame(0)->blitNShade(_btnReserveAkimbo, 0, 0);
+		_btnReserveAkimbo->setVisible(true);
 	}
 
 	// there is some cropping going on here, because the icons image is 320x200 while we only need the bottom of it.

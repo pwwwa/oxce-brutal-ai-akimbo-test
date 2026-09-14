@@ -135,8 +135,8 @@ void UnitPanicBState::think()
 								  : std::min({6, _unit->getLeftHandWeapon()->getRules()->getMaxRange(), _unit->getRightHandWeapon()->getRules()->getMaxRange()});
 							
 						ba.target = Position(_unit->getPosition().x + RNG::generate(-range,range), _unit->getPosition().y + RNG::generate(-range,range), _unit->getPosition().z);
-						ba.target.x = Clamp<Sint16>(ba.target.x, 0, _parent->getSave()->getMapSizeX());
-						ba.target.y = Clamp<Sint16>(ba.target.y, 0, _parent->getSave()->getMapSizeY());
+						ba.target.x = Clamp<Sint16>(ba.target.x, 0, _parent->getSave()->getMapSizeX() - 1);
+						ba.target.y = Clamp<Sint16>(ba.target.y, 0, _parent->getSave()->getMapSizeY() - 1);
 					}
 					// include the cost for facing our target
 					int turnCost = std::abs(_unit->getDirection() - _unit->directionTo(ba.target));

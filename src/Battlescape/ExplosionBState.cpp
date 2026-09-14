@@ -107,7 +107,7 @@ void ExplosionBState::init()
 			_radius = 0;
 			_damageType = itemRule->getMeleeType();
 		}
-		else
+		else if (_attack.weapon_item)
 		{
 			if (!itemRule->getPierceType() || !itemRule->getDamageType()->isDirect()) // Exclude pierceType for avoid of extra damage.
 			{

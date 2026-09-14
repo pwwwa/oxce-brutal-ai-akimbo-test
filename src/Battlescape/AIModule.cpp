@@ -5204,7 +5204,7 @@ float AIModule::brutalScoreFiringMode(BattleAction* action, BattleUnit* target, 
 		}
 		int lowerLimit = !(action->type == BA_AKIMBOSHOT && action->actor->isAkimbo())
 		? action->weapon->getRules()->getMinRange()
-		: std::min(action->actor->getRightHandWeapon()->getRules()->getMinRange(), action->actor->getRightHandWeapon()->getRules()->getMinRange());
+		: std::min(action->actor->getLeftHandWeapon()->getRules()->getMinRange(), action->actor->getRightHandWeapon()->getRules()->getMinRange());
 
 		if (distance > upperLimit)
 		{

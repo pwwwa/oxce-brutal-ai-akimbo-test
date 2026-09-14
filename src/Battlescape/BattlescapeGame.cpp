@@ -103,11 +103,11 @@ bool BattleActionCost::haveTU(std::string *message)
 	if (type == BA_AKIMBOSHOT && actor->isAkimbo())
 	{	// it allows to remove mass code usage checking for both weapons in hands at several places, but requires some 'hacky" adjustment for reserveTU checking
 		Time = std::max(actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Time, actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Time);
-		Energy += actor->getActionTUs(BA_AKIMBOSHOT, actor->getOppositeHandWeapon()).Energy;
-		Morale += actor->getActionTUs(BA_AKIMBOSHOT, actor->getOppositeHandWeapon()).Morale;
-		Health += actor->getActionTUs(BA_AKIMBOSHOT, actor->getOppositeHandWeapon()).Health;
-		Stun   += actor->getActionTUs(BA_AKIMBOSHOT, actor->getOppositeHandWeapon()).Stun;
-		Mana   += actor->getActionTUs(BA_AKIMBOSHOT, actor->getOppositeHandWeapon()).Mana;
+		Energy = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Energy + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Energy;
+		Morale = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Morale + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Morale;
+		Health = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Health + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Health;
+		Stun =	  actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Stun	+ actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Stun;
+		Mana =	  actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Mana	+ actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Mana;
 	}
 
 	if (!skillRules && Time <= 0)
@@ -1494,7 +1494,7 @@ bool BattlescapeGame::checkReservedTU(BattleUnit *bu, int tu, int energy, bool j
 
 	cost.updateTU();
 	// if the weapon has no autoshot, reserve TUs for snapshot
-	if (cost.Time == 0 && cost.type == BA_AUTOSHOT)
+	if (cost.Time == 0 && (cost.type == BA_AUTOSHOT || cost.type == BA_AKIMBOSHOT))
 	{
 		cost.type = BA_SNAPSHOT;
 		cost.updateTU();
@@ -1530,9 +1530,7 @@ bool BattlescapeGame::checkReservedTU(BattleUnit *bu, int tu, int energy, bool j
 	cost.Time += tu;
 	cost.Energy += energy;
 
-	if ( ((cost.type != BA_NONE || _save->getKneelReserved()) && !cost.haveTU())
-	    ||( cost.type == BA_AKIMBOSHOT && (cost.Time + tu + tuKneel > bu->getTimeUnits()
-		||	cost.Energy + energy > bu->getEnergy()) ) )
+	if ((cost.type != BA_NONE || _save->getKneelReserved()) && !cost.haveTU())
 	{
 		if (!justChecking)
 		{
@@ -2245,11 +2243,17 @@ void BattlescapeGame::moveDirection(BattleUnit* unit, int dir)
 	Position dirVec;
 	Pathfinding::directionToVector(dir, &dirVec);
 	_currentAction.target = unit->getPosition() + dirVec;
-	int unitHeight = _save->getTile(unit->getPosition())->getTerrainLevel(unit);
 
-	if (unitHeight <= 16 && unitHeight < _save->getTile(_currentAction.target)->getTerrainLevel() && !_save->getTile(_currentAction.target + Position(0, 0, 1))->hasNoFloor())
-	{ // todo: big units on stairs
-		++_currentAction.target.z; 
+	const int unitHeight = _save->getTile(unit->getPosition())->getTerrainLevel(unit);
+	const Tile *dest = _save->getTile(_currentAction.target);
+	const Tile *altDest = _save->getTile(_currentAction.target + Position(0, 0, 1));
+
+	if (dest && altDest)
+	{
+		if (unitHeight <= 16 && unitHeight < dest->getTerrainLevel() && !altDest->hasNoFloor())
+		{ // todo: big units on stairs
+			++_currentAction.target.z;
+		}
 	}
 
 	getMap()->setCursorType(CT_NONE);

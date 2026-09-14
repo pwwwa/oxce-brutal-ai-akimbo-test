@@ -14,7 +14,6 @@ items:
     flatAkimbo: false
     akimboRange: 7
     sprayWaypoints: 3
-    maxRange: 2
  
   - type: STR_PLASMA_PISTOL
     accuracyAkimbo: 43

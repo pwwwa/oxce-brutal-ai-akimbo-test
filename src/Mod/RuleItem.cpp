@@ -179,13 +179,12 @@ RuleItem::RuleItem(const std::string &type, int listOrder) :
 	_maxRange(200), _minRange(0), _dropoff(2), _bulletSpeed(0), _explosionSpeed(0), _shotgunPellets(0), _shotgunBehaviorType(0), _shotgunSpread(100), _shotgunChoke(100),
 	_spawnUnitFaction(FACTION_NONE), _zombieUnitFaction(FACTION_HOSTILE),
 	_targetMatrix(7), _convertToCivilian(false),
-	_LOSRequired(false), _underwaterOnly(false), _landOnly(false), _psiReqiured(false), _manaRequired(false),
+	_LOSRequired(false), _underwaterOnly(false), _landOnly(false), _psiReqiured(false), _manaRequired(false), _isScanAll(false), _isPanicLOS(false), _isMindControlLOS(false),
 	_meleePower(0), _specialType(-1), _vaporColor(-1), _vaporDensity(0), _vaporProbability(15),
 	_vaporColorSurface(-1), _vaporDensitySurface(0), _vaporProbabilitySurface(15),
 	_kneelBonus(-1), _oneHandedPenalty(-1),
 	_monthlySalary(0), _monthlyMaintenance(0),
-	_sprayWaypoints(0), _maxRangeEvent(0), _pierceType(0), _piercePowerCap(0), _pierceAOEDamageType(0), _scanRange(9), _isScanAll(false),
-	_isPanicLOS(false), _isMindControlLOS(false)
+	_sprayWaypoints(0), _maxRangeEvent(0), _pierceType(0), _piercePowerCap(0), _pierceAOEDamageType(0), _scanRange(9)
 {
 	_accuracyMulti.setFiring();
 	_meleeMulti.setMelee();
@@ -2888,7 +2887,12 @@ int RuleItem::getPiercePowerCap() const
 /// Gets projectile pierce damage type for AOE ammo
 ItemDamageType RuleItem::getPierceAOEDamageType() const
 {
-	return static_cast<ItemDamageType>(_pierceAOEDamageType < 1 ? 1 : _pierceAOEDamageType);
+
+	return static_cast<ItemDamageType>(_pierceAOEDamageType < 1
+									  ? 1
+									  : _pierceAOEDamageType > 19
+									  ? 19
+									  : _pierceAOEDamageType);
 }
 
 // Gets scanner radius range
