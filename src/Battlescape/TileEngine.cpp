@@ -3911,10 +3911,9 @@ void TileEngine::explode(BattleActionAttack attack, Position center, int power, 
 									}
 								}
 							}
-							else
+							else if (victims.find(bu) == victims.end() || victims[bu].second < power_)
 							{ // pWWWa: Collect victims to one place for further handling. Reassign victim if it got greater hit power in that iteration 
-								if (victims.find(bu) == victims.end() || victims[bu].second > power_)
-								victims.insert({bu, {hitPos, power_}});
+									victims[bu] = {hitPos, power_};	//victims.insert({bu, {hitPos, power_}});
 							}
 						}
 
@@ -3993,19 +3992,23 @@ void TileEngine::explode(BattleActionAttack attack, Position center, int power, 
 	{ // pWWWa: it is time for our victims to be hitted only once, but with the most powerful result.
 		for (const auto &victim : victims)
 		{
-			toRemove.clear();
 			hitUnit(attack, victim.first, victim.second.first, victim.second.second, type, rangeAtack);
 
 			const int itemDamage = victim.first->getOverKillDamage();
+
 			if (itemDamage > 0)
 			{	// Affect all items and units on ground (pWWWa: sorry for copy-paste)
-				for (auto* bi : *victim.first->getInventory())
+				for (BattleItem *bi : *victim.first->getInventory())
 				{
 					if (!hitUnit(attack, bi->getUnit(), Position(0, 0, 0), itemDamage, type, rangeAtack) && type->getItemFinalDamage(itemDamage) > bi->getRules()->getArmor())
 					{
 						toRemove.push_back(bi);
 					}
 				}
+			}
+			for (BattleItem* wreck : toRemove)
+			{
+				_save->removeItem(wreck);
 			}
 		}
 		victims.clear(); // pWWWa: duuno why (it is local and loop is alredy finished), but let it be... until.

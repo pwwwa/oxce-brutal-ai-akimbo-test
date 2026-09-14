@@ -248,94 +248,22 @@ void Tile::setMapData(MapData *dat, int mapDataID, int mapDataSetID, TilePart pa
 	switch (part)
 	{
 		case O_FLOOR:
-						  _cache.isNoFloor =		_objects[part] ? _objects[part]->isNoFloor() : 1;
-						  _cache.isGravLift =		_objects[part] && _objects[part]->isGravLift();
+						  _cache.isNoFloor		  = _objects[part] ? _objects[part]->isNoFloor() : 1;
+						  _cache.isGravLift		  =	_objects[part] && _objects[part]->isGravLift();
 						  break;
 		case O_WESTWALL:
-						  _cache.isLadderOnWest =   _objects[part] && _objects[part]->isGravLift();
+						  _cache.isLadderOnWest	  = _objects[part] && _objects[part]->isGravLift();
 						  break;
 		case O_NORTHWALL:
-			              _cache.isLadderOnNorth =  _objects[part] && _objects[part]->isGravLift();
+			              _cache.isLadderOnNorth  = _objects[part] && _objects[part]->isGravLift();
 						  break;
 		case O_OBJECT:
 			              _cache.isLadderOnObject = _objects[part] && _objects[part]->isGravLift();
-						  _cache.bigWall =		    _objects[part] && _objects[part]->getBigWall() != 0;
+						  _cache.bigWall		  = _objects[part] && _objects[part]->getBigWall() != 0;
 	}
 
-	_cache.terrainLevel = std::min(_objects[O_FLOOR] ? _objects[O_FLOOR]->getTerrainLevel() : 0,
+	_cache.terrainLevel = std::min(_objects[O_FLOOR]  ? _objects[O_FLOOR]->getTerrainLevel()  : 0,
 								   _objects[O_OBJECT] ? _objects[O_OBJECT]->getTerrainLevel() : 0);
-
-	/** /
-	if (_save->getTile(getPosition() + Position(0, 0, -1)) && _save->getTile(getPosition() + Position(0, 0, -1))->isVoid())
-	{
-			Log(LOG_INFO) << "Tile void is detected";
-
-		for (int z = 1; z >= 0; --z)
-		{
-			for (int y = 1; y >= -1; --y)
-			{
-				for (int x = 1; x >= -1; --x)
-				{
-					if (!_save->getTile(getPosition() + Position(x, y, z)) || _save->getTile(getPosition() + Position(x, y, z))->isVoid())
-					{
-						_save->getTile(getPosition() + Position(0, 0, -1))->setMapData(dat, mapDataID, mapDataSetID, part);
-						goto noCollapse;
-					}
-				}
-			}
-		}
-	}
-noCollapse:
-/**/
-
-	/** /
-	_objects[part] = dat;
-	_mapData->ID[part] = mapDataID;
-	_mapData->SetID[part] = mapDataSetID;
-	_objectsCache[part].isDoor = dat ? dat->isDoor() : 0;
-	_objectsCache[part].isUfoDoor = dat ? dat->isUFODoor() : 0;
-	_objectsCache[part].offsetY = dat ? dat->getYOffset() : 0;
-	_objectsCache[part].isBackTileObject = dat ? dat->isBackTileObject() : 0;
-	if (part == O_FLOOR || part == O_OBJECT)
-	{
-		int level = 0;
-
-		if (_objects[O_FLOOR])
-		{
-			level = _objects[O_FLOOR]->getTerrainLevel();
-			_cache.isNoFloor = _objects[O_FLOOR]->isNoFloor();
-			_cache.isGravLift = _objects[O_FLOOR]->isGravLift();
-		}
-		else
-		{
-			_cache.isNoFloor = 1;
-			_cache.isGravLift = 0;
-		}
-		// whichever's higher, but not the sum.
-		if (_objects[O_OBJECT])
-		{
-			level = std::min(_objects[O_OBJECT]->getTerrainLevel(), level);
-			_cache.bigWall = _objects[O_OBJECT]->getBigWall() != 0;
-		}
-		else
-		{
-			_cache.bigWall = 0;
-		}
-		_cache.terrainLevel = level;
-	}
-	if (part == O_OBJECT)
-	{
-		_cache.isLadderOnObject = _objects[O_OBJECT] && _objects[O_OBJECT]->isGravLift();
-	}
-	if (part == O_NORTHWALL)
-	{
-		_cache.isLadderOnNorth = _objects[O_NORTHWALL] && _objects[O_NORTHWALL]->isGravLift();
-	}
-	if (part == O_WESTWALL)
-	{
-		_cache.isLadderOnWest = _objects[O_WESTWALL] && _objects[O_WESTWALL]->isGravLift();
-	}
-	/**/
 
 	updateSprite(part);
 }
