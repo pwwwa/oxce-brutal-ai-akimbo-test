@@ -3319,6 +3319,7 @@ void Mod::loadFile(const FileMap::FileRecord &filerec, ModScript &parsers)
         nodeRA.tryRead("aimedDeviation", _realisticAccuracyConfig.aimedDeviation[1]);
         nodeRA.tryRead("snapDeviation", _realisticAccuracyConfig.snapDeviation[1]);
         nodeRA.tryRead("autoDeviation", _realisticAccuracyConfig.autoDeviation[1]);
+        nodeRA.tryRead("akimboDeviation", _realisticAccuracyConfig.akimboDeviation[1]);
 
         nodeRA.tryRead("horizontalSpreadCoeff", _realisticAccuracyConfig.horizontalSpreadCoeff[1]);
         nodeRA.tryRead("verticalSpreadCoeff", _realisticAccuracyConfig.verticalSpreadCoeff[1]);

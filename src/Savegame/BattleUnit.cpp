@@ -1861,18 +1861,18 @@ int BattleUnit::damage(Position relative, int damage, const RuleDamageType *type
 				}
 			}
 
-			bool isMelee = attack.type == BA_HIT ? RNG::generate(0, 1) : RNG::generate(0, 2) < 2;
+			bool isMeleeChance = attack.type == BA_HIT ? RNG::generate(0, 1) : RNG::generate(0, 2) < 2;
 
 			switch((relativeDirection - _direction) % 8)
 			{
-			case 0:	side = SIDE_FRONT; 							break;
-			case 1:	side = isMelee ? SIDE_FRONT : SIDE_RIGHT;	break;
-			case 2:	side = SIDE_RIGHT; 							break;
-			case 3:	side = isMelee ? SIDE_REAR : SIDE_RIGHT; 	break;
-			case 4:	side = SIDE_REAR; 							break;
-			case 5:	side = isMelee ? SIDE_REAR : SIDE_LEFT; 	break;
-			case 6:	side = SIDE_LEFT; 							break;
-			case 7:	side = isMelee ? SIDE_FRONT : SIDE_LEFT; 	break;
+			case 0:	side = SIDE_FRONT; 							    break;
+			case 1:	side = isMeleeChance ? SIDE_FRONT : SIDE_RIGHT;	break;
+			case 2:	side = SIDE_RIGHT; 							    break;
+			case 3:	side = isMeleeChance ? SIDE_REAR : SIDE_RIGHT; 	break;
+			case 4:	side = SIDE_REAR; 								break;
+			case 5:	side = isMeleeChance ? SIDE_REAR : SIDE_LEFT; 	break;
+			case 6:	side = SIDE_LEFT; 								break;
+			case 7:	side = isMeleeChance ? SIDE_FRONT : SIDE_LEFT; 	break;
 			}
 			if (relative.z >= getHeight())
 			{
@@ -1882,7 +1882,7 @@ int BattleUnit::damage(Position relative, int damage, const RuleDamageType *type
 			{
 				switch(side)
 				{
-				case SIDE_LEFT:		bodypart = BODYPART_LEFTARM; break;
+				case SIDE_LEFT:		bodypart = BODYPART_LEFTARM;  break;
 				case SIDE_RIGHT:	bodypart = BODYPART_RIGHTARM; break;
 				default:			bodypart = BODYPART_TORSO;
 				}
@@ -6521,6 +6521,8 @@ void BattleUnit::checkForReactivation(const SavedBattleGame* battle)
 		else if (costAuto.haveTU())
 			haveTUtoAttack = true;
 		else if (costThrow.haveTU())
+			haveTUtoAttack = true;
+		else if (costAkimbo.haveTU())
 			haveTUtoAttack = true;
 	}
 	if (haveTUtoAttack || (getAIModule() && getAIModule()->isAnyMovementPossible()))

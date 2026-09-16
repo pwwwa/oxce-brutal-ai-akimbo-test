@@ -702,7 +702,7 @@ void RuleItem::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript&
 
 	_battleItemScripts.load(_type, reader, parsers.battleItemScripts);
 
-	if (!getCostAkimbo().Time && !isFixed() && isPistol() && getCostSnap().Time)
+	if (getCostAkimbo().Time != -1 && !getCostAkimbo().Time && !isFixed() && isPistol() && getCostSnap().Time)
 	{ // Is pistol has no akimbo feature ? let fix it within shapshot config. 
 		auto &temp = _confSnap;
 		_confAkimbo = temp;
@@ -2258,7 +2258,7 @@ RuleItemUseFlat RuleItem::getFlatSnap() const
  */
 RuleItemUseFlat RuleItem::getFlatAkimbo() const
 {
-	return getDefault(_confAkimbo.flat, _confAimed.flat, _flatUse);
+	return getDefault(_confAkimbo.flat, _confSnap.flat, _flatUse);
 }
 
 /**

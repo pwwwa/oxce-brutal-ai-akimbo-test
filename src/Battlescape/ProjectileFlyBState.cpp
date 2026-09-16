@@ -46,11 +46,11 @@ namespace OpenXcom
 /**
  * Sets up an ProjectileFlyBState.
  */
-ProjectileFlyBState::ProjectileFlyBState(BattlescapeGame *parent, BattleAction action, Position origin, int range) : BattleState(parent, action), _unit(0), _ammo(0), _ammoOp(0), _origin(origin), _originVoxel(-1,-1,-1), _projectileImpact(0), _range(range), _initialized(false), _targetFloor(false)
+ProjectileFlyBState::ProjectileFlyBState(BattlescapeGame* parent, BattleAction action, Position origin, int range) : BattleState(parent, action), _unit(0), _ammo(0), _ammoOp(0), _weaponAct(0), _weaponOp(0), _origin(origin), _originVoxel(-1, -1, -1), _projectileImpact(0), _range(range), _initialized(false), _targetFloor(false)
 {
 }
 
-ProjectileFlyBState::ProjectileFlyBState(BattlescapeGame *parent, BattleAction action) : BattleState(parent, action), _unit(0), _ammo(0), _ammoOp(0), _origin(action.actor->getPosition()), _originVoxel(-1,-1,-1), _projectileImpact(0), _range(0), _initialized(false), _targetFloor(false)
+ProjectileFlyBState::ProjectileFlyBState(BattlescapeGame* parent, BattleAction action) : BattleState(parent, action), _unit(0), _ammo(0), _ammoOp(0), _weaponAct(0), _weaponOp(0), _origin(action.actor->getPosition()), _originVoxel(-1, -1, -1), _projectileImpact(0), _range(0), _initialized(false), _targetFloor(false)
 {
 }
 
@@ -163,31 +163,33 @@ void ProjectileFlyBState::init()
 		}
 		break;
 	case BA_AKIMBOSHOT:
-		if (_unit->isAkimbo())
+		if (_unit->isAkimbo()) // pWWWa: no proper weapons in hands - no dual-wielding
 		{	
 			if (_unit->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || _unit->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq))
 			{
-				// out of range of any weapon in hands
+				// pWWWa: Do not allow to fire when any weapon in hands is out of range
 				_action.result = "STR_OUT_OF_RANGE";
 				_parent->popState();
 				return;
 			}
-			// Align Active Hand = Main Hand for proper weapon switching process during AI activity, reaction shot and berserk state
-			if (weapon != _unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()))
+
+			// pWWWa: Define primary'n'secondary weapon for further akimbo weapon switching process
+			if (weapon == _action.actor->getLeftHandWeapon())
 			{
-				if (_unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()) == _unit->getLeftHandWeapon())
-				{
-					_unit->setActiveRightHand();
-				}
-				else
-				{
-					_unit->setActiveLeftHand();
-				}
+				_weaponAct = _action.actor->getLeftHandWeapon();
+				_weaponOp = _action.actor->getRightHandWeapon();
 			}
-			//_ammo = weapon->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
-			_ammoOp = _unit->getOppositeHandWeapon()->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
-			_action.actWeaponShotQnty = weapon->getActionConf(BA_AKIMBOSHOT)->shots;
-			_action.opWeaponShotQnty = _unit->getOppositeHandWeapon()->getActionConf(BA_AKIMBOSHOT)->shots;
+			else
+			{
+				_weaponAct = _action.actor->getRightHandWeapon();
+				_weaponOp = _action.actor->getLeftHandWeapon();
+			}
+
+			// _ammo = weapon->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
+			_ammoOp = _weaponOp->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
+			_action.actWeaponShotQnty = _weaponAct->getActionConf(BA_AKIMBOSHOT)->shots;
+			_action.opWeaponShotQnty = _weaponOp->getActionConf(BA_AKIMBOSHOT)->shots;
+
 			// if either weapon is out of ammo, there is no point to arrange akimbo
 			if (!_ammo || !_ammoOp)
 			{
@@ -475,44 +477,37 @@ bool ProjectileFlyBState::createNewProjectile()
 	* AKIMBO SHOTS SECTION *
 	\**********************/
 	if ( _action.type == BA_AKIMBOSHOT )
-	{	// Remember original Active Hand weapon and ammo for hand iteration mechanism (ammo address need for projectile and impact "alignment")
-		BattleItem* originWeapon = const_cast<BattleItem*>(_unit->getActiveHand(_unit->getLeftHandWeapon(), _unit->getRightHandWeapon()));
-		BattleItem* originAmmo = originWeapon ? originWeapon->getAmmoForAction(_action.type, _unit->getFaction() != _parent->getSave()->getSide() ? nullptr : &_action.result) : 0;
+	{	
+		BattleItem* ammoAct = _weaponAct ? _weaponAct->getAmmoForAction(_action.type, _unit->getFaction() != _parent->getSave()->getSide() ? nullptr : &_action.result) : 0;
 
-		// Make possible remained shots (if it supposes) when weapon dissapeared and inactive hand asignes as active hand due ActiveHand result
-		if (originWeapon && originAmmo && !_unit->getOppositeHandWeapon() && _action.opWeaponCounter < _action.actWeaponShotQnty)
-		{
-			_action.actWeaponCounter = _action.opWeaponCounter;
-		}
-		// Prevent switching to origin hand, if it has no weapon / no ammo
-		if (!originWeapon || !originAmmo || originAmmo->getAmmoQuantity() == 0)
+		// Prevent switching to "primary hand", if it has no weapon / no ammo
+		if (!_weaponAct || !ammoAct || ammoAct->getAmmoQuantity() == 0)
 		{
 			_action.actWeaponCounter = _action.actWeaponShotQnty;
 		}
+
 		// Prevent switching to opposite hand, if it has no weapon / no ammo
-		if (!_unit->getOppositeHandWeapon() || !_ammoOp || _ammoOp->getAmmoQuantity() == 0)
+		if (!_weaponOp || !_ammoOp || _ammoOp->getAmmoQuantity() == 0)
 		{
 			_action.opWeaponCounter = _action.opWeaponShotQnty;
 		}
 		// All shots are done or impossible - stop shooting and let pass further handling to think() function
-		if (_action.actWeaponCounter >= _action.actWeaponShotQnty &&
-			_action.opWeaponCounter >= _action.opWeaponShotQnty)
+		if (_action.actWeaponCounter >= _action.actWeaponShotQnty && _action.opWeaponCounter >= _action.opWeaponShotQnty)
 		{
 			return false;
 		}
-		// Hand switch mechanic of proper weapon (and ammo) usage each shot, if everything fine
+		// Proper Hand/weapon switching mechanic (and ammo too) for further shot
 		if ( _action.actWeaponCounter < _action.actWeaponShotQnty &&
 			(_action.actWeaponCounter == _action.opWeaponCounter || _action.opWeaponCounter >= _action.opWeaponShotQnty) )
 		{
 			++_action.actWeaponCounter;
-			_action.weapon = originWeapon;
-			_ammo = originAmmo;
+			_action.weapon = _weaponAct;
+			_ammo = ammoAct;
 		}
-		else if ( _action.opWeaponCounter < _action.opWeaponShotQnty &&
-				 (_action.actWeaponCounter > _action.opWeaponCounter || _action.actWeaponCounter >= _action.actWeaponShotQnty) )
+		else
 		{
 			++_action.opWeaponCounter;
-			_action.weapon = _unit->getOppositeHandWeapon();
+			_action.weapon = _weaponOp;
 			_ammo = _ammoOp;
 		}
 	}
@@ -619,7 +614,7 @@ bool ProjectileFlyBState::createNewProjectile()
 			return false;
 		}
 	}
-	else if (_action.weapon && _action.weapon->getArcingShot(_action.type)) // special code for the "spit" trajectory
+	else if (_action.weapon->getArcingShot(_action.type)) // special code for the "spit" trajectory
 	{
 		_projectileImpact = projectile->calculateThrow(BattleUnit::getFiringAccuracy(attack, _parent->getMod()) / accuracyDivider);
 		if (_projectileImpact != V_EMPTY && _projectileImpact != V_OUTOFBOUNDS)
@@ -674,7 +669,7 @@ bool ProjectileFlyBState::createNewProjectile()
 			{
 				_parent->getMod()->getSoundByDepth(_parent->getDepth(), _ammo->getRules()->getFireSound())->play(-1, _parent->getMap()->getSoundAngle(projectile->getOrigin()));
 			}
-			else if (_action.weapon && _action.weapon->getRules()->getFireSound() != Mod::NO_SOUND)
+			else if (_action.weapon->getRules()->getFireSound() != Mod::NO_SOUND)
 			{
 				_parent->getMod()->getSoundByDepth(_parent->getDepth(), _action.weapon->getRules()->getFireSound())->play(-1, _parent->getMap()->getSoundAngle(projectile->getOrigin()));
 			}
@@ -740,7 +735,7 @@ void ProjectileFlyBState::think()
 
 		if ( ( _action.type != BA_AKIMBOSHOT
 			? (_action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter) && _ammo->getAmmoQuantity() != 0)
-			: (_action.actWeaponCounter < _action.actWeaponShotQnty || _action.opWeaponCounter < _action.opWeaponShotQnty ) )
+			: (_action.actWeaponCounter < _action.actWeaponShotQnty || _action.opWeaponCounter < _action.opWeaponShotQnty) )
 			&& !_action.actor->isOut()
 			&& (hasFloor || unitCanFly) )
 		{
@@ -817,19 +812,19 @@ void ProjectileFlyBState::think()
 																			  : 1 );
 				}
 				// hit processing
-					_parent->getSave()->getTileEngine()->hit(attack,
-															 bullet->getPosition(),
-														     (_ammo->getRules()->getPierceType() == 2)
-														      ? power
-														      : std::min(_parent->getPiercePower(), power),
-														     dmgType);
+				_parent->getSave()->getTileEngine()->hit(attack,
+														 bullet->getPosition(),
+														 (_ammo->getRules()->getPierceType() == 2)
+														   ? power
+														   : std::min(_parent->getPiercePower(), power),
+														 dmgType);
 
 				_parent->setPiercePower(_parent->getPiercePower() - piercePowerDercement);
 					
 				if (_projectileImpact == V_UNIT)
 				{ // let arrange further handling of impacted units
 					if (!_parent->areAllEnemiesNeutralized()) projectileHitUnit(bullet->getPosition());
-					_parent->checkForCasualties(dmgType, BattleActionAttack{_action.type, attack.attacker});
+					_parent->checkForCasualties(dmgType, attack);
 					_parent->getSave()->reviveUnconsciousUnits(true);
 					_parent->convertInfected();
 					_parent->setStateInterval(BattlescapeState::DEFAULT_ANIM_SPEED / 5); // Alt solution: _parent->setStateInterval(50/3)
@@ -1025,7 +1020,7 @@ void ProjectileFlyBState::think()
 								
 									if (_ammo->getRules()->getExplosionRadius(attack))
 									{	// handle explosion routine
-										_parent->getTileEngine()->explode(attack, proj->getPosition(offset), _ammo->getRules()->getPower(), _ammo->getRules()->getDamageType(), _ammo->getRules()->getExplosionRadius(attack));
+										_parent->getTileEngine()->explode(attack, proj->getPosition(offset), power, _ammo->getRules()->getDamageType(), _ammo->getRules()->getExplosionRadius(attack));
 									}
 									else
 									{	// handle direct hit

@@ -76,7 +76,19 @@ void BattleActionCost::updateTU()
 	}
 	else if (actor && weapon)
 	{
-		*(RuleItemUseCost*)this = actor->getActionTUs(type, weapon);
+		if (type == BA_AKIMBOSHOT && actor->isAkimbo())
+		{
+			Time = std::max(actor->getActionTUs(type, weapon).Time, actor->getActionTUs(type, actor->getOppositeHandWeapon()).Time);
+			Energy += actor->getActionTUs(type, actor->getOppositeHandWeapon()).Energy;
+			Morale += actor->getActionTUs(type, actor->getOppositeHandWeapon()).Morale;
+			Health += actor->getActionTUs(type, actor->getOppositeHandWeapon()).Health;
+			Stun   += actor->getActionTUs(type, actor->getOppositeHandWeapon()).Stun;
+			Mana   += actor->getActionTUs(type, actor->getOppositeHandWeapon()).Mana;
+		}
+		else
+		{
+			*(RuleItemUseCost*)this = actor->getActionTUs(type, weapon);
+		}
 	}
 	else
 	{
@@ -99,17 +111,6 @@ void BattleActionCost::clearTU()
  */
 bool BattleActionCost::haveTU(std::string *message)
 {
-
-	if (type == BA_AKIMBOSHOT && actor->isAkimbo())
-	{	// it allows to remove mass code usage checking for both weapons in hands at several places, but requires some 'hacky" adjustment for reserveTU checking
-		Time = std::max(actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Time, actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Time);
-		Energy = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Energy + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Energy;
-		Morale = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Morale + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Morale;
-		Health = actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Health + actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Health;
-		Stun =	  actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Stun	+ actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Stun;
-		Mana =	  actor->getActionTUs(BA_AKIMBOSHOT, actor->getLeftHandWeapon()).Mana	+ actor->getActionTUs(BA_AKIMBOSHOT, actor->getRightHandWeapon()).Mana;
-	}
-
 	if (!skillRules && Time <= 0)
 	{
 		//no action, no message
@@ -188,7 +189,7 @@ bool BattleActionCost::spendTU(std::string *message)
  */
 BattlescapeGame::BattlescapeGame(SavedBattleGame *save, BattlescapeState *parentState) : _save(save), _parentState(parentState), _nextUnitToSelect(NULL),
 	_playerPanicHandled(true), _AIActionCounter(0), _playedAggroSound(false),
-	_endTurnRequested(false), _endConfirmationHandled(false), _allEnemiesNeutralized(false)
+	_endTurnRequested(false), _endConfirmationHandled(false), _allEnemiesNeutralized(false), _piercePower(0)
 {
 	if (_save->isPreview())
 	{
@@ -1814,7 +1815,7 @@ void BattlescapeGame::primaryAction(Position pos)
 
 	getMap()->resetObstacles();
 
-	if (_currentAction.targeting && _save->getSelectedUnit())
+	if (_currentAction.targeting && _save->getSelectedUnit() && _currentAction.weapon)
 	{
 		if ( _currentAction.weapon->getRules()->isOutOfRange(_currentAction.actor->distance3dToPositionSq(pos)) ||
 		   ( _currentAction.type == BA_AKIMBOSHOT && _currentAction.actor->isAkimbo() &&

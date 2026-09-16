@@ -90,7 +90,7 @@ void ExplosionBState::init()
 	{
 
 		if (_attack.damage_item->getRules()->getShotgunPellets() && _parent->getTileEngine()->voxelCheck(_center, _attack.attacker) == V_OUTOFBOUNDS)
-		{	// pWWWa: shotgun primal pellet hit V_OUTOFBOUNDS, let pass that "DisneyLand" routine and use think() function
+		{	// pWWWa: shotgun primal pellet left the map, let pass that "DisneyLand" with explosion/sound routine and just use think() function for pellet "explosions" handling
 			return;
 		}
 
@@ -109,7 +109,7 @@ void ExplosionBState::init()
 		}
 		else if (_attack.weapon_item)
 		{
-			if (!itemRule->getPierceType() || !itemRule->getDamageType()->isDirect()) // Exclude pierceType for avoid of extra damage.
+			if (!itemRule->getPierceType() || !itemRule->getDamageType()->isDirect()) // pWWWa: lazy exclusion of direct pierceType for avoid of extra damage.
 			{
 				if (_attack.weapon_item->getRules()->getIgnoreAmmoPower())
 				{

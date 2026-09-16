@@ -2509,8 +2509,8 @@ UnitWalkingOffset Map::calculateWalkingOffset(const BattleUnit *unit) const
 		const Position posLast = unit->getLastPosition();
 		if (phase < midphase)
 		{
-			int fromLevel = getTerrainLevel(posCurr, size);
-			int toLevel = getTerrainLevel(posDest, size);
+			int fromLevel = unit->getTile()->getTerrainLevel(unit);			// getTerrainLevel(posCurr, size);
+			int toLevel = _save->getTile(posDest)->getTerrainLevel(unit);   // getTerrainLevel(posDest, size);
 			if (posCurr.z > posDest.z)
 			{
 				// going down a level, so toLevel 0 becomes +24, -8 becomes  16
@@ -2527,8 +2527,8 @@ UnitWalkingOffset Map::calculateWalkingOffset(const BattleUnit *unit) const
 		{
 			// from phase 4 onwards the unit behind the scenes already is on the destination tile
 			// we have to get it's last position to calculate the correct offset
-			int fromLevel = getTerrainLevel(posLast, size);
-			int toLevel = getTerrainLevel(posDest, size);
+			int fromLevel = _save->getTile(posLast)->getTerrainLevel(unit); // getTerrainLevel(posLast, size);
+			int toLevel = _save->getTile(posDest)->getTerrainLevel(unit);   // getTerrainLevel(posDest, size);
 			if (posLast.z > posDest.z)
 			{
 				// going down a level, so fromLevel 0 becomes -24, -8 becomes -32
@@ -2544,7 +2544,7 @@ UnitWalkingOffset Map::calculateWalkingOffset(const BattleUnit *unit) const
 	}
 	else
 	{
-		result.TerrainLevelOffset = getTerrainLevel(unit->getPosition(), size);
+		result.TerrainLevelOffset = unit->getTile()->getTerrainLevel(unit); // getTerrainLevel(unit->getPosition(), size);
 	}
 	result.ScreenOffset.y += result.TerrainLevelOffset;
 	return result;

@@ -3807,7 +3807,7 @@ void TileEngine::explode(BattleActionAttack attack, Position center, int power, 
 	std::map<Tile*, int> tilesAffected;
 	std::vector<BattleItem*> toRemove;
 	std::pair<std::map<Tile*, int>::iterator, bool> ret;
-	std::map<BattleUnit*, std::pair<Position, int>> victims;
+	std::vector<BattleUnit*> hittedVictims;
 
 	if (type->FireBlastCalc)
 	{
@@ -3872,7 +3872,7 @@ void TileEngine::explode(BattleActionAttack attack, Position center, int power, 
 						BattleUnit *bu = dest->getOverlappingUnit(_save);
 
 						toRemove.clear();
-						if (bu)
+						if (bu && (!Options::noMultiHitHE || std::find(hittedVictims.begin(), hittedVictims.end(), bu) == hittedVictims.end()))
 
 						{
 							Position hitPos = Position(0, 0, 0);
@@ -3895,28 +3895,24 @@ void TileEngine::explode(BattleActionAttack attack, Position center, int power, 
 								}
 							}				
 
-							if (!Options::noMultiHitHE)
+							hitUnit(attack, bu, hitPos, damage, type, rangeAtack);
+							// Affect all items and units in inventory
+							const int itemDamage = bu->getOverKillDamage();
+							if (itemDamage > 0)
 							{
-								hitUnit(attack, bu, hitPos, damage, type, rangeAtack);
-								// Affect all items and units in inventory
-								const int itemDamage = bu->getOverKillDamage();
-								if (itemDamage > 0)
+								for (auto* bi : *bu->getInventory())
 								{
-									for (auto* bi : *bu->getInventory())
+									if (!hitUnit(attack, bi->getUnit(), Position(0, 0, 0), itemDamage, type, rangeAtack) && type->getItemFinalDamage(itemDamage) > bi->getRules()->getArmor())
 									{
-										if (!hitUnit(attack, bi->getUnit(), Position(0, 0, 0), itemDamage, type, rangeAtack) && type->getItemFinalDamage(itemDamage) > bi->getRules()->getArmor())
-										{
-											toRemove.push_back(bi);
-										}
+										toRemove.push_back(bi);
 									}
 								}
 							}
-							else if (victims.find(bu) == victims.end() || victims[bu].second < power_)
-							{ // pWWWa: Collect victims to one place for further handling. Reassign victim if it got greater hit power in that iteration 
-									victims[bu] = {hitPos, power_};	//victims.insert({bu, {hitPos, power_}});
+							if (Options::noMultiHitHE && bu)
+							{ // pWWWa: unit is still exist ? Let place it to already hitted victim list and do not allow further extra HE hits
+								hittedVictims.push_back(bu);
 							}
 						}
-
 						// Affect all items and units on ground
 						for (auto* bi : *dest->getInventory())
 						{
@@ -3986,32 +3982,6 @@ void TileEngine::explode(BattleActionAttack attack, Position center, int power, 
 				}
 			}
 		}
-	}
-
-	if (!victims.empty())
-	{ // pWWWa: it is time for our victims to be hitted only once, but with the most powerful result.
-		for (const auto &victim : victims)
-		{
-			hitUnit(attack, victim.first, victim.second.first, victim.second.second, type, rangeAtack);
-
-			const int itemDamage = victim.first->getOverKillDamage();
-
-			if (itemDamage > 0)
-			{	// Affect all items and units on ground (pWWWa: sorry for copy-paste)
-				for (BattleItem *bi : *victim.first->getInventory())
-				{
-					if (!hitUnit(attack, bi->getUnit(), Position(0, 0, 0), itemDamage, type, rangeAtack) && type->getItemFinalDamage(itemDamage) > bi->getRules()->getArmor())
-					{
-						toRemove.push_back(bi);
-					}
-				}
-			}
-			for (BattleItem* wreck : toRemove)
-			{
-				_save->removeItem(wreck);
-			}
-		}
-		victims.clear(); // pWWWa: duuno why (it is local and loop is alredy finished), but let it be... until.
 	}
 
 	// now detonate the tiles affected by explosion
