@@ -174,15 +174,15 @@ void ProjectileFlyBState::init()
 			}
 
 			// pWWWa: Define primary'n'secondary weapon for further akimbo weapon switching process
-			if (weapon == _action.actor->getLeftHandWeapon())
+			if (weapon == _unit->getLeftHandWeapon())
 			{
-				_weaponAct = _action.actor->getLeftHandWeapon();
-				_weaponOp = _action.actor->getRightHandWeapon();
+				_weaponAct = _unit->getLeftHandWeapon();
+				_weaponOp = _unit->getRightHandWeapon();
 			}
 			else
 			{
-				_weaponAct = _action.actor->getRightHandWeapon();
-				_weaponOp = _action.actor->getLeftHandWeapon();
+				_weaponAct = _unit->getRightHandWeapon();
+				_weaponOp = _unit->getLeftHandWeapon();
 			}
 
 			// _ammo = weapon->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
@@ -197,6 +197,12 @@ void ProjectileFlyBState::init()
 				_parent->popState();
 				return;
 			}
+		}
+		else
+		{
+			_action.result = "STR_NO_ROUNDS_LEFT";
+			_parent->popState();
+			return;
 		}
 		break;
 	default:
@@ -513,7 +519,7 @@ bool ProjectileFlyBState::createNewProjectile()
 	}
 
 	// pWWWa: pierceType power (capacity) redefining;
-	if (_ammo && _ammo->getRules()->getPierceType() && !(_action.type == BA_LAUNCH && _action.actor->getPosition() != _origin))
+	if (_ammo && _ammo->getRules()->getPierceType() && !(_action.type == BA_LAUNCH && _unit->getPosition() != _origin))
 	{
 		if (!_ammo->getRules()->getPiercePowerCap())
 		{
