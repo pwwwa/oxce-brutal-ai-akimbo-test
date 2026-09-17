@@ -36,11 +36,23 @@
 #include "Timer.h"
 #include <SDL.h>
 
+//experimental
+
+#include "../addons/bgfx_overlay/bgfx_overlay.h"
+
+bgfx::TextureHandle g_bgfxTexture;
+
+
+
 namespace OpenXcom
 {
 
 const int Screen::ORIGINAL_WIDTH = 320;
 const int Screen::ORIGINAL_HEIGHT = 200;
+
+
+//const int Screen::ORIGINAL_WIDTH = 640;
+//const int Screen::ORIGINAL_HEIGHT = 480;
 
 static const int VIDEO_WINDOW_POS_LEN = 40;
 static char VIDEO_WINDOW_POS[VIDEO_WINDOW_POS_LEN];
@@ -105,6 +117,9 @@ void Screen::makeVideoFlags()
 	_bpp = (use32bitScaler() || useOpenGL()) ? 32 : 8;
 	_baseWidth = Options::baseXResolution;
 	_baseHeight = Options::baseYResolution;
+	//
+
+	//Options::useOpenGL = false;
 }
 
 
@@ -126,7 +141,7 @@ Screen::Screen() : _baseWidth(ORIGINAL_WIDTH), _baseHeight(ORIGINAL_HEIGHT), _sc
  */
 Screen::~Screen()
 {
-
+	shutdownBgfx();
 }
 
 /**
@@ -221,12 +236,67 @@ void Screen::flip()
 		_pushPalette = false;
 	}
 
+	// EXPERIMENTAL
 
+	// 1. Создаем структуру целевого 32-битного формата (RGBA)
+	SDL_PixelFormat rgbaFormat;
+	std::memset(&rgbaFormat, 0, sizeof(SDL_PixelFormat));
+	rgbaFormat.BitsPerPixel = 32;
+	rgbaFormat.BytesPerPixel = 4;
 
-	if (SDL_Flip(_screen) == -1)
+// Настройка масок цвета с учетом порядка байт в системе (Эндианность)
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+	rgbaFormat.Rmask = 0x000000FF;
+	rgbaFormat.Gmask = 0x0000FF00;
+	rgbaFormat.Bmask = 0x00FF0000;
+	rgbaFormat.Amask = 0xFF000000;
+#else
+	rgbaFormat.Rmask = 0xFF000000;
+	rgbaFormat.Gmask = 0x00FF0000;
+	rgbaFormat.Bmask = 0x0000FF00;
+	rgbaFormat.Amask = 0x000000FF;
+#endif
+
+	// 2. Исходная поверхность (например, ваша 8-битная)
+	//SDL_Surface* srcSurface = _surface.get();
+	SDL_Surface* srcSurface = _screen;
+
+	// 3. Конвертация в новую 32-битную поверхность
+	// SDL автоматически применит текущую палитру (если исходник 8-битный) и переведет цвета в RGBA
+	SDL_Surface* surface32Bit = SDL_ConvertSurface(srcSurface, &rgbaFormat, SDL_SWSURFACE);
+
+	if (surface32Bit == nullptr)
 	{
-		throw Exception(SDL_GetError());
+		// Обработка ошибки, если конвертация не удалась
+		Log(LOG_ERROR) << "Ошибка конвертации поверхности: " << SDL_GetError();
 	}
+
+	// ... Используете surface32Bit (например, передаете текстуру в bgfx) ...
+
+
+	UpdateAndRenderBgfxOverlay(surface32Bit);
+
+	//if (SDL_SaveBMP(_screen, "screenshot_screen.bmp") != 0)
+	//{
+	//	// Handle error (e.g., file could not be written)
+	//	printf("Screenshot failed: %s\n", SDL_GetError());
+	//}
+
+	//if (SDL_SaveBMP(surface32Bit, "screenshotsurface32Bit.bmp") != 0)
+	//{
+	//	// Handle error (e.g., file could not be written)
+	//	printf("Screenshot failed: %s\n", SDL_GetError());
+	//}
+
+	// 4. Обязательно освобождайте память после использования!
+	SDL_FreeSurface(surface32Bit);
+
+
+	/*if (SDL_Flip(_screen) == -1)
+	{
+		throw Exception(SDL_GetError());	
+	}*/
+
 }
 
 /**
@@ -379,7 +449,8 @@ void Screen::resetDisplay(bool resetVideo, bool noShaders)
 		{
 			Log(LOG_ERROR) << SDL_GetError();
 			Log(LOG_INFO) << "Attempting to set display to default resolution...";
-			_screen = SDL_SetVideoMode(640, 400, _bpp, _flags);
+			//_screen = SDL_SetVideoMode(640, 400, _bpp, _flags);
+			_screen = SDL_SetVideoMode(1280, 800, _bpp, _flags);
 			if (_screen == 0)
 			{
 				if (_flags & SDL_OPENGL)
@@ -498,6 +569,17 @@ void Screen::resetDisplay(bool resetVideo, bool noShaders)
 	{
 		setPalette(getPalette());
 	}
+
+	// EXPERIMENTAL!!!
+
+	
+	initBgfx(getWidth(), getHeight());
+	
+
+
+	
+
+
 }
 
 /**

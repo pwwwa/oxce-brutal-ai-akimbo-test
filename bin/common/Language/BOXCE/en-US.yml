@@ -40,7 +40,7 @@ en-US:
   STR_BRUTALCIVILIANS: "AI Type for neutral forces"
   STR_BRUTALCIVILIANS_DESC: "{ALT}0>{ALT} Standard OpenXCom {ALT}1>{ALT} Brutal AI {ALT}2>{ALT} Seek & Destroy"
   STR_AICHEATMODE: "Brutal AI Cheating"
-  STR_AICHEATMODE_DESC: "{ALT}-1>{ALT} No squadsight; {ALT}0>{ALT} No cheating; {ALT}1>{ALT} AI knows your unit's locations on the minimap {ALT}2>{ALT} AI always sees your units."
+  STR_AICHEATMODE_DESC: "{ALT}-1>{ALT} No squadsight; {ALT}0>{ALT} No cheating; {ALT}1>{ALT} AI knows your unit's locations on the minimap; {ALT}2>{ALT} AI always sees your units."
   STR_AI_PERFORMANCE: "Performance optimisation"
   STR_AI_PERFORMANCE_DESC: "AI consideres fewer of it's possible options to allow for shorter turn-times."
   STR_ALLOWPREPRIME: "Allow Brutal AI to pre-prime grenades"
@@ -53,6 +53,7 @@ en-US:
   # AutoCombat
   STR_AUTO: "Autoplay"
   STR_AUTOCOMBAT: "Automated combat"
+  STR_AUTOCOMBAT_DESC: "Control of player-units is handed to the AI. Toggle-shortcut can be set under {ALT}Controls{ALT} {ALT}>{ALT} {ALT}BOXCE{ALT}. The default is {ALT}Ctrl+A{ALT}"
   STR_AUTOCOMBAT_DEFAULT_HWP: "Default HWP Autocombat"
   STR_AUTOCOMBAT_DEFAULT_HWP_DESC: "Default HWP Autocombat"
   STR_AUTOCOMBAT_DEFAULT_MINDCONTROL: "Default MindControl Autocombat"
@@ -61,7 +62,6 @@ en-US:
   STR_AUTOCOMBAT_DEFAULT_REMAIN_DESC: "Default Remain Autocombat"
   STR_AUTOCOMBAT_DEFAULT_SOLDIER: "Default Soldier Autocombat"
   STR_AUTOCOMBAT_DEFAULT_SOLDIER_DESC: "Default Soldier Autocombat"
-  STR_AUTOCOMBAT_DESC: "Control of player-units is handed to the AI. Toggle-shortcut can be set under {ALT}Controls{ALT} {ALT}>{ALT} {ALT}BOXCE{ALT}. The default is {ALT}Ctrl+A{ALT}"
   STR_AUTOCOMBAT_EACH_COMBAT: "Autocombat keep @ new Combat"
   STR_AUTOCOMBAT_EACH_COMBAT_DESC: "Keep autocombat enabled when a new combat starts."
   STR_AUTOCOMBAT_EACH_TURN: "Autocombat keep @ new Turn"
@@ -69,7 +69,7 @@ en-US:
   STR_AUTOCOMBAT_PER_UNIT: "Control autocombat per unit"
   STR_AUTOCOMBAT_PER_UNIT_DESC: "Allows to exclude units from the AI autocombat"
   
-  # GeaScape
+  #GeaScape
   STR_DISPLAY_HIDDEN_ALIEN_ACTIVITY: "Display hidden alien activity"
   STR_DISPLAY_HIDDEN_ALIEN_ACTIVITY_DESC: "{ALT}0>{ALT} Disable {ALT}1>{ALT} Display sectors with 5+ hours of continuous undetected UFO activity {ALT}2>{ALT} Display most detailed activity change"
   STR_DOGFIGHTAI: "Enhanced dogfighting behavior"
@@ -133,40 +133,3 @@ en-US:
   # Floating unit Bobbing
   STR_FLOAT_UNIT_BOBBING: "Bobbing of floating unit"
   STR_FLOAT_UNIT_BOBBING_DESC: "Each unit will bob slightly when in flying/floating state."
- 
-  #Morale attack success info
-  STR_MORALE_ATTACK_SUCCESS_NOTIFY: "Morale Attack Success Notification"
-  STR_MORALE_ATTACK_SUCCESS_NOTIFY_DESC: "Notify player about morale attack success.{NEWLINE}{ALT}0>{ALT} No notify (Vanilla), {ALT}1>{ALT} Flash message, {ALT}2>{ALT} Info Box."
-  
-  #Akimbo options
-  STR_AKIMBO_SHOT: "Akimbo Shots"
-  STR_SHOT_TYPE_AKIMBO: "Akimbo"
-  STR_RESERVE_TIME_UNITS_FOR_AKIMBO_SHOT: "Reserve TUs for Akimbo Shots"
-  STR_TIME_UNITS_RESERVED_FOR_AKIMBO_SHOT: "Time units reserved for akimbo shots"
-  STR_ACTION_ITEM_6: "Item Action 6 (Akimbo)"
-  STR_AKIMBO_MOD: "Akimbo shooting"
-  STR_AKIMBO_MOD_DESC: "Allow dual-wield shooting mode for weapons.{NEWLINE}{ALT}0>{ALT} Disabled, {ALT}1>{ALT} Enabled, but hidden. {ALT}CTRL+click{ALT} on the weapon for access. {ALT}2>{ALT} Fully Enabled. Each pistol gets this feature."
-  
-  # Control unit movement via NUMPAD
-  STR_NUMPAD_MOVE: "Numpad movement control"
-  STR_NUMPAD_MOVE_DESC: "Control unit movement via Numpad.{NEWLINE}{ALT}0>{ALT} disabled, {ALT}1>{ALT} movement to relative direction, {NEWLINE}{ALT}2>{ALT} movement to absolute direction."
-  
-  # Technical strings
-  pierceType: "Pierce through type"
-  piercePowerCap: "Pierce power capacity"
-  pierceAOEDamageType: "Pierce damage type (HE)"
-  confAkimbo: "Akimbo shot configuration"
-  accuracyAkimbo: "Akimbo shot accuracy"
-  tuAkimbo: "Akimbo TU"
-  akimboRange: "Akimbo shot range"
-  flatAkimbo: "Is akimbo cost flat?"
-  costAkimbo: "Akimbo shot cost"
-  maxRangeEvent: "Bullet max. range event"
-  
-  # Scanner
-  scanRange: "Scanning range"
-  isScanAll: "Detect static units"
-  
-  # No HE multy hit
-  STR_NO_MULTI_HIT_HE: "No extra hits for explosion"
-  STR_NO_MULTI_HIT_HE_DESC: "Prevention of multiple hitting big units and units on highground for explosion."
