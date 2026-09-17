@@ -1250,6 +1250,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\res\windows\openxcom.ico" />
+    <None Include="redme.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="OpenXcom.rc" />
