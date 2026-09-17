@@ -1233,6 +1233,7 @@
     <ClCompile Include="Basescape\SoldierVoiceState.cpp">
       <Filter>Basescape</Filter>
     </ClCompile>
+    <ClCompile Include="addons\bgfx_overlay\bgfx_overlay.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2720,6 +2721,7 @@
     <ClInclude Include="Basescape\SoldierVoiceState.h">
       <Filter>Basescape</Filter>
     </ClInclude>
+    <ClInclude Include="addons\bgfx_overlay\bgfx_overlay.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Geoscape">
@@ -2791,7 +2793,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\res\windows\openxcom.ico" />
-    <None Include="redme.md" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\libs\rapidyaml\ryml.natvis">

@@ -1,0 +1,14 @@
+shaderc -f vspass.sc -o vs_passthrough.bin --type vertex --platform windows -p vs_5_0 -i ./bgfx/src --verbose
+shaderc -f fspass.sc -o fs_passthrough.bin --type fragment --platform windows -p ps_5_0 -i ./bgfx/src --verbose
+
+
+shaderc -f vspass.sc -o vs_passthrough.bin --type vertex --platform windows -p vs_5_0 --varyingdef varying.def.sc
+shaderc -f fspass.sc -o fs_passthrough.bin --type fragment --platform windows -p ps_5_0 --varyingdef varying.def.sc
+
+
+
+shaderc -f vspass.sc -o vs_passthrough.bin --type vertex --platform windows -p vs_5_0
+shaderc -f fspass.sc -o fs_passthrough.bin --type fragment --platform windows -p ps_5_0
+
+
+--varyingdef varying.def.sc
