@@ -130,7 +130,7 @@ void ProjectileFlyBState::init()
 	}
 
 	Tile *endTile = _parent->getSave()->getTile(_action.target);
-	int distanceSq = _action.actor->distance3dToPositionSq(_action.target);
+	int distanceSq = _unit->distance3dToPositionSq(_action.target);
 	bool isPlayer = _parent->getSave()->getSide() == FACTION_PLAYER;
 	if (isPlayer) _parent->getMap()->resetObstacles();
 	switch (_action.type)
@@ -163,16 +163,8 @@ void ProjectileFlyBState::init()
 		}
 		break;
 	case BA_AKIMBOSHOT:
-		if (_unit->isAkimbo()) // pWWWa: no proper weapons in hands - no dual-wielding
+		if (_unit->isAkimbo())
 		{	
-			if (_unit->getLeftHandWeapon()->getRules()->isOutOfRange(distanceSq) || _unit->getRightHandWeapon()->getRules()->isOutOfRange(distanceSq))
-			{
-				// pWWWa: Do not allow to fire when any weapon in hands is out of range
-				_action.result = "STR_OUT_OF_RANGE";
-				_parent->popState();
-				return;
-			}
-
 			// pWWWa: Define primary'n'secondary weapon for further akimbo weapon switching process
 			if (weapon == _unit->getLeftHandWeapon())
 			{
@@ -184,19 +176,25 @@ void ProjectileFlyBState::init()
 				_weaponAct = _unit->getRightHandWeapon();
 				_weaponOp = _unit->getLeftHandWeapon();
 			}
+			// pWWWa: Do not allow to fire when any weapon in hands is out of range
+			if (_weaponAct->getRules()->isOutOfRange(distanceSq) || _weaponOp->getRules()->isOutOfRange(distanceSq))
+			{
+				_action.result = "STR_OUT_OF_RANGE";
+				_parent->popState();
+				return;
+			}
 
-			// _ammo = weapon->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
 			_ammoOp = _weaponOp->getAmmoForAction(_action.type, reactionShoot ? nullptr : &_action.result);
-			_action.actWeaponShotQnty = _weaponAct->getActionConf(BA_AKIMBOSHOT)->shots;
-			_action.opWeaponShotQnty = _weaponOp->getActionConf(BA_AKIMBOSHOT)->shots;
 
-			// if either weapon is out of ammo, there is no point to arrange akimbo
-			if (!_ammo || !_ammoOp)
+			if (!_ammoOp)
 			{
 				_action.result = "STR_NO_ROUNDS_LEFT";
 				_parent->popState();
 				return;
 			}
+
+			_action.actWeaponShotQnty = _weaponAct->getActionConf(BA_AKIMBOSHOT)->shots;
+			_action.opWeaponShotQnty = _weaponOp->getActionConf(BA_AKIMBOSHOT)->shots;
 		}
 		else
 		{

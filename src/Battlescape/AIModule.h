@@ -147,7 +147,7 @@ public:
 	/// Attempts to fire at an enemy we can see.
 	void projectileAction();
 	/// Chooses a firing mode for the AI based on expected number of hits per turn
-	void extendedFireModeChoice(BattleActionCost& costAuto, BattleActionCost& costAkimbo,BattleActionCost& costSnap, BattleActionCost& costAimed, BattleActionCost& costThrow, bool checkLOF = false);
+	void extendedFireModeChoice(BattleActionCost& costAuto, BattleActionCost& costSnap, BattleActionCost& costAimed, BattleActionCost& costAkimbo, BattleActionCost& costThrow, bool checkLOF = false);
 	/// Attempts to throw a grenade at an enemy (or group of enemies) we can see.
 	void grenadeAction();
 	/// Performs a psionic attack.

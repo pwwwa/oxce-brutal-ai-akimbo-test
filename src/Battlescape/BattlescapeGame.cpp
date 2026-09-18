@@ -1817,7 +1817,7 @@ void BattlescapeGame::primaryAction(Position pos)
 
 	if (_currentAction.targeting && _save->getSelectedUnit() && _currentAction.weapon)
 	{
-		if ( _currentAction.weapon->getRules()->isOutOfRange(_currentAction.actor->distance3dToPositionSq(pos)) ||
+		if ( _currentAction.type != BA_THROW && _currentAction.weapon->getRules()->isOutOfRange(_currentAction.actor->distance3dToPositionSq(pos)) ||
 		   ( _currentAction.type == BA_AKIMBOSHOT && _currentAction.actor->isAkimbo() &&
 			 _currentAction.actor->getOppositeHandWeapon()->getRules()->isOutOfRange(_currentAction.actor->distance3dToPositionSq(pos)) ) )
 		{

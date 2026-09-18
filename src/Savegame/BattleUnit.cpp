@@ -4190,8 +4190,10 @@ bool BattleUnit::isAkimbo() const
 {
 	if (Options::akimboMod && getLeftHandWeapon() && getRightHandWeapon())
 	{
-		if (getLeftHandWeapon()->getRules()->getCostAkimbo().Time && getRightHandWeapon()->getRules()->getCostAkimbo().Time &&
-			(!getLeftHandWeapon()->getCurrentWaypoints() ||	!getRightHandWeapon()->getCurrentWaypoints()) )
+		if ( !getLeftHandWeapon()->getCurrentWaypoints() &&
+			 !getRightHandWeapon()->getCurrentWaypoints() &&
+			  getLeftHandWeapon()->getRules()->getCostAkimbo().Time &&
+			  getRightHandWeapon()->getRules()->getCostAkimbo().Time )
 		{
 			return true;
 		}

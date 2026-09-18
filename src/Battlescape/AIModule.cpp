@@ -655,10 +655,10 @@ void AIModule::think(BattleAction *action)
 				_reserve = BA_AIMEDSHOT;
 				break;
 			case 1:
-				_reserve = BA_AUTOSHOT;
+				_reserve = _unit->isAkimbo() ? BA_AKIMBOSHOT : BA_AUTOSHOT;
 				break;
 			case 2:
-				_reserve = action->actor->isAkimbo() ? BA_AKIMBOSHOT : BA_SNAPSHOT;
+				_reserve = BA_SNAPSHOT;
 				break;
 			default:
 				break;
@@ -1651,9 +1651,9 @@ bool AIModule::selectSpottedUnitForSniper()
 
 	// Get the TU costs for each available attack type
 	BattleActionCost costAuto(BA_AUTOSHOT, _attackAction.actor, _attackAction.weapon);
-	BattleActionCost costAkimbo(BA_AKIMBOSHOT, _attackAction.actor, _attackAction.weapon);
 	BattleActionCost costSnap(BA_SNAPSHOT, _attackAction.actor, _attackAction.weapon);
 	BattleActionCost costAimed(BA_AIMEDSHOT, _attackAction.actor, _attackAction.weapon);
+	BattleActionCost costAkimbo(BA_AKIMBOSHOT, _attackAction.actor, _attackAction.weapon);
 
 	BattleActionCost costThrow;
 	// Only want to check throwing if we have a grenade, the default constructor (line above) conveniently returns false from haveTU()
@@ -1679,7 +1679,7 @@ bool AIModule::selectSpottedUnitForSniper()
 			_aggroTarget = bu;
 			_attackAction.type = BA_RETHINK;
 			_attackAction.target = bu->getPosition();
-			extendedFireModeChoice(costAuto, costAkimbo, costSnap, costAimed, costThrow, true);
+			extendedFireModeChoice(costAuto, costSnap, costAimed, costAkimbo, costThrow, true);
 
 			BattleAction chosenAction = _attackAction;
 			if (chosenAction.type == BA_THROW)
@@ -2521,15 +2521,15 @@ void AIModule::projectileAction()
 	int distance = Position::distance2d(_unit->getPosition(), _attackAction.target);
 	_attackAction.type = BA_RETHINK;
 
-	BattleActionCost costAkimbo(BA_AKIMBOSHOT, _attackAction.actor, _attackAction.weapon);
 	BattleActionCost costAuto(BA_AUTOSHOT, _attackAction.actor, _attackAction.weapon);
 	BattleActionCost costSnap(BA_SNAPSHOT, _attackAction.actor, _attackAction.weapon);
 	BattleActionCost costAimed(BA_AIMEDSHOT, _attackAction.actor, _attackAction.weapon);
+	BattleActionCost costAkimbo(BA_AKIMBOSHOT, _attackAction.actor, _attackAction.weapon);
 
-	testEffect(costAkimbo);
 	testEffect(costAuto);
 	testEffect(costSnap);
 	testEffect(costAimed);
+	testEffect(costAkimbo);
 
 	// Is the unit willingly waiting outside of weapon's range (e.g. ninja camouflaged in ambush)?
 	bool waitIfOutsideWeaponRange = _unit->getGeoscapeSoldier() ? false : _unit->getUnitRules()->waitIfOutsideWeaponRange();
@@ -2540,7 +2540,7 @@ void AIModule::projectileAction()
 	{
 		// Note: this will also check for the weapon's max range
 		BattleActionCost costThrow; // Not actually checked here, just passed to extendedFireModeChoice as a necessary argument
-		extendedFireModeChoice(costAuto, costAkimbo, costSnap, costAimed, costThrow, false);
+		extendedFireModeChoice(costAuto, costSnap, costAimed, costAkimbo, costThrow, false);
 		return;
 	}
 
@@ -2621,7 +2621,7 @@ void AIModule::projectileAction()
 	}
 }
 
-void AIModule::extendedFireModeChoice(BattleActionCost& costAuto, BattleActionCost& costAkimbo, BattleActionCost& costSnap, BattleActionCost& costAimed, BattleActionCost& costThrow, bool checkLOF)
+void AIModule::extendedFireModeChoice(BattleActionCost& costAuto, BattleActionCost& costSnap, BattleActionCost& costAimed, BattleActionCost& costAkimbo, BattleActionCost& costThrow, bool checkLOF)
 {
 	std::vector<BattleActionType> attackOptions = { };
 	if (costAimed.haveTU())
