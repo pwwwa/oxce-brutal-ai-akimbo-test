@@ -33,6 +33,12 @@ ru:
   STR_KEY_READY_SMOKE_GRENADE: "Взять в руку и взвести дымовую гранату"
   STR_KEY_READY_STUN_GRENADE: "Взять в руку и взвести оглушающую гранату"
 
+  # GeoScape
+  STR_DISPLAY_HIDDEN_ALIEN_ACTIVITY: "Отображать скрытую активность"
+  STR_DISPLAY_HIDDEN_ALIEN_ACTIVITY_DESC: "{ALT}0>{ALT} Отключено; {ALT}1>{ALT} Отображать сектора, где скрытая активность пришельцев продолжается 5+ часов; {NEWLINE}{ALT}2>{ALT} Отображать изменения активности максимально подробно."
+  STR_DOGFIGHTAI: "Улучшенное поведение НЛО при перехвате"
+  STR_DOGFIGHTAI_DESC: "Если по НЛО, способному догнать транспортное средство, открыт огонь, он пойдёт на сближение и откроет ответный огонь."
+
   # Brutal AI
   STR_AI: "ИИ"
   STR_BRUTALAI: "Тип ИИ"
@@ -53,6 +59,7 @@ ru:
   # AutoCombat
   STR_AUTO: "Автоматический бой"
   STR_AUTOCOMBAT: "Режим автоматического боя"
+  STR_AUTOCOMBAT_DESC: "ИИ управляет боевыми единицами игрока. Горячая клавиша для переключения режима настраивается в меню {ALT}Управление{ALT} {ALT}>{ALT} {ALT}BOXCE{ALT}. По умолчанию: {ALT}Ctrl + A{ALT}."
   STR_AUTOCOMBAT_DEFAULT_HWP: "Автобой по умолчанию @ ТБП"
   STR_AUTOCOMBAT_DEFAULT_HWP_DESC: "Вкл./выкл. автобой для всех ТБП по умолчанию."
   STR_AUTOCOMBAT_DEFAULT_MINDCONTROL: "Автобой по умолчанию @ Контроль разума"
@@ -61,19 +68,12 @@ ru:
   STR_AUTOCOMBAT_DEFAULT_REMAIN_DESC: "Вкл./выкл. сохранение режима автобоя включенным по умолчанию."
   STR_AUTOCOMBAT_DEFAULT_SOLDIER: "Автобой по умолчанию @ Каждый боец"
   STR_AUTOCOMBAT_DEFAULT_SOLDIER_DESC: "Вкл./выкл. автобой для всех бойцов по умолчанию."
-  STR_AUTOCOMBAT_DESC: "ИИ управляет боевыми единицами игрока. Горячая клавиша для переключения режима настраивается в меню {ALT}Управление{ALT} {ALT}>{ALT} {ALT}BOXCE{ALT}. По умолчанию: {ALT}Ctrl + A{ALT}."
   STR_AUTOCOMBAT_EACH_COMBAT: "Автобой @ Начало боя"
   STR_AUTOCOMBAT_EACH_COMBAT_DESC: "Включать автобой в начале боя."
   STR_AUTOCOMBAT_EACH_TURN: "Автобой @ Начало хода"
   STR_AUTOCOMBAT_EACH_TURN_DESC: "Оставлять автобой включенным в начале следующего хода."
   STR_AUTOCOMBAT_PER_UNIT: "Автобой @ Каждый боец"
   STR_AUTOCOMBAT_PER_UNIT_DESC: "Автобой включается/выключается для каждой боевой единицы независимо."
-  
-  # GeoScape
-  STR_DISPLAY_HIDDEN_ALIEN_ACTIVITY: "Отображать скрытую активность"
-  STR_DISPLAY_HIDDEN_ALIEN_ACTIVITY_DESC: "{ALT}0>{ALT} Отключено; {ALT}1>{ALT} Отображать сектора, где скрытая активность пришельцев продолжается 5+ часов; {NEWLINE}{ALT}2>{ALT} Отображать изменения активности максимально подробно."
-  STR_DOGFIGHTAI: "Улучшенное поведение НЛО при перехвате"
-  STR_DOGFIGHTAI_DESC: "Если по НЛО, способному догнать транспортное средство, открыт огонь, он пойдёт на сближение и откроет ответный огонь."
   
   # BaseScape
   STR_BATTLECHANCETOHIT: "Расчёт вероятности попадания"
@@ -124,8 +124,8 @@ ru:
   STR_STRICTBLOCKEDCHECKING: "Строгая проверка на доступность клеток"
   STR_STRICTBLOCKEDCHECKING_DESC: "Может предотвратить появление юнитов внутри стен и помочь ИИ находить лучшее укрытие, но может также блокировать сегменты карты, если она технически некорректна."
   STR_UPDATETURNSSINCESEENBYCLUE: "Точное отслеживание снарядов"
-  STR_UPDATETURNSSINCESEENBYCLUE_DESC: "Позволяет игроку (нажав кпопку {ALT}Alt{ALT}) и Жестокому ИИ точно определить клетку, откуда был выпущен вражеский снаряд, даже не видя самого стрелка."
-  STR_FORCED_ABSOLUTE_COSTS: "Только фиксированные расходы"
+  STR_UPDATETURNSSINCESEENBYCLUE_DESC: "Позволяет игроку (нажав кпопку {ALT}Alt{Alt}) и Жестокому ИИ точно определить клетку, откуда был выпущен вражеский снаряд, даже не видя самого стрелка."
+  STR_FORCED_ABSOLUTE_COSTS: "Только фиксированный расход"
   STR_FORCED_ABSOLUTE_COSTS_DESC: "При включении все процентные значения потребления ОД и других показателей будут преобразованы в фиксированные."
   # Diagonal Terrain melee
   STR_DIAG_TERRAIN_MELEE: "Рукопашно местность по диагонали"

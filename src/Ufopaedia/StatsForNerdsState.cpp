@@ -3260,7 +3260,7 @@ void StatsForNerdsState::initFacilityList()
 
 	std::ostringstream ss;
 
-	addVectorOfStrings(ss, facilityRule->getRequirements(), "requires");
+	addVectorOfResearch(ss, facilityRule->getRequirements(), "requires");
 
 	if (facilityRule->getSizeX() == facilityRule->getSizeY())
 	{
@@ -3433,7 +3433,7 @@ void StatsForNerdsState::initCraftList()
 
 	std::ostringstream ss;
 
-	addVectorOfStrings(ss, craftRule->getRequirements(), "requires");
+	addVectorOfResearch(ss, craftRule->getRequirements(), "requires");
 	addVectorOfStrings(ss, mod->getBaseFunctionNames(craftRule->getRequiresBuyBaseFunc()), "requiresBuyBaseFunc");
 	addSingleString(ss, craftRule->getRequiresBuyCountry(), "requiresBuyCountry");
 
@@ -4107,7 +4107,7 @@ void StatsForNerdsState::initSoldierList()
 	addRule(ss, soldierRule->getDefaultArmor(), "armor");
 	addRule(ss, soldierRule->getSpecialWeapon(), "specialWeapon");
 
-	addVectorOfStrings(ss, soldierRule->getRequirements(), "requires");
+	addVectorOfResearch(ss, soldierRule->getRequirements(), "requires");
 	addVectorOfStrings(ss, mod->getBaseFunctionNames(soldierRule->getRequiresBuyBaseFunc()), "requiresBuyBaseFunc");
 	addSingleString(ss, soldierRule->getRequiresBuyCountry(), "requiresBuyCountry");
 

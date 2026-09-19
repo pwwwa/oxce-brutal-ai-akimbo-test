@@ -3571,7 +3571,7 @@ void BattlescapeGame::autoEndBattle()
 		if (end)
 		{
 			_save->setSelectedUnit(0);
-			cancelCurrentAction(true);
+			cancelAllActions();
 			requestEndTurn(askForConfirmation);
 		}
 	}

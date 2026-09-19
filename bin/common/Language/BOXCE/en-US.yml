@@ -40,7 +40,7 @@ en-US:
   STR_BRUTALCIVILIANS: "AI Type for neutral forces"
   STR_BRUTALCIVILIANS_DESC: "{ALT}0>{ALT} Standard OpenXCom {ALT}1>{ALT} Brutal AI {ALT}2>{ALT} Seek & Destroy"
   STR_AICHEATMODE: "Brutal AI Cheating"
-  STR_AICHEATMODE_DESC: "{ALT}-1>{ALT} No squadsight; {ALT}0>{ALT} No cheating; {ALT}1>{ALT} AI knows your unit's locations on the minimap {ALT}2>{ALT} AI always sees your units."
+  STR_AICHEATMODE_DESC: "{ALT}-1>{ALT} No squadsight; {ALT}0>{ALT} No cheating; {ALT}1>{ALT} AI knows your unit's locations on the minimap; {ALT}2>{ALT} AI always sees your units."
   STR_AI_PERFORMANCE: "Performance optimisation"
   STR_AI_PERFORMANCE_DESC: "AI consideres fewer of it's possible options to allow for shorter turn-times."
   STR_ALLOWPREPRIME: "Allow Brutal AI to pre-prime grenades"
@@ -53,6 +53,7 @@ en-US:
   # AutoCombat
   STR_AUTO: "Autoplay"
   STR_AUTOCOMBAT: "Automated combat"
+  STR_AUTOCOMBAT_DESC: "Control of player-units is handed to the AI. Toggle-shortcut can be set under {ALT}Controls{ALT} {ALT}>{ALT} {ALT}BOXCE{ALT}. The default is {ALT}Ctrl+A{ALT}"
   STR_AUTOCOMBAT_DEFAULT_HWP: "Default HWP Autocombat"
   STR_AUTOCOMBAT_DEFAULT_HWP_DESC: "Default HWP Autocombat"
   STR_AUTOCOMBAT_DEFAULT_MINDCONTROL: "Default MindControl Autocombat"
@@ -61,7 +62,6 @@ en-US:
   STR_AUTOCOMBAT_DEFAULT_REMAIN_DESC: "Default Remain Autocombat"
   STR_AUTOCOMBAT_DEFAULT_SOLDIER: "Default Soldier Autocombat"
   STR_AUTOCOMBAT_DEFAULT_SOLDIER_DESC: "Default Soldier Autocombat"
-  STR_AUTOCOMBAT_DESC: "Control of player-units is handed to the AI. Toggle-shortcut can be set under {ALT}Controls{ALT} {ALT}>{ALT} {ALT}BOXCE{ALT}. The default is {ALT}Ctrl+A{ALT}"
   STR_AUTOCOMBAT_EACH_COMBAT: "Autocombat keep @ new Combat"
   STR_AUTOCOMBAT_EACH_COMBAT_DESC: "Keep autocombat enabled when a new combat starts."
   STR_AUTOCOMBAT_EACH_TURN: "Autocombat keep @ new Turn"
@@ -69,7 +69,7 @@ en-US:
   STR_AUTOCOMBAT_PER_UNIT: "Control autocombat per unit"
   STR_AUTOCOMBAT_PER_UNIT_DESC: "Allows to exclude units from the AI autocombat"
   
-  # GeaScape
+  #GeaScape
   STR_DISPLAY_HIDDEN_ALIEN_ACTIVITY: "Display hidden alien activity"
   STR_DISPLAY_HIDDEN_ALIEN_ACTIVITY_DESC: "{ALT}0>{ALT} Disable {ALT}1>{ALT} Display sectors with 5+ hours of continuous undetected UFO activity {ALT}2>{ALT} Display most detailed activity change"
   STR_DOGFIGHTAI: "Enhanced dogfighting behavior"
