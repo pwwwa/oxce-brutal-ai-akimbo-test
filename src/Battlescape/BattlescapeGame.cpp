@@ -1989,8 +1989,8 @@ void BattlescapeGame::primaryAction(Position pos)
 								   ( (_currentAction.type == BA_PANIC && item.isPanicLOS()) ||
 									 (_currentAction.type == BA_MINDCONTROL && item.isMindControlLOS()) ) );
 
-					if (!needLOS ||	(attackerFaction == FACTION_PLAYER && targetFaction != FACTION_HOSTILE) || // pWWWa: perhaps, there are need to add civilians in player's units visibleUnits vector too ?
-					_currentAction.actor->hasVisibleUnit(targetUnit))
+					if ( !needLOS || (attackerFaction == FACTION_PLAYER && targetFaction != FACTION_HOSTILE) || // pWWWa: perhaps, there are need to add civilians in player's units visibleUnits vector too ?
+					     _currentAction.actor->hasVisibleUnit(targetUnit) )
 					{
 						// get the sound/animation started
 						getMap()->setCursorType(CT_NONE);

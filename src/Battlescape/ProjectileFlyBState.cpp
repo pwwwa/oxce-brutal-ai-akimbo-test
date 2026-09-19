@@ -806,8 +806,8 @@ void ProjectileFlyBState::think()
 					piercePowerDercement = ( victim->getArmor()->getArmor(SIDE_FRONT) *
 											 _ammo->getRules()->getDamageType()->ArmorEffectiveness +
 											 victim->getHealth() ) / ( victim->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType)
-																   ? std::fmin(1, victim->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType))
-																   : 1 );
+																     ? std::fminf(1, victim->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType))
+																     : 1 );
 				}
 				else
 				{ // same zero divide avoidance method

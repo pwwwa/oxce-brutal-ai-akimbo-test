@@ -3909,7 +3909,7 @@ void TileEngine::explode(BattleActionAttack attack, Position center, int power, 
 								}
 							}
 							if (Options::noMultiHitHE && bu)
-							{ // pWWWa: unit is still exist ? Let place it to already hitted victim list and do not allow further extra HE hits
+							{ // pWWWa: Let place just hitted unit to hitted victim list and do not allow further extra HE hits
 								hittedVictims.push_back(bu);
 							}
 						}
@@ -4948,7 +4948,7 @@ VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target,
 			}
 			return false;
 		});
-	return voxelCheck(target, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut);
+	return V_OUTOFBOUNDS;
 }
 
 /**

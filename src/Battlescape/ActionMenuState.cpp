@@ -514,7 +514,7 @@ void ActionMenuState::handleAction()
 					{
 					case 1: case 2: _action->target = _action->actor->getPosition() + Position(1, 0, 0); break; // NE & E -> 2nd part
 					case 3:	case 4:	_action->target = _action->actor->getPosition() + Position(1, 1, 0); break; // SE & S -> 3rd part 
-					case 5:	case 6:	_action->target = _action->actor->getPosition() + Position(0, 1, 0); break; // SW & W -> 4rd part
+					case 5:	case 6:	_action->target = _action->actor->getPosition() + Position(0, 1, 0);		// SW & W -> 4rd part
 					}
 				}
 			}
