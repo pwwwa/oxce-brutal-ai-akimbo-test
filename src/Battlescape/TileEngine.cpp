@@ -4916,7 +4916,7 @@ VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target,
 {
 	bool excludeAllUnits = _save->isBeforeGame() ? true : false; // don't start unit spotting before pre-game inventory stuff (large units on the craftInventory tile will cause a crash if they're "spotted")
 	int rand = (int)RNG::generate(0, 1) ? -1 : 1;				 // trajectory position shifter for avoiding of passing thru 2 walls corner 
-
+	bool isUnit = false;
 	calculateLineHelper(origin,target,
 		[&](Position point)
 		{
@@ -4924,7 +4924,7 @@ VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target,
 			{				
 				trajectory->push_back(point + Position(rand, -rand, 0));
 			}
-						
+			isUnit = voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut) == V_UNIT;
 			if (voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut) == V_OUTOFBOUNDS)
 			{
 				if (trajectory)
@@ -4937,6 +4937,7 @@ VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target,
 		},
 		[&](Position point)
 		{	
+			isUnit = isUnit ? true : voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut) == V_UNIT;
 			//check for xy diagonal intermediate voxel step	
 			if (voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut) == V_OUTOFBOUNDS)
 			{
@@ -4948,7 +4949,7 @@ VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target,
 			}
 			return false;
 		});
-	return V_OUTOFBOUNDS;
+	return isUnit ? V_UNIT : V_OBJECT; // pWWWa: unified variant for better "accuracy deviation" result 
 }
 
 /**
@@ -6014,6 +6015,7 @@ bool TileEngine::validMeleeRange(Position pos, int direction, BattleUnit *attack
 				{
 					if (target == 0 || targetTile->getUnit() == target)
 					{
+
 						Position originVoxel = getSightOriginVoxel(attacker, targetTile, BattleActionOrigin::CENTRE) + Position(0, 0, meleeOriginVoxelVerticalOffset - 3); //was:  Position originVoxel = Position(origin->getPosition().toVoxel()) + Position(8, 8, attacker->getHeight() + attacker->getFloatHeight() - 4 - origin->getTerrainLevel() + meleeOriginVoxelVerticalOffset);
 						Position originLeft = getSightOriginVoxel(attacker, targetTile, BattleActionOrigin::LEFT) + Position(0, 0, meleeOriginVoxelVerticalOffset - 3);
 						Position originRight = getSightOriginVoxel(attacker, targetTile, BattleActionOrigin::RIGHT) + Position(0, 0, meleeOriginVoxelVerticalOffset - 3);
