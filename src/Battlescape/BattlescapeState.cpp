@@ -158,8 +158,8 @@ BattlescapeState::BattlescapeState() :
 	_btnHelp = new BattlescapeButton(32, 16, x + 208, y + 16);
 	_btnEndTurn = new BattlescapeButton(32, 16, x + 240, y);
 	_btnAbort = new BattlescapeButton(32, 16, x + 240, y + 16);
-	_btnStats = new InteractiveSurface(Options::akimboMod > 1 ? 132 : 164, 23, x + 107, y + 33); // pWWWa: borrow some space for akimbo reserve button
-	_btnReserveAkimbo = new BattlescapeButton(22, 8, x + 245, y + 33); // pWWWa: place akimbo reserve button under abort mission button
+	_btnStats = new InteractiveSurface(Options::akimboMod > 1 ? 138 : 164, 23, x + 107, y + 33); // pWWWa: borrow some space for akimbo reserve button
+	_btnReserveAkimbo = new BattlescapeButton(22, 8, x + 245, y + 33);							 // pWWWa: place akimbo reserve button under abort mission button
 	_btnReserveNone = new BattlescapeButton(17, 11, x + 60, y + 33);
 	_btnReserveSnap = new BattlescapeButton(17, 11, x + 78, y + 33);
 	_btnReserveAimed = new BattlescapeButton(17, 11, x + 60, y + 45);
@@ -774,7 +774,7 @@ void BattlescapeState::resetPalettes()
 {
 	if (_paletteResetNeeded)
 	{
-		for (auto origPal : _game->getMod()->getPalettes())
+		for (auto& origPal : _game->getMod()->getPalettes())
 		{
 			if (origPal.first.find("PAL_") == 0)
 			{
@@ -3089,7 +3089,7 @@ inline void BattlescapeState::handle(Action *action)
 					}
 					_game->pushState(new InfoboxState(ss.str()));
 				}
-				else if (key == Options::keyAIList)
+				else if (key == Options::keyAIList && Options::keyAIList != SDLK_UNKNOWN)
 				{
 					btnAIClick(action);
 				}
@@ -3264,9 +3264,6 @@ inline void BattlescapeState::handle(Action *action)
 							}
 							if (numpadDir >= 0)
 							{
-								//_numpadMoveDir = numpadDir;
-								//_numpadTurnDelta = turnDelta;
-								//if (turnDelta != 0) _numpadRepeatTime = SDL_GetTicks() + 400; // initial delay before repeat
 								if (!_battleGame->isBusy() && playableUnitSelected())
 								{
 									_battleGame->cancelAllActions();
@@ -3297,7 +3294,6 @@ inline void BattlescapeState::handle(Action *action)
 						}
 						if (numpadDir >= 0)
 						{
-							// _numpadMoveDir = numpadDir;	_numpadTurnDelta = 0;
 							if (!_battleGame->isBusy() && playableUnitSelected())
 							{
 								_battleGame->cancelAllActions();
@@ -3325,27 +3321,6 @@ inline void BattlescapeState::handle(Action *action)
 				}
 			}
 		}
-		/** /
-		// numpad key release (outside cursor check so releases aren't missed during movement)
-		if (action->getDetails()->type == SDL_KEYUP)
-		{
-			switch (action->getDetails()->key.keysym.sym)
-			{
-			case SDLK_KP8:
-			case SDLK_KP9:
-			case SDLK_KP6:
-			case SDLK_KP3:
-			case SDLK_KP2:
-			case SDLK_KP1:
-			case SDLK_KP4:
-			case SDLK_KP7:
-			case SDLK_KP5:
-				_numpadMoveDir = -1;
-				break;
-			default:
-				break;
-			}
-		} /**/
 	}
 }
 
