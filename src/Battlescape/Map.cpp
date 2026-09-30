@@ -736,7 +736,7 @@ void Map::drawUnit(UnitSprite &unitSprite, Tile *unitTile, Tile *currTile, Posit
 	}
 	if (Options::floatUnitBobbing && bu->isFloating())
 	{
-		offsets.ScreenOffset.y += getArrowBobForFrame(_animFrame * (bu->getId() % 2 ? 0.5 : 0.45) ); // bu->getId() % 2 ? (bu->getId() % 3 ? 0.5 : 0.45) : (!(bu->getId() % 4) ? 0.40 : 0.35);
+		offsets.ScreenOffset.y += getArrowBobForFrame(_animFrame * (bu->getId() % 2 ? 0.5 : 0.45)) - 1; // bu->getId() % 2 ? (bu->getId() % 3 ? 0.5 : 0.45) : (!(bu->getId() % 4) ? 0.40 : 0.35);
 	}
 	unitSprite.draw(bu, part, tileScreenPosition.x + offsets.ScreenOffset.x, tileScreenPosition.y + offsets.ScreenOffset.y, shade, mask, _isAltPressed && !_isCtrlPressed);
 }
@@ -1113,33 +1113,36 @@ void Map::drawTerrain(Surface *surface)
 								BattleUnit *itemUnit = item->getUnit();
 								if (itemUnit && itemUnit->getStatus() == STATUS_UNCONSCIOUS && itemUnit->indicatorsAreEnabled())
 								{
+									const int pulsate[8] = {0, 1, 2, 3, 4, 3, 2, 1}; // pWWWa: let animate indicators at battlescape too
+									int bobby = getArrowBobForFrame(_animFrame * 0.5);
+
 									if (_burnIndicator && itemUnit->getFire() > 0)
 									{
 										_burnIndicator->blitNShade(surface,
 											screenPosition.x,
 											screenPosition.y + tile->getTerrainLevel(),
-											tileShade);
+											pulsate[(_animFrame % 8)]);
 									}
 									else if (_woundIndicator && itemUnit->getFatalWounds() > 0)
 									{
 										_woundIndicator->blitNShade(surface,
 											screenPosition.x,
-											screenPosition.y + tile->getTerrainLevel(),
-											tileShade);
+											screenPosition.y + tile->getTerrainLevel() + bobby,
+											pulsate[(_animFrame % 8)]);
 									}
 									else if (_shockIndicator && itemUnit->hasNegativeHealthRegen())
 									{
 										_shockIndicator->blitNShade(surface,
 											screenPosition.x,
 											screenPosition.y + tile->getTerrainLevel(),
-											tileShade);
+											pulsate[(_animFrame % 8)]);
 									}
 									else if (_stunIndicator)
 									{
 										_stunIndicator->blitNShade(surface,
-											screenPosition.x,
-											screenPosition.y + tile->getTerrainLevel(),
-											tileShade);
+											screenPosition.x + bobby,
+											screenPosition.y + tile->getTerrainLevel() + bobby,
+											pulsate[(_animFrame % 8)]);
 									}
 								}
 							}
@@ -2528,8 +2531,8 @@ UnitWalkingOffset Map::calculateWalkingOffset(const BattleUnit *unit) const
 		const Position posLast = unit->getLastPosition();
 		if (phase < midphase)
 		{
-			int fromLevel = unit->getTile()->getTerrainLevel(unit);			// getTerrainLevel(posCurr, size);
-			int toLevel = _save->getTile(posDest)->getTerrainLevel(unit);   // getTerrainLevel(posDest, size);
+			int fromLevel = getTerrainLevel(posCurr, size);
+			int toLevel = getTerrainLevel(posDest, size);
 			if (posCurr.z > posDest.z)
 			{
 				// going down a level, so toLevel 0 becomes +24, -8 becomes  16
@@ -2546,8 +2549,8 @@ UnitWalkingOffset Map::calculateWalkingOffset(const BattleUnit *unit) const
 		{
 			// from phase 4 onwards the unit behind the scenes already is on the destination tile
 			// we have to get it's last position to calculate the correct offset
-			int fromLevel = _save->getTile(posLast)->getTerrainLevel(unit); // getTerrainLevel(posLast, size);
-			int toLevel = _save->getTile(posDest)->getTerrainLevel(unit);   // getTerrainLevel(posDest, size);
+			int fromLevel = getTerrainLevel(posLast, size);
+			int toLevel = getTerrainLevel(posDest, size);
 			if (posLast.z > posDest.z)
 			{
 				// going down a level, so fromLevel 0 becomes -24, -8 becomes -32
