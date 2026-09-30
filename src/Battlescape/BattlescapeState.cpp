@@ -3268,21 +3268,21 @@ inline void BattlescapeState::handle(Action *action)
 							default: --Options::battlescapeScale;
 						}
 					}
+
 					int dX = 0, dY = 0;
 					resize(dX, dY);
-
 					Screen::updateScale(Options::battlescapeScale, Options::baseXBattlescape, Options::baseYBattlescape, true);
 					Options::save();
 					Options::updateOptions();
-					//pWWWs: restart BSS
-					_game->popState();
-					BattlescapeState *bs = new BattlescapeState;
-					_game->pushState(bs);
-					_game->getSavedGame()->getSavedBattle()->setBattleState(bs);
-					// Try to reactivate the touch buttons
-					bs->toggleTouchButtons(false, true);
 					_game->getScreen()->resetDisplay(false);
 
+					// pWWWa: restart BSS (borrowed & adjusted)
+					_game->popState();
+					BattlescapeState* bs = new BattlescapeState;
+					_game->pushState(bs);
+					_game->getSavedGame()->getSavedBattle()->setBattleState(bs);
+					// Try to reactivate the touch buttons 
+					bs->toggleTouchButtons(false, true);
 				}
 
 				// numpad controls
