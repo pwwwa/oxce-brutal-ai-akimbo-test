@@ -3235,7 +3235,57 @@ inline void BattlescapeState::handle(Action *action)
 					saveVoxelView();
 				}
 
-				// numpad relative controls (takes priority over absolute mode)
+				// pWWWa: Battlescape scale switcher
+				if (!isBusy() && /** / !Options::allowResize && /**/
+					( (key == Options::keyAddBattleScale && Options::battlescapeScale <= 10 && Options::battlescapeScale != 0) || 
+					  (key == Options::keySubBattleScale && Options::battlescapeScale >=  0 && Options::battlescapeScale != 5) ) )
+				{
+					if (key == Options::keyAddBattleScale)
+					{
+						switch (Options::battlescapeScale)
+						{ // Remap scaler switching order for smoother upscale sequence and avoid extra scalers
+							case 10: Options::battlescapeScale = 0;  break; // 10x         -> Original pWWWa: yeah, weird, but let allow to switch it for 4k+ display players
+							case 0:  Options::battlescapeScale = 10; break; // Original    -> 10x
+							case 1:  Options::battlescapeScale = 9;  break; // Scale_1.5x ->  8x
+							case 2:  Options::battlescapeScale = 8;  break; // Scale_2x	   -> 6x
+							case 3:  Options::battlescapeScale = 6;  break;
+							case 4:  Options::battlescapeScale = 3;  break;
+							case 5:  Options::battlescapeScale = 4;  break;
+							default: ++Options::battlescapeScale;
+						}
+					}
+
+					if (key == Options::keySubBattleScale)
+					{
+						switch (Options::battlescapeScale)
+						{ // Rearrange scaler switching order for smoother downscale sequence and avoid extra scalers
+							case 0: Options::battlescapeScale = 10; break;  // Original  -> 8x
+							case 1: Options::battlescapeScale = 9;  break;  // Scale_1.5 -> 6x
+							case 2: Options::battlescapeScale = 8;  break;  // Scale_2x  -> 5x
+							case 6: Options::battlescapeScale = 3;  break;
+							case 3: Options::battlescapeScale = 4;  break;
+							case 4: Options::battlescapeScale = 5;  break;
+							default: --Options::battlescapeScale;
+						}
+					}
+					int dX = 0, dY = 0;
+					resize(dX, dY);
+
+					Screen::updateScale(Options::battlescapeScale, Options::baseXBattlescape, Options::baseYBattlescape, true);
+					Options::save();
+					Options::updateOptions();
+					//pWWWs: restart BSS
+					_game->popState();
+					BattlescapeState *bs = new BattlescapeState;
+					_game->pushState(bs);
+					_game->getSavedGame()->getSavedBattle()->setBattleState(bs);
+					// Try to reactivate the touch buttons
+					bs->toggleTouchButtons(false, true);
+					_game->getScreen()->resetDisplay(false);
+
+				}
+
+				// numpad controls
 				switch (Options::oxceNumpadMove)
 				{
 					case 1:
@@ -4205,17 +4255,34 @@ void BattlescapeState::resize(int &dX, int &dY)
 		break;
 	case SCALE_SCREEN:
 		break;
+	case SCALE_ORIGINAL:
+		Options::baseXResolution = Screen::ORIGINAL_WIDTH;
+		Options::baseYResolution = Screen::ORIGINAL_HEIGHT;
+		break;
+	case SCALE_15X:
+		Options::baseXResolution = Screen::ORIGINAL_WIDTH * 1.5;
+		Options::baseYResolution = Screen::ORIGINAL_HEIGHT * 1.5;
+		break;
+	case SCALE_2X:
+		Options::baseXResolution = Screen::ORIGINAL_WIDTH * 2;
+		Options::baseYResolution = Screen::ORIGINAL_HEIGHT * 2;
+		break;
 	default:
 		dX = 0;
 		dY = 0;
 		return;
 	}
 
-	Options::baseXResolution = std::max(Screen::ORIGINAL_WIDTH, Options::displayWidth / divisor);
-	Options::baseYResolution = std::max(Screen::ORIGINAL_HEIGHT, (int)(Options::displayHeight / pixelRatioY / divisor));
+	if (Options::battlescapeScale > SCALE_2X)
+	{
+		Options::baseXResolution = std::max(Screen::ORIGINAL_WIDTH, Options::displayWidth / divisor);
+		Options::baseYResolution = std::max(Screen::ORIGINAL_HEIGHT, (int)(Options::displayHeight / pixelRatioY / divisor));
+	}
 
 	dX = Options::baseXResolution - dX;
 	dY = Options::baseYResolution - dY;
+	dX += (dX % 2 != 0) ? (dX > 0 ? -1 : 1) : 0; // pWWWa fragile hack: compensate int div to 2 clipping difference
+
 	_map->setWidth(Options::baseXResolution);
 	_map->setHeight(Options::baseYResolution);
 	_map->getCamera()->resize();

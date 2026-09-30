@@ -335,7 +335,6 @@ void createControlsOXC()
 	_info.push_back(OptionInfo(OPTION_OXC, "keyBattlePersonalLighting", &keyBattlePersonalLighting, SDLK_l, "STR_TOGGLE_PERSONAL_LIGHTING", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OXC, "keyBattleReserveNone", &keyBattleReserveNone, SDLK_F1, "STR_DONT_RESERVE_TIME_UNITS", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OXC, "keyBattleReserveSnap", &keyBattleReserveSnap, SDLK_F2, "STR_RESERVE_TIME_UNITS_FOR_SNAP_SHOT", "STR_BATTLESCAPE"));
-	_info.push_back(OptionInfo(OPTION_OXC, "keyBattleReserveAkimbo", &keyBattleReserveAkimbo, SDLK_F8, "STR_RESERVE_TIME_UNITS_FOR_AKIMBO_SHOT", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OXC, "keyBattleReserveAimed", &keyBattleReserveAimed, SDLK_F3, "STR_RESERVE_TIME_UNITS_FOR_AIMED_SHOT", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OXC, "keyBattleReserveAuto", &keyBattleReserveAuto, SDLK_F4, "STR_RESERVE_TIME_UNITS_FOR_AUTO_SHOT", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OXC, "keyBattleReserveKneel", &keyBattleReserveKneel, SDLK_j, "STR_RESERVE_TIME_UNITS_FOR_KNEEL", "STR_BATTLESCAPE"));
@@ -561,7 +560,6 @@ void createControlsOXCE()
 	_info.push_back(OptionInfo(OPTION_OXCE, "keyBattleActionItem3", &keyBattleActionItem3, SDLK_3, "STR_ACTION_ITEM_3", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OXCE, "keyBattleActionItem4", &keyBattleActionItem4, SDLK_4, "STR_ACTION_ITEM_4", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OXCE, "keyBattleActionItem5", &keyBattleActionItem5, SDLK_5, "STR_ACTION_ITEM_5", "STR_BATTLESCAPE"));
-	_info.push_back(OptionInfo(OPTION_OXCE, "keyBattleActionItem6", &keyBattleActionItem6, SDLK_6, "STR_ACTION_ITEM_6", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OXCE, "keyNightVisionToggle", &keyNightVisionToggle, SDLK_SCROLLOCK, "STR_TOGGLE_NIGHT_VISION", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OXCE, "keyNightVisionHold", &keyNightVisionHold, SDLK_SPACE, "STR_HOLD_NIGHT_VISION", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OXCE, "keySelectMusicTrack", &keySelectMusicTrack, SDLK_END, "STR_SELECT_MUSIC_TRACK", "STR_BATTLESCAPE"));
@@ -617,13 +615,13 @@ void createAdvancedOptionsOTHER()
 	_info.push_back(OptionInfo(OPTION_OTHER, "battleRealisticDisplayOthersRolls", &battleRealisticDisplayOthersRolls, false, "STR_BATTLEREALISTICDISPLAYOTHERSROLLS", "STR_BATTLERA"));
 
 	// OTHER options AI
-	_info.push_back(OptionInfo(OPTION_OTHER, "brutalAI", &brutalAI, 0, "STR_BRUTALAI", "STR_AI"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "brutalAI",		&brutalAI, 0, "STR_BRUTALAI", "STR_AI"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "brutalCivilians", &brutalCivilians, 0, "STR_BRUTALCIVILIANS", "STR_AI"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "ignoreDelay", &ignoreDelay, false, "STR_IGNOREDELAY", "STR_AI"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "allowPreprime", &allowPreprime, false, "STR_ALLOWPREPRIME", "STR_AI"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "avoidMines", &avoidMines, false, "STR_AVOIDMINES", "STR_AI"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "aiPeformance", &aiPerformanceOptimization, false, "STR_AI_PERFORMANCE", "STR_AI"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "aiCheatMode", &aiCheatMode, 0, "STR_AICHEATMODE", "STR_AI"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "ignoreDelay",		&ignoreDelay, false, "STR_IGNOREDELAY", "STR_AI"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "allowPreprime",	&allowPreprime, false, "STR_ALLOWPREPRIME", "STR_AI"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "avoidMines",		&avoidMines, false, "STR_AVOIDMINES", "STR_AI"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "aiPeformance",	&aiPerformanceOptimization, false, "STR_AI_PERFORMANCE", "STR_AI"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "aiCheatMode",		&aiCheatMode, 0, "STR_AICHEATMODE", "STR_AI"));
 
 	// OTHER options Autoplay
 	_info.push_back(OptionInfo(OPTION_OTHER, "autoCombat",					 &autoCombat,					false, "STR_AUTOCOMBAT",					 "STR_AUTO"));
@@ -638,17 +636,21 @@ void createAdvancedOptionsOTHER()
 
 void createControlsOTHER()
 {
-	_info.push_back(OptionInfo(OPTION_OTHER, "keyAIList", &keyAIList, SDLK_c, "STR_keyAIList", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "keyAIList", &keyAIList, SDLK_UNKNOWN, "STR_keyAIList", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "keyToggleAutoPlay", &keyToggleAutoPlay, SDLK_a, "STR_TOGGLE_AUTO_PLAY", "STR_BATTLESCAPE"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyLightGrenade", &keyReadyLightGrenade, SDLK_COMMA, "STR_KEY_READY_LIGHT_GRENADE", "STR_BATTLESCAPE"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyHeavyGrenade", &keyReadyHeavyGrenade, SDLK_PERIOD, "STR_KEY_READY_HEAVY_GRENADE", "STR_BATTLESCAPE"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyProximityGrenade", &keyReadyProximityGrenade, SDLK_SLASH, "STR_KEY_READY_PROXIMITY_GRENADE", "STR_BATTLESCAPE"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadySmokeGrenade", &keyReadySmokeGrenade, SDLK_SEMICOLON, "STR_KEY_READY_SMOKE_GRENADE", "STR_BATTLESCAPE"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyStunGrenade", &keyReadyStunGrenade, SDLK_EQUALS, "STR_KEY_READY_STUN_GRENADE", "STR_BATTLESCAPE"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyFlare", &keyReadyFlare, SDLK_QUOTE, "STR_KEY_READY_FLARE", "STR_BATTLESCAPE"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyScanner", &keyReadyScanner, SDLK_RIGHTBRACKET, "STR_KEY_READY_SCANNER", "STR_BATTLESCAPE"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyMedikit", &keyReadyMedikit, SDLK_LEFTBRACKET, "STR_KEY_READY_MEDIKIT", "STR_BATTLESCAPE"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "keyClearLeftHand", &keyClearLeftHand, SDLK_MINUS, "STR_KEY_CLEAR_LEFT_HAND", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyLightGrenade", &keyReadyLightGrenade, SDLK_UNKNOWN, "STR_KEY_READY_LIGHT_GRENADE", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyHeavyGrenade", &keyReadyHeavyGrenade, SDLK_UNKNOWN, "STR_KEY_READY_HEAVY_GRENADE", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyProximityGrenade", &keyReadyProximityGrenade, SDLK_UNKNOWN, "STR_KEY_READY_PROXIMITY_GRENADE", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadySmokeGrenade", &keyReadySmokeGrenade, SDLK_UNKNOWN, "STR_KEY_READY_SMOKE_GRENADE", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyStunGrenade", &keyReadyStunGrenade, SDLK_UNKNOWN, "STR_KEY_READY_STUN_GRENADE", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyFlare", &keyReadyFlare, SDLK_UNKNOWN, "STR_KEY_READY_FLARE", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyScanner", &keyReadyScanner, SDLK_UNKNOWN, "STR_KEY_READY_SCANNER", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "keyReadyMedikit", &keyReadyMedikit, SDLK_UNKNOWN, "STR_KEY_READY_MEDIKIT", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "keyClearLeftHand", &keyClearLeftHand, SDLK_UNKNOWN, "STR_KEY_CLEAR_LEFT_HAND", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "keyBattleActionItem6", &keyBattleActionItem6, SDLK_6, "STR_ACTION_ITEM_6", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "keyBattleReserveAkimbo", &keyBattleReserveAkimbo, SDLK_F8, "STR_RESERVE_TIME_UNITS_FOR_AKIMBO_SHOT", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "keyAddBattleScale", &keyAddBattleScale, SDLK_EQUALS, "STR_ADD_BATTLE_SCALE", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "keySubBattleScale", &keySubBattleScale, SDLK_MINUS, "STR_SUB_BATTLE_SCALE", "STR_BATTLESCAPE"));
 }
 
 
