@@ -2820,14 +2820,12 @@ bool AIModule::psiAction()
 
 		for (auto* bu : *_save->getUnits())
 		{
-			bool isVisible = std::find(_unit->getVisibleUnits()->begin(), _unit->getVisibleUnits()->end(), bu) != _unit->getVisibleUnits()->end();
-
 			// don't target tanks
 			if (bu->getArmor()->getSize() == 1 &&
 				validTarget(bu, true, false) &&
 				// they must be player units
 				bu->getOriginalFaction() != _unit->getFaction() &&
-				(!LOSRequired || isVisible) )
+				(!LOSRequired || _unit->hasVisibleUnit(bu)))
 			{
 				BattleUnit *victim = bu;
 				if (item->getRules()->isOutOfRange(_unit->distance3dToUnitSq(victim)))
@@ -2855,7 +2853,8 @@ bool AIModule::psiAction()
 					{
 						// target cannot be mind controlled
 						if ( victim->getUnitRules() && !victim->getUnitRules()->canBeMindControlled() ||
-						    (item->getRules()->isMindControlLOS() && !isVisible) ) continue;
+							(item->getRules()->isMindControlLOS() && !_unit->hasVisibleUnit(bu)) )
+							continue;
 
 						int controlOdds = 40;
 						int morale = victim->getMorale();
@@ -2915,7 +2914,8 @@ bool AIModule::psiAction()
 					{
 						// target cannot be panicked
 						if ( victim->getUnitRules() && !victim->getUnitRules()->canPanic() ||
-						    (item->getRules()->isPanicLOS() && !isVisible) ) continue;
+							(item->getRules()->isPanicLOS() && !_unit->hasVisibleUnit(bu)) )
+							continue;
 
 						weightToAttackMe += 40;
 					}
@@ -5027,12 +5027,11 @@ bool AIModule::brutalPsiAction()
 		BattleActionType typeToAttack = BA_NONE;
 		for (std::vector<BattleUnit *>::const_iterator i = _save->getUnits()->begin(); i != _save->getUnits()->end(); ++i)
 		{
-			bool isVisible = std::find(_unit->getVisibleUnits()->begin(), _unit->getVisibleUnits()->end(), *i) != _unit->getVisibleUnits()->end();
 			// don't target tanks
 			if ((*i)->getArmor()->getSize() == 1 &&
 				// civilians must be armed to be considered psi-targets
 				((*i)->getMainHandWeapon() || (*i)->getFaction() != FACTION_NEUTRAL) &&
-				(!LOSRequired || isVisible) &&
+				(!LOSRequired || _unit->hasVisibleUnit(*i)) &&
 				brutalValidTarget(*i, true, true)
 				)
 			{
@@ -5068,15 +5067,15 @@ bool AIModule::brutalPsiAction()
 					{
 						// target cannot be mind controlled
 						if ( victim->getUnitRules() && !victim->getUnitRules()->canBeMindControlled() ||
-							(item->getRules()->isMindControlLOS() && !isVisible) )
+							(item->getRules()->isMindControlLOS() && !_unit->hasVisibleUnit(*i)))
 							continue;
 					}
 					else if (cost[j].type == BA_PANIC)
 					{
 						// target cannot be panicked
 						if ( victim->getUnitRules() && !victim->getUnitRules()->canPanic() ||
-							(item->getRules()->isPanicLOS() && !isVisible) )
-							continue;
+							(item->getRules()->isPanicLOS() && !_unit->hasVisibleUnit(*i)) )
+						continue;
 						psiActionScore *= std::min(victim->getMorale(), 110 - victim->getBaseStats()->bravery) / 100.0;
 					}
 					if (psiActionScore > highestPsiScore)

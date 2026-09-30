@@ -1899,9 +1899,9 @@ void BattlescapeGame::primaryAction(Position pos)
 			}
 		}
 		else if ( ( (_currentAction.type == BA_AUTOSHOT && _currentAction.weapon->getRules()->getSprayWaypoints() > 0) ||
-				  (_currentAction.type == BA_AKIMBOSHOT && _currentAction.actor->isAkimbo() &&
-				   _currentAction.actor->getLeftHandWeapon()->getRules()->getSprayWaypoints() > 0 &&
-			       _currentAction.actor->getRightHandWeapon()->getRules()->getSprayWaypoints() > 0) ) &&
+				    (_currentAction.type == BA_AKIMBOSHOT && _currentAction.actor->isAkimbo() &&
+				     _currentAction.actor->getLeftHandWeapon()->getRules()->getSprayWaypoints() > 0 &&
+			         _currentAction.actor->getRightHandWeapon()->getRules()->getSprayWaypoints() > 0) ) &&
 				   _save->isCtrlPressed(true) &&
 			       _save->isShiftPressed(true) &&
 			       _currentAction.waypoints.empty() ) // Starts the spray autoshot or akimboshot targeting
@@ -1917,7 +1917,7 @@ void BattlescapeGame::primaryAction(Position pos)
 			{
 				if (!_currentAction.weapon->getRules()->isLOSRequired() ||
 					(_currentAction.actor->getFaction() == FACTION_PLAYER && targetUnit->getFaction() != FACTION_HOSTILE) ||
-					std::find(_currentAction.actor->getVisibleUnits()->begin(), _currentAction.actor->getVisibleUnits()->end(), targetUnit) != _currentAction.actor->getVisibleUnits()->end())
+					_currentAction.actor->hasVisibleUnit(targetUnit))
 				{
 					std::string error;
 					if (_currentAction.spendTU(&error))
