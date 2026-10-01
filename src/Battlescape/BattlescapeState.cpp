@@ -912,26 +912,6 @@ void BattlescapeState::think()
 				_battleGame->handleNonTargetAction();
 				popped = false;
 			}
-			/**
-			// continuous numpad movement/turning: queue next action when unit finishes
-			if (_numpadMoveDir >= 0 && !_battleGame->isBusy() && playableUnitSelected() && SDL_GetTicks() > _numpadRepeatTime)
-			{
-				_battleGame->cancelAllActions();
-				if (_numpadTurnDelta != 0)
-				{
-					// tank mode turning: recompute target direction from current facing
-					int dir = (_save->getSelectedUnit()->getDirection() + _numpadTurnDelta + 8) % 8;
-					_numpadMoveDir = dir;
-					_battleGame->turnUnit(_save->getSelectedUnit(), dir);
-					_numpadRepeatTime = SDL_GetTicks() + 200;
-				}
-				else
-				{
-					_battleGame->moveDirection(_save->getSelectedUnit(), _numpadMoveDir);
-					_numpadRepeatTime = SDL_GetTicks() + 200;
-				}
-			}
-			/**/
 		}
 		else
 		{

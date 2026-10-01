@@ -2852,8 +2852,8 @@ bool AIModule::psiAction()
 					if (cost[j].type == BA_MINDCONTROL)
 					{
 						// target cannot be mind controlled
-						if ( victim->getUnitRules() && !victim->getUnitRules()->canBeMindControlled() ||
-							(item->getRules()->isMindControlLOS() && !_unit->hasVisibleUnit(bu)) )
+						if ( victim->getUnitRules() && ( !victim->getUnitRules()->canBeMindControlled() ||
+														 (item->getRules()->isMindControlLOS() && !_unit->hasVisibleUnit(victim)) ) )
 							continue;
 
 						int controlOdds = 40;
@@ -2913,8 +2913,8 @@ bool AIModule::psiAction()
 					else if (cost[j].type == BA_PANIC)
 					{
 						// target cannot be panicked
-						if ( victim->getUnitRules() && !victim->getUnitRules()->canPanic() ||
-							(item->getRules()->isPanicLOS() && !_unit->hasVisibleUnit(bu)) )
+						if ( victim->getUnitRules() && ( !victim->getUnitRules()->canPanic() ||
+														 (item->getRules()->isPanicLOS() && !_unit->hasVisibleUnit(victim)) ) )
 							continue;
 
 						weightToAttackMe += 40;
@@ -5066,15 +5066,15 @@ bool AIModule::brutalPsiAction()
 					if (cost[j].type == BA_MINDCONTROL)
 					{
 						// target cannot be mind controlled
-						if ( victim->getUnitRules() && !victim->getUnitRules()->canBeMindControlled() ||
-							(item->getRules()->isMindControlLOS() && !_unit->hasVisibleUnit(*i)))
+						if ( victim->getUnitRules() && ( !victim->getUnitRules()->canBeMindControlled() ||
+													     (item->getRules()->isMindControlLOS() && !_unit->hasVisibleUnit(victim)) ) )
 							continue;
 					}
 					else if (cost[j].type == BA_PANIC)
 					{
 						// target cannot be panicked
-						if ( victim->getUnitRules() && !victim->getUnitRules()->canPanic() ||
-							(item->getRules()->isPanicLOS() && !_unit->hasVisibleUnit(*i)) )
+						if ( victim->getUnitRules() && ( !victim->getUnitRules()->canPanic() ||
+														 (item->getRules()->isPanicLOS() && !_unit->hasVisibleUnit(victim)) ) )
 						continue;
 						psiActionScore *= std::min(victim->getMorale(), 110 - victim->getBaseStats()->bravery) / 100.0;
 					}

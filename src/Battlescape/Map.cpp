@@ -2566,7 +2566,7 @@ UnitWalkingOffset Map::calculateWalkingOffset(const BattleUnit *unit) const
 	}
 	else
 	{
-		result.TerrainLevelOffset = unit->getTile()->getTerrainLevel(unit); // getTerrainLevel(unit->getPosition(), size);
+		result.TerrainLevelOffset = getTerrainLevel(unit->getPosition(), size);
 	}
 	result.ScreenOffset.y += result.TerrainLevelOffset;
 	return result;

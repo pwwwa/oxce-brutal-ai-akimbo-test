@@ -5995,8 +5995,8 @@ bool TileEngine::validMeleeRange(Position pos, int direction, BattleUnit *attack
 	{
 		for (int y = 0; y < size; ++y)
 		{
-			Tile *origin (_save->getTile(Position(pos + Position(x, y, 0))));
-			Tile *targetTile (_save->getTile(Position(pos + Position(x, y, 0) + p)));
+			Tile *origin = _save->getTile(Position(pos + Position(x, y, 0)));
+			Tile *targetTile = _save->getTile(Position(pos + Position(x, y, 0) + p));
 
 			if (targetTile && origin)
 			{
@@ -6060,7 +6060,7 @@ bool TileEngine::validMeleeRange(Position pos, int direction, BattleUnit *attack
 		}
 	}
 
-	if (dest && chosenTarget && chosenTarget->getArmor()->getSize() == 1) // pWWWa: exclude big units due it can to change possible hit position and they can't be "medikited"
+	if (dest && chosenTarget && chosenTarget->isSmallUnit()) // pWWWa: exclude big units due it can to change possible hit position and they can't be "medikited"
 	{
 		*dest = chosenTarget->getPosition();
 	}
@@ -6312,7 +6312,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		if (_save->isAltPressed(true))
 		{ // Forced terrain melee helper. Suitable for non-proper tile configuration aiming (etc. objecs part in floor tile "slot")
 			if (setTarget(neighbouringTile, O_NORTHWALL, action) ||
-				setTarget(neighbouringTile, O_WESTWALL, action)||
+				setTarget(neighbouringTile, O_WESTWALL, action)  ||
 				setTarget(neighbouringTile, O_FLOOR, action))
 			return true;
 
@@ -6323,7 +6323,6 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 				return true;
 			}
 		}
-
 	}
 	return false;
 }
