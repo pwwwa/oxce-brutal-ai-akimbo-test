@@ -3216,9 +3216,8 @@ inline void BattlescapeState::handle(Action *action)
 				}
 
 				// pWWWa: Battlescape scale switcher
-				if (!isBusy() && /** / !Options::allowResize && /**/
-					( (key == Options::keyAddBattleScale && Options::battlescapeScale <= 10 && Options::battlescapeScale != 0) || 
-					  (key == Options::keySubBattleScale && Options::battlescapeScale >=  0 && Options::battlescapeScale != 5) ) )
+				if (!isBusy() && ( (key == Options::keyAddBattleScale && Options::battlescapeScale <= 10 && Options::battlescapeScale != 0) || 
+								   (key == Options::keySubBattleScale && Options::battlescapeScale >=  0 && Options::battlescapeScale != 5) ) )
 				{
 					if (key == Options::keyAddBattleScale)
 					{
@@ -3256,13 +3255,16 @@ inline void BattlescapeState::handle(Action *action)
 					Options::updateOptions();
 					_game->getScreen()->resetDisplay(false);
 
-					// pWWWa: restart BSS (borrowed & adjusted)
-					_game->popState();
-					BattlescapeState* bs = new BattlescapeState;
-					_game->pushState(bs);
-					_game->getSavedGame()->getSavedBattle()->setBattleState(bs);
-					// Try to reactivate the touch buttons 
-					bs->toggleTouchButtons(false, true);
+					// pWWWa: restart BSS with pressed CTRL if something went wrong (borrowed & adjusted)
+					if (ctrlPressed)
+					{
+						_game->popState(); // clear current state (no memory leak)
+						BattlescapeState *bs = new BattlescapeState;
+						_game->pushState(bs);
+						_game->getSavedGame()->getSavedBattle()->setBattleState(bs);
+						// Try to reactivate the touch buttons
+						bs->toggleTouchButtons(false, true);
+					}
 				}
 
 				// numpad controls
@@ -4261,7 +4263,7 @@ void BattlescapeState::resize(int &dX, int &dY)
 
 	dX = Options::baseXResolution - dX;
 	dY = Options::baseYResolution - dY;
-	dX += (dX % 2 != 0) ? (dX > 0 ? -1 : 1) : 0; // pWWWa fragile hack: compensate int div to 2 clipping difference
+	dX += (dX % 2 != 0) ? (dX > 0 ? -1 : 1) : 0; // pWWWa: compensate int div to 2 clipping difference (fragile hack)
 
 	_map->setWidth(Options::baseXResolution);
 	_map->setHeight(Options::baseYResolution);
