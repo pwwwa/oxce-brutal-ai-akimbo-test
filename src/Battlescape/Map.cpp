@@ -261,27 +261,44 @@ Map::~Map()
  */
 void Map::init()
 {
+	// pWWWa: unhardcode arrow unit pointer. Weird method, but didn't want to touch destructor (until)
+	Surface *altArrow = _game->getMod()->getSurface("arrow", false);
+
+	if (altArrow)
+	{
+		_arrow = new Surface(altArrow->getWidth(), altArrow->getHeight());
+		_arrow->setPalette(this->getPalette());
+		_arrow->lock();
+
+		for (int y = 0; y < altArrow->getHeight(); ++y)
+			for (int x = 0; x < altArrow->getWidth(); ++x)
+				_arrow->setPixel(x, y, altArrow->getPixel(x, y));
+		_arrow->unlock();
+	}
+	else	 
 	// load the tiny arrow into a surface
-	int f = Palette::blockOffset(1); // yellow
-	int b = 15; // black
-	int pixels[81] = { 0, 0, b, b, b, b, b, 0, 0,
-					   0, 0, b, f, f, f, b, 0, 0,
-					   0, 0, b, f, f, f, b, 0, 0,
-					   b, b, b, f, f, f, b, b, b,
-					   b, f, f, f, f, f, f, f, b,
-					   0, b, f, f, f, f, f, b, 0,
-					   0, 0, b, f, f, f, b, 0, 0,
-					   0, 0, 0, b, f, b, 0, 0, 0,
-					   0, 0, 0, 0, b, 0, 0, 0, 0 };
+	{
 
-	_arrow = new Surface(9, 9);
-	_arrow->setPalette(this->getPalette());
-	_arrow->lock();
-	for (int y = 0; y < 9;++y)
-		for (int x = 0; x < 9; ++x)
-			_arrow->setPixel(x, y, pixels[x+(y*9)]);
-	_arrow->unlock();
+		int f = Palette::blockOffset(1); // yellow
+		int b = 15;                      // black
+		int pixels[81] = {0, 0, b, b, b, b, b, 0, 0,
+						  0, 0, b, f, f, f, b, 0, 0,
+						  0, 0, b, f, f, f, b, 0, 0,
+						  b, b, b, f, f, f, b, b, b,
+						  b, f, f, f, f, f, f, f, b,
+						  0, b, f, f, f, f, f, b, 0,
+						  0, 0, b, f, f, f, b, 0, 0,
+						  0, 0, 0, b, f, b, 0, 0, 0,
+						  0, 0, 0, 0, b, 0, 0, 0, 0};
 
+		_arrow = new Surface(9, 9);
+		_arrow->setPalette(this->getPalette());
+		_arrow->lock();
+		for (int y = 0; y < 9; ++y)
+			for (int x = 0; x < 9; ++x)
+				_arrow->setPixel(x, y, pixels[x + (y * 9)]);
+		_arrow->unlock();
+	}
 	_projectile = 0;
 	if (_save->getDepth() == 0)
 	{
@@ -1985,6 +2002,8 @@ void Map::drawTerrain(Surface *surface)
 		}
 	}
 
+	int arrowShade = Options::altArrowScheme ? getArrowBobForFrame(_animFrame) : 0;
+
 	auto* selectedUnit = _save->getSelectedUnit();
 	if (selectedUnit && (_save->getSide() == FACTION_PLAYER || _save->getDebugMode()) && selectedUnit->getPosition().z <= _camera->getViewLevel())
 	{
@@ -2002,16 +2021,21 @@ void Map::drawTerrain(Surface *surface)
 		}
 		if (this->getCursorType() != CT_NONE)
 		{
-			const int arrowColor = _isTFTD ? 6 : 5; // unit selector arrow alt color (green)
-			_arrow->blitNShade(surface, screenPosition.x + offset.x + (_spriteWidth / 2) - (_arrow->getWidth() / 2), screenPosition.y + offset.y - _arrow->getHeight() + getArrowBobForFrame(_animFrame), getArrowBobForFrame(_animFrame), false, arrowColor);
+			_arrow->blitNShade(surface, screenPosition.x + offset.x + (_spriteWidth / 2) - (_arrow->getWidth() / 2), screenPosition.y + offset.y - _arrow->getHeight() + getArrowBobForFrame(_animFrame), arrowShade);
 		}
 	}
 
 	// Draw motion scanner arrows
 	if (_isAltPressed && _save->getSide() == FACTION_PLAYER && this->getCursorType() != CT_NONE)
 	{
+		// pWWWa: alt scanner arrow image injection
+		Surface* scanArrow = _game->getMod()->getSurface("scanArrow", false);
+
+		if (!scanArrow)	scanArrow = _arrow;
+
 		for (auto* myUnit : *_save->getUnits())
 		{
+			arrowShade = (Options::altArrowScheme) ? getArrowBobForFrame(_animFrame) + (myUnit->getPosition().z == _camera->getViewLevel() ? 0 : 6) : 0;
 			Position temp;
 			if (myUnit->getFaction() != FACTION_PLAYER && !myUnit->isOut())
 			{
@@ -2033,11 +2057,11 @@ void Map::drawTerrain(Surface *surface)
 						{
 							offset.y -= 2;
 						}
-						_arrow->blitNShade(
+						scanArrow->blitNShade(
 							surface,
 							screenPosition.x + offset.x + (_spriteWidth / 2) - (_arrow->getWidth() / 2),
 							screenPosition.y + offset.y - _arrow->getHeight() + getArrowBobForFrame(_animFrame),
-							getArrowBobForFrame(_animFrame), false, 3);
+							arrowShade, false, 3);
 					}
 				}
 				if (myUnit->getScannedTurn() == _save->getTurn())
@@ -2052,20 +2076,17 @@ void Map::drawTerrain(Surface *surface)
 					{
 						offset.y += 4;
 					}
-					offset.y += 24 - myUnit->getHeight(); // 21; // no spoilers
+					offset.y += 24 - myUnit->getHeight(); // Was: 3 (24 - 21); // no spoilers. pWWWa: really, what about height difference with scanner arrow ?
 					if (myUnit->isKneeled())
 					{
 						offset.y -= 2;
 					}
 
-					const int arrowShade = getArrowBobForFrame(_animFrame) + (myUnit->getPosition().z == _camera->getViewLevel() ? 0 : 6);
-					const int arrowColor = _isTFTD ? 12 : 3; //pWWWa: red for EU & TFTD
-
-					_arrow->blitNShade(
+					scanArrow->blitNShade(
 						surface,
 						screenPosition.x + offset.x + (_spriteWidth / 2) - (_arrow->getWidth() / 2),
 						screenPosition.y + offset.y - _arrow->getHeight() + getArrowBobForFrame(_animFrame),
-						arrowShade, false, arrowColor);
+						arrowShade);
 				}
 			}
 		}

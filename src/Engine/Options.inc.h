@@ -220,6 +220,7 @@ OPT SDLKey keyClearLeftHand;
 // pWWWa: Akimbo stuff
 OPT bool noMultiHitHE;
 OPT int moraleAttackSuccessNotify, akimboMod, oxceNumpadMove;
+OPT bool noMultiHitHE, altArrowScheme;
 OPT SDLKey keyBattleActionItem6, keyBattleReserveAkimbo, keyAddBattleScale, keySubBattleScale;
 
 OPT int battleXcomSpeedOrig;
