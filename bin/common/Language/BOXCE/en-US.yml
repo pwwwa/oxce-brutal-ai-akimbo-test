@@ -130,9 +130,9 @@ en-US:
   # Diagonal Terrain melee
   STR_DIAG_TERRAIN_MELEE: "Diagonal Terrain Melee"
   STR_DIAG_TERRAIN_MELEE_DESC: "Hitting terrain objects at diagonal directions with melee.{NEWLINE}Requires activated {ALT}terrainMeleeExtended{ALT} feature.{NEWLINE}{ALT}Alt+click{ALT} - forced hit objects at current and adjacent tiles."
-  # Floating unit Bobbing
-  STR_FLOAT_UNIT_BOBBING: "Bobbing of floating unit"
-  STR_FLOAT_UNIT_BOBBING_DESC: "Each unit will bob slightly when in flying/floating state."
+  # Floating unit Bobbing and Shade
+  STR_FLOAT_UNIT_BOB_N_SHADE: "Floating unit Bobbing and Shading"
+  STR_FLOAT_UNIT_BOB_N_SHADE_DESC: "Options: {ALT}0>{ALT}Disabled, {ALT}1>{ALT} Bobbing, {ALT}2>{ALT} Casting shadow, {ALT}3>{ALT} Bobbing and shading {ALT}4>{ALT} Bobbing and dynamic shading."
  
   #Morale attack success info
   STR_MORALE_ATTACK_SUCCESS_NOTIFY: "Morale Attack Success Notification"

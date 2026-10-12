@@ -308,6 +308,7 @@ void Map::init()
 	{
 		_projectileSet = _game->getMod()->getSurfaceSet("UnderwaterProjectiles");
 	}
+	_shadeTileMap.assign(_save->getMapSizeXYZ(), 0);
 }
 
 /**
@@ -751,9 +752,26 @@ void Map::drawUnit(UnitSprite &unitSprite, Tile *unitTile, Tile *currTile, Posit
 	{
 		shade = std::min(+NIGHT_VISION_SHADE, shade);
 	}
-	if (Options::floatUnitBobbing && bu->isFloating())
+
+	/***************************************************\
+	* pWWWa: Bob floaters and cast shadow to below unit *
+	\***************************************************/
+	if (Options::floatUnitBobNShade)
 	{
-		offsets.ScreenOffset.y += getArrowBobForFrame(_animFrame * (bu->getId() % 2 ? 0.5 : 0.45)) - 1; // bu->getId() % 2 ? (bu->getId() % 3 ? 0.5 : 0.45) : (!(bu->getId() % 4) ? 0.40 : 0.35);
+		if (Options::floatUnitBobNShade != 1)
+		{
+			int penalty = _shadeTileMap[_save->getTileIndex(unitTile->getPosition())];
+
+			if (penalty)
+			{
+				shade =  std::min(15, shade + penalty);
+			}
+		}
+
+		if (Options::floatUnitBobNShade != 2 && bu->isFloating() && bu->getArmor()->canFloatBob())
+		{
+			offsets.ScreenOffset.y += getArrowBobForFrame((_animFrame + bu->getId()) * 0.5) - 1;
+		}
 	}
 	unitSprite.draw(bu, part, tileScreenPosition.x + offsets.ScreenOffset.x, tileScreenPosition.y + offsets.ScreenOffset.y, shade, mask, _isAltPressed && !_isCtrlPressed);
 }
@@ -791,6 +809,69 @@ void Map::drawTerrain(Surface *surface)
 
 	NumberText *_numWaypid = 0;
 
+	/***********************************************\  
+	* pWWWa: Floating unit casted shadow collection * 
+	\***********************************************/
+	if (Options::floatUnitBobNShade && Options::floatUnitBobNShade != 1)
+	{
+		std::fill(_shadeTileMap.begin(), _shadeTileMap.end(), 0);
+
+		for (const BattleUnit* flyUnit : *_save->getUnits())
+		{
+			if (flyUnit && !flyUnit->isOut() && (flyUnit->getVisible() || _save->getDebugMode()) && flyUnit->isFloating())
+			{
+				const int size = flyUnit->getArmor()->getSize();
+				int unitZ = flyUnit->getPosition().z;
+
+				for (int x = 0; x < size; ++x)
+				{
+					for (int y = 0; y < size; ++y)
+					{
+						int currentX = flyUnit->getPosition().x + x;
+						int currentY = flyUnit->getPosition().y + y;
+						int targetTileZ = 0;
+
+						for (int z = unitZ - 1; z > 0; --z)
+						{
+							Tile* checkTile = _save->getTile(Position(currentX, currentY, z));
+							if (checkTile)
+							{
+
+								if ( (checkTile->getMapData(O_FLOOR) && !checkTile->getMapData(O_FLOOR)->isNoFloor()) || checkTile->getMapData(O_OBJECT) || checkTile->getOverlappingUnit(_save)) ///  checkTile->getSprite(O_OBJECT)
+								{
+									targetTileZ = z;
+									break;
+								}
+							}
+						}
+
+						const Position shadePos = Position(currentX, currentY, targetTileZ);
+
+						if (_save->getTile(shadePos))
+						{
+							int tileIndex = _save->getTileIndex(shadePos);
+							int heightDistance = unitZ - targetTileZ;
+							int penalty = (heightDistance == 1) ? 2 : 1;
+
+							if (Options::floatUnitBobNShade == 4) penalty = getArrowBobForFrame((_animFrame + flyUnit->getId()) * 0.5) + 1;
+
+							if (_shadeTileMap[tileIndex] < penalty) _shadeTileMap[tileIndex] = penalty;
+						}
+					}
+				}
+			}
+		}
+	}
+	// pWWWa: Floating unit shadow casting
+	auto applyShadow = [&](int& shadeValue, int tileIdx)
+	{
+		// 1. "Shadow of the city" (c)
+		if (Options::floatUnitBobNShade && Options::floatUnitBobNShade != 1)
+		{
+			shadeValue = std::min(16, shadeValue + _shadeTileMap[tileIdx]);
+			// obstacleValue = std::min(15, obstacleValue + _shadeTileMap[tileIdx]);
+		}
+	};
 	// if we got bullet, get the highest x and y tiles to draw it on
 	if (_projectile && _explosions.empty())
 	{
@@ -1021,6 +1102,9 @@ void Map::drawTerrain(Surface *surface)
 					tileColor = tile->getMarkerColor();
 
 					// Draw floor
+					
+					// pWWWa: shade'n'light to floor (and objects too)
+					if (!(tile->getUnit() && tile->getUnit()->isBigUnit())) applyShadow(tileShade, _save->getTileIndex(mapPosition));
 					tmpSurface = tile->getSprite(O_FLOOR);
 					if (tmpSurface)
 					{
@@ -1085,6 +1169,9 @@ void Map::drawTerrain(Surface *surface)
 						if (tmpSurface)
 						{
 							int wallShade = getWallShade(O_WESTWALL, tile);
+
+							// pWWWa: shade'n'light to west (life) wall
+							if (!tile->getMapData(O_WESTWALL)->getLoftID(11)) applyShadow(wallShade, _save->getTileIndex(mapPosition));
 							if (tile->getObstacle(O_WESTWALL))
 								Surface::blitRaw(surface, tmpSurface, screenPosition.x, screenPosition.y - tile->getYOffset(O_WESTWALL), obstacleShade, false, _nvColor);
 							else if (_thisTileVisible)
@@ -1097,6 +1184,9 @@ void Map::drawTerrain(Surface *surface)
 						if (tmpSurface)
 						{
 							auto wallShade = getWallShade(O_NORTHWALL, tile);
+
+							// pWWWa: shade'n'light to north wall (cause "winter is comming")
+							if (!tile->getMapData(O_NORTHWALL)->getLoftID(11)) applyShadow(wallShade, _save->getTileIndex(mapPosition));
 							if (tile->getObstacle(O_NORTHWALL))
 								Surface::blitRaw(surface, tmpSurface, screenPosition.x, screenPosition.y - tile->getYOffset(O_NORTHWALL), obstacleShade, bool(tile->getSprite(O_WESTWALL)), _nvColor);
 							else if (_thisTileVisible)

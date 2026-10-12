@@ -60,6 +60,7 @@ struct UnitWalkingOffset
 class Map : public InteractiveSurface
 {
 private:
+	std::vector<int> _shadeTileMap {}; 	// pWWWa: unit shadecasting tile map "array"
 	bool _thisTileVisible;
 	static const int SCROLL_INTERVAL = 15;
 	static const int FADE_INTERVAL = 23;
