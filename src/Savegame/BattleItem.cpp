@@ -752,7 +752,7 @@ bool BattleItem::isWeaponWithAmmo() const
  */
 bool BattleItem::haveAnyAmmo() const
 {
-	if (!_isWeaponWithAmmo && !_rules->isAmmoRechargeable())
+	if (!_isWeaponWithAmmo)
 	{
 		return true;
 	}

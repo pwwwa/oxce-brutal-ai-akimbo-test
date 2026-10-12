@@ -249,7 +249,7 @@ void Tile::setMapData(MapData *dat, int mapDataID, int mapDataSetID, TilePart pa
 	{
 		case O_FLOOR:
 						  _cache.isNoFloor		  = _objects[part] ? _objects[part]->isNoFloor() : 1;
-						  _cache.isGravLift		  =	_objects[part] && _objects[part]->isGravLift();
+						  _cache.isGravLift		  =	_objects[part] ? _objects[part]->isGravLift() : 0;
 						  break;
 		case O_WESTWALL:
 						  _cache.isLadderOnWest	  = _objects[part] && _objects[part]->isGravLift();
@@ -1133,7 +1133,7 @@ int Tile::getTerrainLevel(const BattleUnit *unit) const
 		return _cache.terrainLevel;
 	}
 
-	const Position &unitPos = unit->getPosition();
+	const Position unitPos = unit->getPosition();
 	int lowLevel = 24;
 
 	for (int x = 0; x < 2; ++x)

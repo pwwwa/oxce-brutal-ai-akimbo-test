@@ -2887,22 +2887,20 @@ int RuleItem::getPiercePowerCap() const
 /// Gets projectile pierce damage type for AOE ammo
 ItemDamageType RuleItem::getPierceAOEDamageType() const
 {
-
 	return static_cast<ItemDamageType>(_pierceAOEDamageType < 1
 									  ? 1
 									  : _pierceAOEDamageType > 19
-									  ? 19
-									  : _pierceAOEDamageType);
+									    ? 19
+									    : _pierceAOEDamageType);
 }
 
-// Gets scanner radius range
+/// Gets scanner radius range
 int RuleItem::getScanRange() const { return _scanRange > 0 ? _scanRange : 0; }
-
-// Is scanner item able to detect static units too ?
+/// Is scanner item able to detect static units too ?
 bool RuleItem::isScanAll() const { return _isScanAll; }
-// Is panic action of that item require line of sight ?
+/// Is panic action of that item require line of sight ?
 bool RuleItem::isPanicLOS() const { return _isPanicLOS; }
-// Is mind control action of that item require line of sight ?
+/// Is mind control action of that item require line of sight ?
 bool RuleItem::isMindControlLOS() const { return _isMindControlLOS; }
 
 ////////////////////////////////////////////////////////////

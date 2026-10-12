@@ -1056,13 +1056,13 @@ public:
 	int getPiercePowerCap() const;
 	/// Gets projectile pierce damage type for AOE ammo
 	ItemDamageType getPierceAOEDamageType() const;
-	// Gets scanner radius range
+	/// Gets scanner radius range
 	int getScanRange() const;
-	// Is scanner item able to detect static units too ?
+	/// Is scanner item able to detect static units too ?
 	bool isScanAll() const;
-	// Is panic attack action of that item require line of sight ?
+	/// Is panic attack action of that item require line of sight ?
 	bool isPanicLOS() const;
-	// Is mind control action of that item require line of sight ?
+	/// Is mind control action of that item require line of sight ?
 	bool isMindControlLOS() const;
 
 	/// Gets script.

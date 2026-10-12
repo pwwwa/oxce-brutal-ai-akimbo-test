@@ -1092,8 +1092,8 @@ bool Projectile::move()
 		}
 
 		if ( isRangeEvent && ( _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(getPosition().toTile())) ||
-		   ( _action.type == BA_LAUNCH && _action.waypoints.size() == 1 &&
-			 _action.actor->distance3dToPositionSq(getPosition().toTile()) > _action.actor->distance3dToPositionSq(_action.target) ) ) )
+							  (_action.type == BA_LAUNCH && _action.waypoints.size() == 1 &&
+			 _action.actor->distance3dToPositionSq(getPosition().toTile()) > _action.actor->distance3dToPositionSq(_action.target)) ) )
 		{ // pWWWa: stop projectile with ammo maxRangeEvent flag, if it passed maxRange distance or guided missile reached last waypoint
 			return false;
 		}

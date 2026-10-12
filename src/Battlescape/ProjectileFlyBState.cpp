@@ -777,7 +777,9 @@ void ProjectileFlyBState::think()
 	{
 		auto attack = BattleActionAttack::GetAferShoot(_action, _ammo);
 
-		// pWWWa: Pierce bullet handling injection (dirty hack. Possible todo: transfer it to Projectile::move())
+		/***********************************\
+		* PIERCE THROUGH PROJECTILE SECTION *
+		\***********************************/
 		if (_ammo && _ammo->getRules()->getPierceType() && !_ammo->getRules()->getShotgunPellets() && _parent->getMap()->getProjectile())
 		{
 			Projectile* bullet = _parent->getMap()->getProjectile();
@@ -786,18 +788,20 @@ void ProjectileFlyBState::think()
 			BattleUnit* victim = tile->getOverlappingUnit(_parent->getSave());
 			const auto tp = static_cast<TilePart>(_projectileImpact);
 			auto dmgAOE = _ammo->getRules()->getPierceAOEDamageType();
-			auto dmgType = _ammo->getRules()->getDamageType()->isDirect() ? _ammo->getRules()->getDamageType() : _parent->getMod()->getDamageType(dmgAOE);
+			auto dmgType = _ammo->getRules()->getDamageType()->isDirect()
+				         ? _ammo->getRules()->getDamageType()
+				         : _parent->getMod()->getDamageType(dmgAOE);
 
 			if (_projectileImpact > V_EMPTY && _projectileImpact < V_OUTOFBOUNDS && !(_projectileImpact == V_UNIT && victim->isPierced() /** / isOutThresholdExceed() /**/) && _parent->getPiercePower())
 			{ // Projectile faces something "tasty" on their way. Let prepare to hit
 				int power = 0;
 				if (_action.weapon->getRules()->getIgnoreAmmoPower())
 				{ // borrowed from shotgun section
-					power = _action.weapon->getRules()->getPowerBonus(attack) - _action.weapon->getRules()->getPowerRangeReduction(_parent->getMap()->getProjectile()->getDistance());
+					power = _action.weapon->getRules()->getPowerBonus(attack) - _action.weapon->getRules()->getPowerRangeReduction(bullet->getDistance());
 				}
 				else
 				{
-					power = _ammo->getRules()->getPowerBonus(attack) - _ammo->getRules()->getPowerRangeReduction(_parent->getMap()->getProjectile()->getDistance());
+					power = _ammo->getRules()->getPowerBonus(attack) - _ammo->getRules()->getPowerRangeReduction(bullet->getDistance());
 				}
 
 				int piercePowerDercement = 0;
@@ -805,15 +809,13 @@ void ProjectileFlyBState::think()
 				{ // ternary used for avoiding possible zero devision (etc. damage modifier == 0)
 					piercePowerDercement = ( victim->getArmor()->getArmor(SIDE_FRONT) *
 											 _ammo->getRules()->getDamageType()->ArmorEffectiveness +
-											 victim->getHealth() ) / ( victim->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType)
-																     ? std::fminf(1, victim->getArmor()->getDamageModifier(_ammo->getRules()->getDamageType()->ResistType))
+											 victim->getHealth() ) / ( victim->getArmor()->getDamageModifier(dmgType->ResistType)
+																     ? std::fminf(1, victim->getArmor()->getDamageModifier(dmgType->ResistType))
 																     : 1 );
 				}
 				else
 				{ // same zero divide avoidance method
-					piercePowerDercement = tile->getMapData(tp)->getArmor() / ( _ammo->getRules()->getDamageType()->ToTile
-																			  ? _ammo->getRules()->getDamageType()->ToTile
-																			  : 1 );
+					piercePowerDercement = tile->getMapData(tp)->getArmor() / (dmgType->ToTile ? dmgType->ToTile : 1);
 				}
 				// hit processing
 				_parent->getSave()->getTileEngine()->hit(attack,
@@ -836,7 +838,7 @@ void ProjectileFlyBState::think()
 				else
 				{ // let arrange further handling of impacted HE terrain objects with queued dummy EBS
 					if(tile->getSavedGame()->getTileEngine()->checkForTerrainExplosions())
-						_parent->statePushNext(new ExplosionBState(_parent, bullet->getLastPositions(), BattleActionAttack{/** BA_NONE, attack.attacker /**/}, tile, false, 0, 0));
+						_parent->statePushNext(new ExplosionBState(_parent, bullet->getLastPositions(), BattleActionAttack{BA_NONE, attack.attacker}, tile, false, 0, 0));
 				}
 			}
 			else 
@@ -854,6 +856,9 @@ void ProjectileFlyBState::think()
 		{
 			// impact !
 
+			/********************************\
+			* PROJECTILE RANGE EVENT SECTION *
+			\********************************/
 			if (_ammo && _ammo->getRules()->getMaxRangeEvent())
 			{ // Projectile -=maxRange event=- property: when restricted distance is crossed or last guided waypoint is arrived to final destination, let handle it
 				if ( _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(_parent->getMap()->getProjectile()->getPosition().toTile())) ||
