@@ -87,6 +87,7 @@ en-US:
   
   # RA
   STR_BATTLERA: "Realistic Accuracy"
+  STR_BATTLERA_DESC: "Realistic Accuracy section.{NEWLIINE}Each option works when {ALT}Realistic Accuracy & Cover{ALT} setting is enabled"
   STR_BATTLEREALISTICACCURACY: "Realistic Accuracy & Cover"
   STR_BATTLEREALISTICACCURACY_DESC: "Total shooting revamp: cover mechanics (CTRL to view), reduced shooting spread, friendly fire / accidental suicides protection, etc."
   STR_BATTLEREALISTICCOVEREFFICIENCY: "Cover efficiency"
@@ -130,13 +131,14 @@ en-US:
   # Diagonal Terrain melee
   STR_DIAG_TERRAIN_MELEE: "Diagonal Terrain Melee"
   STR_DIAG_TERRAIN_MELEE_DESC: "Hitting terrain objects at diagonal directions with melee.{NEWLINE}Requires activated {ALT}terrainMeleeExtended{ALT} feature.{NEWLINE}{ALT}Alt+click{ALT} - forced hit objects at current and adjacent tiles."
+  
   # Floating unit Bobbing and Shade
-  STR_FLOAT_UNIT_BOB_N_SHADE: "Floating unit Bobbing and Shading"
-  STR_FLOAT_UNIT_BOB_N_SHADE_DESC: "Options: {ALT}0>{ALT}Disabled, {ALT}1>{ALT} Bobbing, {ALT}2>{ALT} Casting shadow, {ALT}3>{ALT} Bobbing and shading {ALT}4>{ALT} Bobbing and dynamic shading."
+  STR_FLOAT_UNIT_BOB_N_SHADE: "Floating unit bobbing and shading"
+  STR_FLOAT_UNIT_BOB_N_SHADE_DESC: "Options: {ALT}0>{ALT}Disabled; {ALT}1>{ALT} Bobbing; {ALT}2>{ALT} Casting shadow; {ALT}3>{ALT} Bobbing and shading; {ALT}4>{ALT} Bobbing and dynamic shading."
  
   #Morale attack success info
   STR_MORALE_ATTACK_SUCCESS_NOTIFY: "Morale Attack Success Notification"
-  STR_MORALE_ATTACK_SUCCESS_NOTIFY_DESC: "Notify player about morale attack success.{NEWLINE}{ALT}0>{ALT} No notify (Vanilla), {ALT}1>{ALT} Flash message, {ALT}2>{ALT} Info Box."
+  STR_MORALE_ATTACK_SUCCESS_NOTIFY_DESC: "Notify player about morale attack success.{NEWLINE}{ALT}0>{ALT} No notify (Vanilla); {ALT}1>{ALT} Flash message; {ALT}2>{ALT} Info Box."
   
   #Akimbo options
   STR_AKIMBO_SHOT: "Akimbo Shots"
@@ -145,11 +147,11 @@ en-US:
   STR_TIME_UNITS_RESERVED_FOR_AKIMBO_SHOT: "Time units reserved for akimbo shots"
   STR_ACTION_ITEM_6: "Item Action 6 (Akimbo)"
   STR_AKIMBO_MOD: "Akimbo shooting"
-  STR_AKIMBO_MOD_DESC: "Allow dual-wield shooting mode for weapons.{NEWLINE}{ALT}0>{ALT} Disabled, {ALT}1>{ALT} Enabled, but hidden. {ALT}CTRL+click{ALT} on the weapon for access. {ALT}2>{ALT} Fully Enabled. Each pistol gets this feature."
+  STR_AKIMBO_MOD_DESC: "Allow dual-wield shooting mode for weapons.{NEWLINE}{ALT}0>{ALT} Disabled; {ALT}1>{ALT} Enabled, but hidden. {ALT}CTRL+click{ALT} on the weapon for access. {ALT}2>{ALT} Fully Enabled. Each pistol gets this feature."
   
   # Control unit movement via NUMPAD
   STR_NUMPAD_MOVE: "Numpad movement control"
-  STR_NUMPAD_MOVE_DESC: "Control unit movement via Numpad.{NEWLINE}{ALT}0>{ALT} disabled, {ALT}1>{ALT} movement to relative direction, {NEWLINE}{ALT}2>{ALT} movement to absolute direction."
+  STR_NUMPAD_MOVE_DESC: "Control unit movement via Numpad.{NEWLINE}{ALT}0>{ALT} disabled; {ALT}1>{ALT} Movement to relative direction; {NEWLINE}{ALT}2>{ALT} Movement to absolute direction."
   
   # Technical strings
   pierceType: "Pierce through type"
@@ -169,4 +171,20 @@ en-US:
   
   # No HE multy hit
   STR_NO_MULTI_HIT_HE: "No extra hits for explosion"
-  STR_NO_MULTI_HIT_HE_DESC: "Prevention of multiple hitting big units and units on highground for explosion."
+  STR_NO_MULTI_HIT_HE_DESC: "Preventing large units and units on high ground from being hit multiple times by explosion."
+  
+  # Alternate arrow scheme
+  STR_ALT_ARROW_SCHEME: "Alternative arrow scheme"
+  STR_ALT_ARROW_SCHEME_DESC: "Change view for unit and scanner arrows. Arrows starts to slightly blink. Scanner arrow will be darker for detected units at another camera view level."
+  
+  # Animated unit state indicators
+  STR_ANIMATE_INDICATORS: "Unit state indicators animation"
+  STR_ANIMATE_INDICATORS_DESC: "Options: {ALT}0>{ALT} Static (Vanilla); {ALT}1>{ALT} Static bright; {ALT}2>{ALT} Static and blinks; {NEWLINE}{ALT}3>{ALT} Dynamic and blink."
+  
+  # Dynamic flashing
+  STR_DYNAMIC_FLASH: "Dynamic flashes"
+  STR_DYNAMIC_FLASH_DESC: "Dynamic flashes for exposions and projectiles. Options: {ALT}0>{ALT} Disabled; {ALT}1>{ALT} Explosion flashes; {ALT}2>{ALT} Explosion and projectile flashes."
+  
+  # Single boom
+  STR_SINGLE_BOOM: "Single big boom"
+  STR_SINGLE_BOOM_DESC: "Perform one big single explosion instead of blasting serie for terrain."

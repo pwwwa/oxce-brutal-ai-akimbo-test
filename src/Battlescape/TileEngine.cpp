@@ -4949,7 +4949,7 @@ VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target,
 			}
 			return false;
 		});
-	return isUnit ? V_UNIT : V_OBJECT; // pWWWa: unified variant for better "accuracy deviation" result 
+	return isUnit ? V_UNIT : V_OBJECT; // pWWWa: test variant for better "accuracy deviation" result 
 }
 
 /**

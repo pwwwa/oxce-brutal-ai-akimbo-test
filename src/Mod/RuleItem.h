@@ -481,7 +481,7 @@ private:
 	std::vector<int> _customItemPreviewIndex;
 	int _kneelBonus, _oneHandedPenalty;
 	int _monthlySalary, _monthlyMaintenance;
-	int _sprayWaypoints, _maxRangeEvent, _pierceType, _piercePowerCap, _pierceAOEDamageType, _scanRange;
+	int _sprayWaypoints, _maxRangeEvent, _pierceType, _piercePowerCap, _pierceAOEDamageType, _scanRange, _flyFlashRadius;
 	RuleStatBonus _damageBonus, _meleeBonus, _accuracyMulti, _meleeMulti, _throwMulti, _closeQuartersMulti;
 	ModScript::BattleItemScripts::Container _battleItemScripts;
 	ScriptValues<RuleItem> _scriptValues;
@@ -1064,7 +1064,8 @@ public:
 	bool isPanicLOS() const;
 	/// Is mind control action of that item require line of sight ?
 	bool isMindControlLOS() const;
-
+	/// Gets flash radius of emited projectile from this ammo 
+	int getFlashRadius() const { return _flyFlashRadius; }
 	/// Gets script.
 	template<typename Script>
 	const typename Script::Container &getScript() const { return _battleItemScripts.get<Script>(); }

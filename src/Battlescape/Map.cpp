@@ -122,6 +122,7 @@ Map::Map(Game *game, int width, int height, int x, int y, int visibleMapHeight) 
 			}
 		}
 	}
+
 	_oxceFOWColor = Options::oxceFOWColor == 1 && _isTFTD ? 13 : Options::oxceFOWColor; // pWWWa: 1 is default and unified, which defines "silver gray" color for UFO and TFTD 
 	_iconHeight = _game->getMod()->getInterface("battlescape")->getElement("icons")->h;
 	_iconWidth = _game->getMod()->getInterface("battlescape")->getElement("icons")->w;
@@ -308,7 +309,9 @@ void Map::init()
 	{
 		_projectileSet = _game->getMod()->getSurfaceSet("UnderwaterProjectiles");
 	}
+
 	_shadeTileMap.assign(_save->getMapSizeXYZ(), 0);
+	_flashTileMap.assign(_save->getMapSizeXYZ(), 0);
 }
 
 /**
@@ -494,6 +497,10 @@ int getArrowBobForFrame(int frame)
 
 int getShadePulseForFrame(int shade, int frame)
 {
+	/** /
+	shade = Clamp(shade, 6, 10);
+	shade += (ArrowBobOffsets[frame % 8] - 1);
+	/**/
 	if (shade > 7) shade = 7;
 	if (shade < 2) shade = 2;
 	shade += (ArrowBobOffsets[frame % 8] * 2 - 2);
@@ -748,7 +755,7 @@ void Map::drawUnit(UnitSprite &unitSprite, Tile *unitTile, Tile *currTile, Posit
 			shade = getShadePulseForFrame(shade, _animFrame);
 		}
 	}
-	if (_debugVisionMode == 1)
+		if (_debugVisionMode == 1)
 	{
 		shade = std::min(+NIGHT_VISION_SHADE, shade);
 	}
@@ -758,7 +765,7 @@ void Map::drawUnit(UnitSprite &unitSprite, Tile *unitTile, Tile *currTile, Posit
 	\***************************************************/
 	if (Options::floatUnitBobNShade)
 	{
-		if (Options::floatUnitBobNShade != 1)
+		if (Options::floatUnitBobNShade > 1)
 		{
 			int penalty = _shadeTileMap[_save->getTileIndex(unitTile->getPosition())];
 
@@ -770,7 +777,7 @@ void Map::drawUnit(UnitSprite &unitSprite, Tile *unitTile, Tile *currTile, Posit
 
 		if (Options::floatUnitBobNShade != 2 && bu->isFloating() && bu->getArmor()->canFloatBob())
 		{
-			offsets.ScreenOffset.y += getArrowBobForFrame((_animFrame + bu->getId()) * 0.5) - 1;
+			offsets.ScreenOffset.y += getArrowBobForFrame((_animFrame + bu->getId()) * (bu->isSmallUnit() ? 0.5 : 0.4)) - 1;
 		}
 	}
 	unitSprite.draw(bu, part, tileScreenPosition.x + offsets.ScreenOffset.x, tileScreenPosition.y + offsets.ScreenOffset.y, shade, mask, _isAltPressed && !_isCtrlPressed);
@@ -809,10 +816,10 @@ void Map::drawTerrain(Surface *surface)
 
 	NumberText *_numWaypid = 0;
 
-	/***********************************************\  
-	* pWWWa: Floating unit casted shadow collection * 
-	\***********************************************/
-	if (Options::floatUnitBobNShade && Options::floatUnitBobNShade != 1)
+	/*************************************\  
+	* pWWWa: FLOATING UNITS SHADOW CASTING * 
+	\*************************************/
+	if (Options::floatUnitBobNShade > 1)
 	{
 		std::fill(_shadeTileMap.begin(), _shadeTileMap.end(), 0);
 
@@ -853,25 +860,114 @@ void Map::drawTerrain(Surface *surface)
 							int heightDistance = unitZ - targetTileZ;
 							int penalty = (heightDistance == 1) ? 2 : 1;
 
-							if (Options::floatUnitBobNShade == 4) penalty = getArrowBobForFrame((_animFrame + flyUnit->getId()) * 0.5) + 1;
+							if (Options::floatUnitBobNShade == 4 && flyUnit->getArmor()->canFloatBob())
+								penalty = getArrowBobForFrame((_animFrame + flyUnit->getId()) * (flyUnit->isSmallUnit() ? 0.5 : 0.4)) + 1;
 
-							if (_shadeTileMap[tileIndex] < penalty) _shadeTileMap[tileIndex] = penalty;
+							if (_shadeTileMap[tileIndex] < penalty)
+								_shadeTileMap[tileIndex] = penalty;
 						}
 					}
 				}
 			}
 		}
 	}
-	// pWWWa: Floating unit shadow casting
-	auto applyShadow = [&](int& shadeValue, int tileIdx)
+	
+	/*********************************************\
+	* pWWWa: EXPLOSION & PROJECTILE FLASH'N'LIGHT *
+	\*********************************************/
+	if (Options::dynamicFlash)
 	{
-		// 1. "Shadow of the city" (c)
-		if (Options::floatUnitBobNShade && Options::floatUnitBobNShade != 1)
+		std::fill(_flashTileMap.begin(), _flashTileMap.end(), 0);
+		auto handleLight = [&](int radius, Position pos)
 		{
-			shadeValue = std::min(16, shadeValue + _shadeTileMap[tileIdx]);
-			// obstacleValue = std::min(15, obstacleValue + _shadeTileMap[tileIdx]);
+			if (_save->getGlobalShade() < 3)
+				radius /= 2; // Too much of light, let smooth flashing
+
+			for (int dz = -radius; dz < radius; ++dz)
+			{
+				for (int dy = -radius; dy < radius; ++dy)
+				{
+					for (int dx = -radius; dx < radius; ++dx)
+					{
+						Position lightPos(pos.x + dx, pos.y + dy, pos.z + dz);
+
+						if (_save->getTile(lightPos))
+						{
+							int distance = round(Position::distance(lightPos, pos));
+							int lightPower = radius - distance;
+
+							int tIdx = _save->getTileIndex(lightPos);
+
+							if (_flashTileMap[tIdx] < lightPower)
+								_flashTileMap[tIdx] = lightPower;
+						}
+					}
+				}
+			}
+		};
+		// Explosion Flash'n'Light
+		if (_explosionInFOV && !_explosions.empty())
+		{
+			for (const auto* explosion : _explosions)
+			{
+				const Position expTilePos = explosion->getPosition().toTile();
+				const int currentFrame = std::max(0, (explosion->isBig() || explosion->isHit()) ? explosion->getCurrentFrame() : explosion->getCurrentFrame() - 6);
+				const int explFrames = std::max(explosion->getFrames(), explosion->isBig() ? explosion->EXPLODE_FRAMES : (explosion->isHit() ? explosion->HIT_FRAMES : explosion->BULLET_FRAMES));
+				const int animStep = (currentFrame % explFrames) / 2;
+				int radius = std::max(0, (explosion->isBig() ? explFrames + 2 : explFrames / 2) - animStep);
+
+				handleLight(radius, expTilePos);			
+			}
+		}
+		// Projectile light. thowing flares are included. Should to add any throwing items too ?
+		if (Options::dynamicFlash > 1 && _projectile && _projectileInFOV)
+		{
+			bool ammoGlow = _projectile->getAmmo() && _projectile->getAmmo()->getRules()->getFlashRadius();
+			bool isFlare = _projectile->getItem() && _projectile->getItem()->getRules()->getBattleType() == BT_FLARE;
+
+			if (ammoGlow || isFlare)
+			{
+				const Position projTilePos = _projectile->getPosition().toTile();
+				int radius = isFlare ? (int)(_projectile->getItem()->getRules()->getPower() * 0.25) : _projectile->getAmmo()->getRules()->getFlashRadius();
+				handleLight(radius, projTilePos);
+			}
+		}
+	}
+
+	
+/**/
+	// pWWWa: Unified Light'n'Shade "lambada"
+	auto applyLight = [&](int& shadeValue, int& obstacleValue, TilePart tp)
+	{
+		// "Shadow of the city" (c)
+		if (Options::floatUnitBobNShade > 1)
+		{
+			bool needShade = true;
+			switch (tp)
+			{
+				case O_FLOOR:
+				{	// big unit is too "fat" for passing shade to the floor
+					needShade = !(tile->getUnit() && tile->getUnit()->isBigUnit());
+					break; 
+				}
+				case O_WESTWALL: case O_NORTHWALL:
+				{	// let do not shade tall walls (TODO: compromise, perhaps, will adjust it for thin walls only)
+					needShade = !tile->getMapData(tp)->getLoftID(11); 
+				}
+			}
+			if (needShade)
+				shadeValue = std::min(16, shadeValue + _shadeTileMap[_save->getTileIndex(mapPosition)]);
+		}
+
+		// "Give me delight" (c)
+		if ((Options::dynamicFlash && _explosionInFOV) || (Options::dynamicFlash > 1 && _projectileInFOV))
+		{
+			shadeValue = std::max(0, shadeValue - _flashTileMap[_save->getTileIndex(mapPosition)]);
+			if (tp == O_FLOOR)
+				obstacleValue = std::max(0, obstacleValue - _flashTileMap[_save->getTileIndex(mapPosition)]);
 		}
 	};
+
 	// if we got bullet, get the highest x and y tiles to draw it on
 	if (_projectile && _explosions.empty())
 	{
@@ -1102,13 +1198,13 @@ void Map::drawTerrain(Surface *surface)
 					tileColor = tile->getMarkerColor();
 
 					// Draw floor
-					
-					// pWWWa: shade'n'light to floor (and objects too)
-					if (!(tile->getUnit() && tile->getUnit()->isBigUnit())) applyShadow(tileShade, _save->getTileIndex(mapPosition));
+
+					applyLight(tileShade, obstacleShade, O_FLOOR); // pWWWa: shade'n'light to floor (and object too)
+
 					tmpSurface = tile->getSprite(O_FLOOR);
 					if (tmpSurface)
 					{
-						if (tile->getObstacle(O_FLOOR))
+							if (tile->getObstacle(O_FLOOR))
 							Surface::blitRaw(surface, tmpSurface, screenPosition.x, screenPosition.y - tile->getYOffset(O_FLOOR), obstacleShade, false, _nvColor);
 						else
 							Surface::blitRaw(surface, tmpSurface, screenPosition.x, screenPosition.y - tile->getYOffset(O_FLOOR), tileShade, false, _nvColor);
@@ -1170,8 +1266,8 @@ void Map::drawTerrain(Surface *surface)
 						{
 							int wallShade = getWallShade(O_WESTWALL, tile);
 
-							// pWWWa: shade'n'light to west (life) wall
-							if (!tile->getMapData(O_WESTWALL)->getLoftID(11)) applyShadow(wallShade, _save->getTileIndex(mapPosition));
+							applyLight(wallShade, obstacleShade, O_WESTWALL); // pWWWa: shade'n'light to west (life) wall
+
 							if (tile->getObstacle(O_WESTWALL))
 								Surface::blitRaw(surface, tmpSurface, screenPosition.x, screenPosition.y - tile->getYOffset(O_WESTWALL), obstacleShade, false, _nvColor);
 							else if (_thisTileVisible)
@@ -1185,8 +1281,8 @@ void Map::drawTerrain(Surface *surface)
 						{
 							auto wallShade = getWallShade(O_NORTHWALL, tile);
 
-							// pWWWa: shade'n'light to north wall (cause "winter is comming")
-							if (!tile->getMapData(O_NORTHWALL)->getLoftID(11)) applyShadow(wallShade, _save->getTileIndex(mapPosition));
+							applyLight(wallShade, obstacleShade, O_NORTHWALL); // pWWWa: shade'n'light to north wall (cause "winter is comming")
+
 							if (tile->getObstacle(O_NORTHWALL))
 								Surface::blitRaw(surface, tmpSurface, screenPosition.x, screenPosition.y - tile->getYOffset(O_NORTHWALL), obstacleShade, bool(tile->getSprite(O_WESTWALL)), _nvColor);
 							else if (_thisTileVisible)
@@ -1218,38 +1314,52 @@ void Map::drawTerrain(Surface *surface)
 							if (_anyIndicator)
 							{
 								BattleUnit *itemUnit = item->getUnit();
-								if (itemUnit && itemUnit->getStatus() == STATUS_UNCONSCIOUS && itemUnit->indicatorsAreEnabled())
+								if (itemUnit && tile->isDiscovered(O_FLOOR) && itemUnit->getStatus() == STATUS_UNCONSCIOUS && itemUnit->indicatorsAreEnabled())
 								{
+									// pWWWa: animated unit state indicators.
 									const int pulsate[8] = {0, 1, 2, 3, 4, 3, 2, 1}; // pWWWa: let animate indicators at battlescape too
-									int bobby = getArrowBobForFrame(_animFrame * 0.5);
+									const int desync = _animFrame + itemUnit->getId();  
+									int bobY = 0;
+									int indicatorShade = tileShade;
+
+									switch (Options::animateIndicators)
+									{
+										case 1: indicatorShade = 0; 					  break;
+										case 2: indicatorShade = pulsate[desync/2 % 8];	  break;
+										case 3:
+										{
+											bobY = getArrowBobForFrame(desync * 0.5);
+											indicatorShade = pulsate[desync % 8];
+										}
+									}
 
 									if (_burnIndicator && itemUnit->getFire() > 0)
 									{
 										_burnIndicator->blitNShade(surface,
 											screenPosition.x,
 											screenPosition.y + tile->getTerrainLevel(),
-											pulsate[(_animFrame % 8)]);
+											indicatorShade);
 									}
 									else if (_woundIndicator && itemUnit->getFatalWounds() > 0)
 									{
 										_woundIndicator->blitNShade(surface,
 											screenPosition.x,
-											screenPosition.y + tile->getTerrainLevel() + bobby,
-											pulsate[(_animFrame % 8)]);
+											screenPosition.y + tile->getTerrainLevel() + bobY,
+											indicatorShade);
 									}
 									else if (_shockIndicator && itemUnit->hasNegativeHealthRegen())
 									{
 										_shockIndicator->blitNShade(surface,
 											screenPosition.x,
 											screenPosition.y + tile->getTerrainLevel(),
-											pulsate[(_animFrame % 8)]);
+											indicatorShade);
 									}
 									else if (_stunIndicator)
 									{
 										_stunIndicator->blitNShade(surface,
-											screenPosition.x + bobby,
-											screenPosition.y + tile->getTerrainLevel() + bobby,
-											pulsate[(_animFrame % 8)]);
+											screenPosition.x + bobY,
+											screenPosition.y + tile->getTerrainLevel() + bobY,
+											indicatorShade);
 									}
 								}
 							}
@@ -1645,7 +1755,7 @@ void Map::drawTerrain(Surface *surface)
 										auto* ammo = attack.damage_item;
 										const RuleItem *ammoRule = (ammo != nullptr) ? ammo->getRules() : nullptr;
 
-										bool isShotgun = ammoRule && ammoRule->getShotgunPellets(); // != 0 && ammoRule->getDamageType()->isDirect();
+										bool isShotgun = ammoRule && ammoRule->getShotgunPellets();
 										bool isArcingShot = action->weapon->getArcingShot(action->type);
 										bool isSpray = action->sprayTargeting;
 										disableRA = isShotgun || isArcingShot || isSpray;

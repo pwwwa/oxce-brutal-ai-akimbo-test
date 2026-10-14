@@ -184,7 +184,7 @@ RuleItem::RuleItem(const std::string &type, int listOrder) :
 	_vaporColorSurface(-1), _vaporDensitySurface(0), _vaporProbabilitySurface(15),
 	_kneelBonus(-1), _oneHandedPenalty(-1),
 	_monthlySalary(0), _monthlyMaintenance(0),
-	_sprayWaypoints(0), _maxRangeEvent(0), _pierceType(0), _piercePowerCap(0), _pierceAOEDamageType(0), _scanRange(9)
+	_sprayWaypoints(0), _maxRangeEvent(0), _pierceType(0), _piercePowerCap(0), _pierceAOEDamageType(0), _scanRange(9), _flyFlashRadius(3)
 {
 	_accuracyMulti.setFiring();
 	_meleeMulti.setMelee();
@@ -685,6 +685,8 @@ void RuleItem::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript&
 	
 	reader.tryRead("isPanicLOS", _isPanicLOS);
 	reader.tryRead("isMindControlLOS", _isMindControlLOS);
+
+	reader.tryRead("flyFlashRadius", _flyFlashRadius);
 
 	_damageBonus.load(_type, reader, parsers.bonusStatsScripts.get<ModScript::DamageBonusStatBonus>());
 	_meleeBonus.load(_type, reader, parsers.bonusStatsScripts.get<ModScript::MeleeBonusStatBonus>());

@@ -48,7 +48,7 @@ Armor::Armor(const std::string &type, int listOrder) :
 	_fearImmune(defBoolNullable), _bleedImmune(defBoolNullable), _painImmune(defBoolNullable), _zombiImmune(defBoolNullable),
 	_ignoresMeleeThreat(defBoolNullable), _createsMeleeThreat(defBoolNullable),
 	_overKill(0.5f), _meleeDodgeBackPenalty(0),
-	_allowsRunning(defBoolNullable), _allowsStrafing(defBoolNullable), _allowsSneaking(defBoolNullable), _allowsKneeling(defBoolNullable), _allowsMoving(1),
+	_allowsRunning(defBoolNullable), _allowsStrafing(defBoolNullable), _allowsSneaking(defBoolNullable), _allowsKneeling(defBoolNullable), _allowsMoving(1), _canFloatBob(true),
 	_isPilotArmor(false), _allowTwoMainWeapons(false), _instantWoundRecovery(false),
 	_standHeight(-1), _kneelHeight(-1), _floatHeight(-1), _meleeOriginVoxelVerticalOffset(0), _group(0), _listOrder(listOrder)
 {
@@ -272,6 +272,7 @@ void Armor::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript &pa
 	reader.tryRead("meleeOriginVoxelVerticalOffset", _meleeOriginVoxelVerticalOffset);
 	reader.tryRead("group", _group);
 	reader.tryRead("listOrder", _listOrder);
+	reader.tryRead("canFloatBob", _canFloatBob);
 }
 
 /**

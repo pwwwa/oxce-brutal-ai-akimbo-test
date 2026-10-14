@@ -130,9 +130,9 @@ ru:
   # Diagonal Terrain melee
   STR_DIAG_TERRAIN_MELEE: "Рукопашно местность по диагонали"
   STR_DIAG_TERRAIN_MELEE_DESC: "Атака объектов ландшафта по диагонали в ближнем бою.{NEWLINE}Требует включения опции {ALT}terrainMeleeExtended{ALT}.{NEWLINE}{ALT}Alt+клик{ALT} - принудительно бить текущую и соседние клетки."
-  # Floating unit Bobbing
-  STR_FLOAT_UNIT_BOBBING: "Покачивание парящих отрядов"  
-  STR_FLOAT_UNIT_BOBBING_DESC: "Каждый отряд будет cлегка покачиваться в летающем/парящем состоянии."
+  # Floating unit Bobbing and Shade
+  STR_FLOAT_UNIT_BOB_N_SHADE: "Покачивание и тень парящих юнитов"
+  STR_FLOAT_UNIT_BOB_N_SHADE_DESC: "Опции: {ALT}0>{ALT}Отключено, {ALT}1>{ALT} Покачивание; {ALT}2>{ALT} Отбрасывание тени; {NEWLINE}{ALT}3>{ALT} Покачивание и тень; {ALT}4>{ALT} Покачивание и динамическая тень."
   
   #Morale attack success info
   STR_MORALE_ATTACK_SUCCESS_NOTIFY: "Оповещение об успешн. псих. атаке"
@@ -170,3 +170,19 @@ ru:
   # No HE multy hit
   STR_NO_MULTI_HIT_HE: "Нет доп. поражений взрывом"
   STR_NO_MULTI_HIT_HE_DESC: "Предотвращение многократного поражения взрывом крупных юнитов и юнитов на возвышенности."
+  
+  # Alternate arrow scheme
+  STR_ALT_ARROW_SCHEME: "Другая схема стрелок"
+  STR_ALT_ARROW_SCHEME_DESC: "Меняет вид стрелок юнитов и сканера: начнут слегка мигать. Стрелка сканера будет выглядеть темнее для юнитов, обнаруженных на другом уровне обзора камеры."
+  
+  # Animated unit state indicators
+  STR_ANIMATE_INDICATORS: "Анимация индикаторов состояния юнита"
+  STR_ANIMATE_INDICATORS_DESC: "Опции: {ALT}0>{ALT} Статический (стандарт); {ALT}1>{ALT} Статический яркий; {ALT}2>{ALT} Статический с мерцанием; {ALT}3>{ALT} Динамический с мерцанием."
+  
+  # Dynamic flashing
+  STR_DYNAMIC_FLASH: "Динамические вспышки"
+  STR_DYNAMIC_FLASH_DESC: "Динамические вспышки от взрывов и снарядов. Опции: {ALT}0>{ALT} Отключено; {ALT}1>{ALT} Вспышки от взрывов; {ALT}2>{ALT} Вспышки от взрывов и снарядов."
+  
+  # Single boom
+  STR_SINGLE_BOOM: "Один большой бум"
+  STR_SINGLE_BOOM_DESC: "Осуществлять один мощный взрыв вместо серии взрывов на местности."

@@ -556,6 +556,21 @@ void OptionsAdvancedState::lstOptionsClick(Action *action)
 			min = 0;
 			max = 2;
 		}
+		else if (i == &Options::floatUnitBobNShade)
+		{
+			min = 0;
+			max = 4;
+		}
+		else if (i == &Options::animateIndicators)
+		{
+			min = 0;
+			max = 3;
+		}
+		else if (i == &Options::dynamicFlash)
+		{
+			min = 0;
+			max = 2;
+		}
 
 		if (*i < min)
 		{

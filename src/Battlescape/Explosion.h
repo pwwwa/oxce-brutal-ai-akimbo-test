@@ -47,6 +47,8 @@ public:
 	Position getPosition() const;
 	/// Gets the current frame.
 	int getCurrentFrame() const;
+	/// Gets actual explosion animation frames quantity
+	int getFrames() const { return _frames; };
 	/// Checks if this is a real explosion.
 	bool isBig() const;
 	/// Checks if this is a melee or psi hit.

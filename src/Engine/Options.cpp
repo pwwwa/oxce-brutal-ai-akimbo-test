@@ -586,11 +586,15 @@ void createAdvancedOptionsOTHER()
 	_info.push_back(OptionInfo(OPTION_OTHER, "baseDetectionProbability", &baseDetectionProbability, false, "STR_DISPLAY_BASE_DETECTION_PROBABILITY", "STR_BASESCAPE"));
 
 	// OTHER options Battlescape
-	_info.push_back(OptionInfo(OPTION_OTHER, "altArrowScheme", &altArrowScheme, false, "STR_ALT_ARROW_SCHEME", "STR_BATTLESCAPE"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "noMultiHitHE", &noMultiHitHE, false, "STR_NO_MULTI_HIT_HE", "STR_BATTLESCAPE"));
-	_info.push_back(OptionInfo(OPTION_OTHER, "floatUnitBobbing", &floatUnitBobbing, false, "STR_FLOAT_UNIT_BOBBING", "STR_BATTLESCAPE"));
+
+	_info.push_back(OptionInfo(OPTION_OTHER, "dynamicFlash", &dynamicFlash, 0, "STR_DYNAMIC_FLASH", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "floatUnitBobNShade", &floatUnitBobNShade, 0, "STR_FLOAT_UNIT_BOB_N_SHADE", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "animateIndicators", &animateIndicators, 0, "STR_ANIMATE_INDICATORS", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "oxceNumpadUnitMovement", &oxceNumpadMove, 0, "STR_NUMPAD_MOVE", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "singleBoom", &singleBoom, false, "STR_SINGLE_BOOM", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "noMultiHitHE", &noMultiHitHE, false, "STR_NO_MULTI_HIT_HE", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "diagTerrainMelee", &diagTerrainMelee, false, "STR_DIAG_TERRAIN_MELEE", "STR_BATTLESCAPE"));
+	_info.push_back(OptionInfo(OPTION_OTHER, "altArrowScheme", &altArrowScheme, false, "STR_ALT_ARROW_SCHEME", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "moraleAttackSuccessNotify", &moraleAttackSuccessNotify, 0, "STR_MORALE_ATTACK_SUCCESS_NOTIFY", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "oxceFOW", &oxceFOW, 0, "STR_FOW", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "oxceFOWColor", &oxceFOWColor, 1, "STR_FOW_COLOR", "STR_BATTLESCAPE"));

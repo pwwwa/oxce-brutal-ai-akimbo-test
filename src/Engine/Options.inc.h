@@ -36,7 +36,7 @@ OPT PathPreview battleNewPreviewPath;
 OPT int shootingSpreadMode, battleRealisticShotDispersion, battleRealisticCoverEfficiency, battleScrollSpeed, battleDragScrollButton, battleFireSpeed, battleXcomSpeed, battleAlienSpeed, battleExplosionHeight, battlescapeScale, battleTerrainSquishyness, preprimeGrenades, battleThrownSpeed;
 OPT bool traceAI, battleInstantGrenade, battleNotifyDeath, battleTooltips, battleHairBleach, battleAutoEnd,
 	strafe, forceFire, showMoreStatsInInventoryView, allowPsionicCapture, skipNextTurnScreen, disableAutoEquip, battleDragScrollInvert,
-	battleUFOExtenderAccuracy, useChanceToHit, battleRealisticAccuracy, battleRealisticImprovedAimed, battleRealisticImprovedLof, battleRealisticDisplayRolls, battleRealisticDisplayOthersRolls, battleAltGrenades, battleConfirmFireMode, battleSmoothCamera, noAlienPanicMessages, alienBleeding, instantPrime, strictBlockedChecking, updateTurnsSinceSeenByClue, diagTerrainMelee, floatUnitBobbing;
+	battleUFOExtenderAccuracy, useChanceToHit, battleRealisticAccuracy, battleRealisticImprovedAimed, battleRealisticImprovedLof, battleRealisticDisplayRolls, battleRealisticDisplayOthersRolls, battleAltGrenades, battleConfirmFireMode, battleSmoothCamera, noAlienPanicMessages, alienBleeding, instantPrime, strictBlockedChecking, updateTurnsSinceSeenByClue, diagTerrainMelee;
 OPT SDLKey keyBattleLeft, keyBattleRight, keyBattleUp, keyBattleDown, keyBattleLevelUp, keyBattleLevelDown, keyBattleCenterUnit, keyBattlePrevUnit, keyBattleNextUnit, keyBattleDeselectUnit,
 keyBattleUseLeftHand, keyBattleUseRightHand, keyBattleInventory, keyBattleMap, keyBattleOptions, keyBattleEndTurn, keyBattleAbort, keyBattleStats, keyBattleKneel,
 	keyBattleReserveKneel, keyBattleReload, keyBattlePersonalLighting, keyBattleReserveNone, keyBattleReserveSnap, keyBattleReserveAimed, keyBattleReserveAuto,
@@ -218,9 +218,8 @@ OPT SDLKey keyReadyMedikit;
 OPT SDLKey keyClearLeftHand;
 
 // pWWWa: Akimbo stuff
-OPT bool noMultiHitHE;
-OPT int moraleAttackSuccessNotify, akimboMod, oxceNumpadMove;
-OPT bool noMultiHitHE, altArrowScheme;
+OPT bool noMultiHitHE, altArrowScheme, singleBoom;
+OPT int moraleAttackSuccessNotify, akimboMod, oxceNumpadMove, floatUnitBobNShade, animateIndicators, dynamicFlash;
 OPT SDLKey keyBattleActionItem6, keyBattleReserveAkimbo, keyAddBattleScale, keySubBattleScale;
 
 OPT int battleXcomSpeedOrig;

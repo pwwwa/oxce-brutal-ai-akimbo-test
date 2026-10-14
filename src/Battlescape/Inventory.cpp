@@ -367,6 +367,31 @@ void Inventory::drawItems()
 			{
 				primers(x, y, invItem->isFuseEnabled());
 			}
+
+			//pWWWa: animate indicators in unit inventory too
+			if (Options::animateIndicators > 1 && invItem->getUnit())
+			{
+				// don't show on dead units
+				if (invItem->getUnit()->getStatus() == STATUS_UNCONSCIOUS && invItem->getUnit()->indicatorsAreEnabled())
+				{
+					if (_burnIndicator && invItem->getUnit()->getFire() > 0)
+					{
+						indicators(_burnIndicator, x, y);
+					}
+					else if (_woundIndicator && invItem->getUnit()->getFatalWounds() > 0)
+					{
+						indicators(_woundIndicator, x, y);
+					}
+					else if (_shockIndicator && invItem->getUnit()->hasNegativeHealthRegen())
+					{
+						indicators(_shockIndicator, x, y);
+					}
+					else if (_stunIndicator)
+					{
+						indicators(_stunIndicator, x, y);
+					}
+				}
+			}
 		}
 
 		Surface stackLayer(getWidth(), getHeight(), 0, 0);

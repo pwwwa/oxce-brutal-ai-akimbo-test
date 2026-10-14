@@ -95,6 +95,9 @@ private:
 	bool isReversed() const;
 	/// adds a cloud of particles at the projectile's location
 	void addVaporCloud();
+	/// get Weapon ammo, which emited that projectile
+	const BattleItem* getAmmo() const { return _ammo; }
+	/// Skips the bullet flight.
 
 	/// converts Accuracy to Chance to hit
     static int getHitChance(int distance, int accuracy, const std::vector<int>* lookupTable);

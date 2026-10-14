@@ -391,6 +391,36 @@ void ExplosionBState::init()
  */
 void ExplosionBState::think()
 {
+	if (_parent->getMap()->getExplosions()->empty())
+	{
+		explode();
+
+		if (_parent->getMap()->getExplosions()->empty())
+		{
+			if (Options::singleBoom)
+				_parent->popState();
+			return;
+		}
+	}
+
+	for (auto iter = _parent->getMap()->getExplosions()->begin(); iter != _parent->getMap()->getExplosions()->end();)
+	{
+		Explosion* explosion = (*iter);
+		if (!explosion->animate())
+		{
+			delete explosion;
+			iter = _parent->getMap()->getExplosions()->erase(iter);
+		}
+		else
+		{
+			++iter;
+		}
+	}
+}
+
+/** /
+void ExplosionBState::think()
+{
 	if (!_parent->getMap()->getBlastFlash())
 	{
 		if (_parent->getMap()->getExplosions()->empty())
@@ -403,11 +433,11 @@ void ExplosionBState::think()
 			{
 				delete explosion;
 				iter = _parent->getMap()->getExplosions()->erase(iter);
-				if (_parent->getMap()->getExplosions()->empty())
-				{
-					explode();
-					return;
-				}
+					if (_parent->getMap()->getExplosions()->empty())
+					{
+						explode();
+						return;
+					}
 			}
 			else
 			{
@@ -416,6 +446,7 @@ void ExplosionBState::think()
 		}
 	}
 }
+/**/
 
 /**
  * Explosions cannot be cancelled.
@@ -481,17 +512,74 @@ void ExplosionBState::explode()
 		_parent->getSave()->removeItem(_attack.damage_item);
 	}
 
-	_parent->popState();
-
-	// check for terrain explosions
-	Tile *t = save->getTileEngine()->checkForTerrainExplosions();
-	if (t)
+	if (Options::singleBoom)
 	{
-		Position p = t->getPosition().toVoxel();
-		p += Position(8,8,0);
-		_parent->statePushFront(new ExplosionBState(_parent, p, BattleActionAttack{ BA_NONE, _attack.attacker, }, t, false, 0, _explosionCounter + 1));
-	}
+		Tile* t = save->getTileEngine()->checkForTerrainExplosions();
+		while (t)
+		{
+			Position p = t->getPosition().toVoxel() + Position(8, 8, 0);
+			int chainPower = t->getExplosive();
+			int chainRadius = chainPower / 10;
 
+			ItemDamageType chainDT;
+			switch (t->getExplosiveType())
+			{
+				case 0:	 chainDT = DT_HE;    break;
+				case 5:	 chainDT = DT_IN;    break;
+				case 6:	 chainDT = DT_STUN;  break;
+				default: chainDT = DT_SMOKE;
+			}
+			t->setExplosive(0, chainDT, true);
+
+			// Phisics: apply damage handling right now
+			save->getTileEngine()->explode(BattleActionAttack{BA_NONE, _attack.attacker}, p, chainPower, _parent->getMod()->getDamageType(chainDT), chainRadius, true);
+			_parent->checkForCasualties(_parent->getMod()->getDamageType(chainDT), _attack, false, true);
+
+			// Graphics: create explosions and push it to Map list
+			int chainLimit = std::max(1, chainPower / 5);
+			for (int i = 0; i < chainLimit; i++)
+			{
+				int X = RNG::generate(-chainPower / 2, chainPower / 2);
+				int Y = RNG::generate(-chainPower / 2, chainPower / 2);
+				Position explPos = p;
+				explPos.x += X;
+				explPos.y += Y;
+
+				int chainFrame = Mod::EXPLOSION_OFFSET;
+				if (_parent->getDepth() > 0)
+				{
+					chainFrame -= Explosion::EXPLODE_FRAMES;
+				}
+
+				Explosion* chainExplosion = new Explosion(explPos, chainFrame, 0, true, false, -1);
+				_parent->getMap()->getExplosions()->push_back(chainExplosion);
+
+				if (_parent->getMap()->getExplosions()->size() == 1)
+					_parent->playSound(chainPower <= 80 ? Mod::SMALL_EXPLOSION : Mod::LARGE_EXPLOSION);
+
+			}
+
+			t = save->getTileEngine()->checkForTerrainExplosions();
+		}
+		_parent->setStateInterval(std::max(1, 60 /** / BattlescapeState::DEFAULT_ANIM_SPEED /2 /**/));
+
+		if (_parent->getMap()->getExplosions()->size() > 1)
+			_parent->playSound(Mod::LARGE_EXPLOSION);
+	}
+	else
+	{
+		_parent->popState();
+
+		// check for terrain explosions
+		Tile *t = save->getTileEngine()->checkForTerrainExplosions();
+		if (t)
+		{
+			Position p = t->getPosition().toVoxel();
+			p += Position(8,8,0);
+			_parent->statePushFront(new ExplosionBState(_parent, p, BattleActionAttack{ BA_NONE, _attack.attacker, }, t, false, 0, _explosionCounter + 1));
+		}
+
+	}
 	// Spawn a unit if the item does that
 	if (_attack.damage_item)
 	{
@@ -504,5 +592,6 @@ void ExplosionBState::explode()
 		_parent->spawnNewItem(_attack, _before.toTile());
 	}
 }
+/**/
 
 }
