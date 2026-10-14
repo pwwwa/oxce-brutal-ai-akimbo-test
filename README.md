@@ -12,6 +12,191 @@ and the [wiki](https://www.ufopaedia.org/index.php/OpenXcom).
 
 Uses modified code from SDL\_gfx (LGPL) with permission from author.
 
+
+## -=AKIMBO FEATURES=-
+
+1) Akimbo shooting.
+Support extra firing mode – “Akimbo Shots”. It allows units to fire weapons held in each hand as a single action (dual-wielding). Acts as other firing modes (snap, auto or aimed), but with one exception: both weapons the unit is holding must possess this property.
+
+Gameplay features:
+- possible as reaction shot (only if shots quantity lesser or equal to proper snap shot shots quantity (Ala "dual snap"))
+- possible as berserk unit state;
+- adjustable hotkeys for action menu and reserve TU;
+- reserve button located at bottom-right side of UI panel (absents, if Akimbo shooting option is disabled or hidden);
+- spread waypointing support (if both weapons has that property);
+- aliens (any unit controlled by AI)  are able to use akimbo, if it possible.
+- there are default akimbo submods for EU and TFTD are included. This submods can be used for fun and as tutorial how to add<->adjust dual-wield firing mode for any weapon
+- Plug’n’Play pattern: at the start of the game, each "pistol" from any mod gains a dual-wielding mode, based on snap shot config of proper weapon with formula: 
+tuAkimbo = tuSnap + 3, accuracyAkimbo = accuracySnap – 7, shots quantity just equates. Of course, if the specific pistol already have this feature (predefined in ruleset) it will not be touched.
+The original concept behind the feature - to make pistols more usable, at least early in the game. That’s why pistols gain dual-wielded feature by default. Also any firearm weapon, except Blaster Launcher, can be used in akimbo mod – there are need just to define next properties in ruleset for target gun:
+
+tuAkimbo: -> defines TU usage amount and enables Akimbo fire mode for current weapon;
+flatAkimbo: -> TU usage is absolute (false) or relative (true);
+accuracyAkimbo: -> firing accuracy.
+akimboShots: -> similar to autoshots, but applies for current weapon with akimbo action type.
+sprayWaypoints: -> similar to autoshot mode, but works when both weapon has it. Picks lesser number of possible spots from both weapons.
+akimboRange: -> tile range, when accuracy will start to decrease.
+
+Supports new ruleset extraSprites object - akimboReserveIco. Contains 2 frames - for toggled and untoggled states.
+
+--------------------------------------------------------------------------------------------------
+
+2) Pierce (pass through) ammo bullet type (aka "rail guns") support.
+
+This allows the projectile to function like a “railgun” or a beam weapon: it continues its flight after colliding with an object on the map - provided the object was destroyed (for terrain) or damaged (for units) and the projectile itself retained a non-zero "pierce power" value after the hit.
+
+Projectile's pierce power usually equals to their damage and decreases after each collision. Actual damage may to decrease with the current pierce power value or remain constant, depending on the pierce type bullet property (kinetic or beam). Pierce power decrement calculation based on the HP, frontal armor and proper damage modifier (for units), or just armor value and tile damage modifier (for terrain).
+
+Gameplay features:
+-hi arc projectiles are supported (parabola trajectory);
+-waypointing projectiles  are supported (aka blaster bombs);
+-AOE (explosive) ammo are supported (damage type due pierce processing is AP, but can be overridden);
+-shotguns currently are not supported.
+
+Possible ammo ruleset properties:
+  - pierceType. Default value 0, supports 0-2, any other value converts to 0 (typo protection). 
+  0 – vanilla behavior (fly till any hit);
+  1 - kinetic type. Projectile’s pierce power equals damage and both values decreases simultaneously after each hit;
+  2 – beam type. Projectile reduces pierce power only during each hit, damage stays the same.
+
+  - piercePowerCap. Pierce power overrider. Default is 0, supports 0-1000. 0 – power capacity equals to ammo damage power amount by default, other positive values overrides   pierce bullet “durability” (manual limit is 1000 for that case).
+
+  - pierceAOEDamageType. Suitable for HE, Incendiary and Stun ammo, which are able to pierce objects with that damage type, then will explode with their original power and damage type. Default is 0 and it automatically converts to 1 (Armor Piercing) for AOE ammo.
+
+*Hint: Adding just pierceType: 1 parameter to the desired ammo in the ruleset should be enough to make this feature work correctly in the most cases.
+
+--------------------------------------------------------------------------------------------------
+
+3) Melee mechanic adjustment
+
+- big unit wrong side issue fix;
+- fixed misses to small units at higher terrain (16+), small or kneel units at some “straw” tiles.
+- added terrain melee helper, which allow to hit weird terrain tile configuration (e.g. tall floor tileparts, floor parts in wall tile slots). Usage: Alt + click.
+
+3.1) Diagonal Terrain Melee option.
+
+It provides possibility to hit terrain with melee weapon at diagonal directions.
+Diagonal melee aim helper: Alt+click – allows unit to attack objects at same and adjacent tiles. Suitable for "weird terrain tiles" hitting in some cases (etc. between 2 diagonal bigWalls).
+Could be activated at Options->Advanced -> BOXCE -> BattleScape section. Of course it works when extendedTerrainMelee feature is activated too.
+
+3.2) Forced Melee to Floor feature.
+
+This feature allows to use a melee weapon to attack an unconscious unit located directly beneath your unit feet. Note: enabling the `extendedTerrainMelee` option allows to attack terrain objects located beneath your feet (e.g. for clearing beneath unit space from terrain staff or for breaching a hole in the floor).
+Usage: stay at target tile and Ctrl+click to melee weapon.
+
+---------------------------------------------------------------------------------------------------
+
+4) maxRangeEvent ammo item property
+
+Works in combination with existed maxRange property. It limits flight range and defines projectile behavior when projectile is passed that limited range on map (thanks to mumble for inspiration). Yes: maxRange for weapon and maxRange for ammo works with different way, could be combined and could act simultaneously: defined weapon’s maxRange limits aim range, defined ammo’s maxRange limits projectile’s range.
+This property also makes guided projectiles (aka Blaster Bomb) more guided:
+- missile will react (explode or vanish) when it reaches the last waypoint;
+- if maxRange for ammo is defines – reacts too if restricted distance is passed (whatever event occurs first: last waypoint or maxRange distance).
+
+Can be applied to any ammo type of any weapon.
+Possible options: 
+  0 - vanilla (default). Projectile flies till end of map/any object (unit);
+  1 - hit (or explode for HE), when ammo's maxRange distance is passed; 
+  2 – projectile just vanish over ammo's maxRange distance.
+
+Practical purpose: could be applicable for laser weapons under water (limit projectile range), or flame throwers, or improvised ranged melee weapons (prevent to fly projectile (and hit) over unintended distances).
+
+--------------------------------------------------------------------------------------------------
+
+5) Shotgun adjustments
+
+   5.1) OXC buckshot hit to void issue fix. Rest shotgun pellets will be emitted even when the “primary” projectile flies outside the map. Also each pellet hit will be sounded. Some adjustments may be made in the future (lowering sound volume or allowing to play that sound only once).
+
+   5.2) added explosive shells support (e.g. HE, Stun). Seems, it is finished (I hope) todo feature from OXC(E).
+
+--------------------------------------------------------------------------------------------------
+
+6) Numpad unit movement control option
+
+Allows to move units via numpad. Strafing and sneaking supports too. Borrowed and experimental feature.
+Can be found at Options -> Advanced -> BOXCE -> BattleScape -> Numpad Movement Control.
+Possible Options:
+  0 - disabled;
+  1 - movement to relative direction;
+  2 - movement to absolute direction.
+
+--------------------------------------------------------------------------------------------------
+
+7) Scanner item properties (aka “Motion scanner”)
+    scanRange. Scan Radius in tiles.  Default is 9 (vanilla range), clamped to 0 (non-negative). Allows to regulate scanner checking battlescape area.
+    isScanAll. Allow to scan static units too (any live object). aka UFO Extender advanced scanner feature. Default is false.
+ As addition: scanner “blobs” and “spoiler arrows” at map of detected units will be darker if targets are not located at the same altitude as game camera. This feature is currently fixed, adjustable option in future is possible.
+
+--------------------------------------------------------------------------------------------------
+
+8) PSI weapon item properties (aka "PSI-Amp")
+Allows to define LOS requirement for each action separately.
+    panicLOS. Prevent to cast panic attack action, when target is not visible for attacker.
+    mindControlLOS. Prevent to cast mind control action, when target is not visible for attacker.
+General LOSRequired: true rileset item setting overrides this properties.
+
+--------------------------------------------------------------------------------------------------
+
+9) No Multi Hit for Explosion game option.
+
+    Disabled. Multiple hits may be dealt to large units and units positioned on high ground/stairs (up to 8 hits on a large unit and up to 2 hits on small units).
+    Enabled. Each unit receives only one hit from a single explosion.    
+
+--------------------------------------------------------------------------------------------------
+
+10) Single big boom game option.
+
+Perform one big single explosion instead of blasting serie for terrain.
+
+
+11) Visual and some QoL
+
+ 11.1) Floating unit bobbing and shade casting game option.
+Each unit will slightly bobbing and shade cast when in floating/flying state.
+Possible options:
+  0 - Disabled; 
+  1 - Bobbing; 
+  2 - Casting shadow; 
+  3 - Bobbing and shading; 
+  4 - Bobbing and dynamic shading."
+Locates at Options->Advanced->BOXCE->Battlescape->Floating unit bobbing and shading.
+Additional ruleset unit armor property - canFloatBob (true), which allow to deny any floating unit to bob and cast dynamic (but not static) shade.
+
+
+ 11.2) Unit strafing
+- “moonwalk” animation from OXC is restored (unfortunately, this feature broken in OXCE and is still not restored);
+- small units are able to strafe at backward directions too (QoL);
+
+
+11.3) Alternate arrow color schema game option
+- scanner spoiler arrow color is changed: (yellow -> red);
+- arrows are slightly fading-blinking during movement animation.
+Locates at Options->Advanced->BOXCE->Battlescape->Alternative arrow scheme.
+ 
+
+11.4) Morale Attack Success Notification behavior game option.
+Allows to define how to notify player about successful morale attack (e.g. PSI AMP panic action):
+  0 - No notify (Original);
+  1 - Flash message;
+  2 - Info Box (introduced by OXC). 
+This feature can be found at Options->Advanced->BOXCE->BattleScape->Morale Attack Success Notification.
+
+11.5) Dynamic flashes game option.
+Enables dynamic flashes / lighting for exposions and flying projectiles. 
+Options: 
+  0 - Disabled; 
+  1 - Explosion and hits flashes; 
+  2 - Explosion and projectile flashes. Each flare item will emit proper light during throwing too.
+Additional ruleset ammo item propery - flyFlashRadius (3 is default), which allow to define light radius (power) for proper projectile.
+
+11.6) unit selector and detected by scanner unit arrow image unhardcodded.
+Supports new ruleset extraSprites objects: 
+  arrow - unit selector arrow image;
+  scanArrow - detected by scanner units arrow image (when Alt button is pressed)
+  
+===================================================================================================
+
+
 ## Realistic Accuracy and Cover system, v3.0
 [Full information HERE](Realistic%20Accuracy%20v3.0.md)
 
