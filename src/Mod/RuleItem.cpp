@@ -704,10 +704,9 @@ void RuleItem::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript&
 
 	_battleItemScripts.load(_type, reader, parsers.battleItemScripts);
 
-	if (getCostAkimbo().Time != -1 && !getCostAkimbo().Time && !isFixed() && isPistol() && getCostSnap().Time)
-	{ // Is pistol has no akimbo feature ? let fix it within shapshot config. 
-		auto &temp = _confSnap;
-		_confAkimbo = temp;
+	if (getCostAkimbo().Time == 0 && !isFixed() && isPistol() && getCostSnap().Time > 0)
+	{ // pWWWa: Is pistol has no akimbo feature ? let fill it within shapshot config. 
+		_confAkimbo = _confSnap;
 		_confAkimbo.cost.Time.setValue((getCostAkimbo().Time + 3));
 		_confAkimbo.accuracy -= 7;
 		_confAkimbo.range = 7;
