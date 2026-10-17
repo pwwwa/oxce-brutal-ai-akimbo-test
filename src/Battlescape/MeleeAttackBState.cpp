@@ -136,8 +136,9 @@ void MeleeAttackBState::init()
 		throw Exception("This is a known (but tricky) bug... still fixing it, sorry. In the meantime, try save scumming option or kill all aliens in debug mode to finish the mission.");
 	}
 
-	int height = _target->getFloatHeight() + (std::max(_target->getHeight() / 2, _target->getKneelHeight())) - _parent->getSave()->getTile(_action.target)->getTerrainLevel(_target);
+	int height = _target->getFloatHeight() + (_target->getHeight() / 2) - _parent->getSave()->getTile(_action.target)->getTerrainLevel(_target);
 	_voxel = _action.target.toVoxel() + Position(8, 8, height);
+
 
 	/********************************\
 	* -=ForcedMeleeToFloor=- section *

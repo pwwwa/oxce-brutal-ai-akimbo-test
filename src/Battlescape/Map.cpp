@@ -777,7 +777,7 @@ void Map::drawUnit(UnitSprite &unitSprite, Tile *unitTile, Tile *currTile, Posit
 
 		if (Options::floatUnitBobNShade != 2 && bu->isFloating() && bu->getArmor()->canFloatBob())
 		{
-			offsets.ScreenOffset.y += getArrowBobForFrame((_animFrame + bu->getId()) * (bu->isSmallUnit() ? 0.5 : 0.4)) - 1;
+			offsets.ScreenOffset.y += getArrowBobForFrame((_animFrame + bu->getId()) * (bu->isSmallUnit() ? 0.5 : 0.45)) - 1;
 		}
 	}
 	unitSprite.draw(bu, part, tileScreenPosition.x + offsets.ScreenOffset.x, tileScreenPosition.y + offsets.ScreenOffset.y, shade, mask, _isAltPressed && !_isCtrlPressed);
@@ -834,8 +834,8 @@ void Map::drawTerrain(Surface *surface)
 				{
 					for (int y = 0; y < size; ++y)
 					{
-						int currentX = flyUnit->getPosition().x + x;
-						int currentY = flyUnit->getPosition().y + y;
+						const int currentX = flyUnit->getPosition().x + x;
+						const int currentY = flyUnit->getPosition().y + y;
 						int targetTileZ = 0;
 
 						for (int z = unitZ - 1; z > 0; --z)
@@ -858,13 +858,13 @@ void Map::drawTerrain(Surface *surface)
 						{
 							int tileIndex = _save->getTileIndex(shadePos);
 							int heightDistance = unitZ - targetTileZ;
-							int penalty = (heightDistance == 1) ? 2 : 1;
+							int shadePower = (heightDistance == 1) ? 2 : 1;
 
 							if (Options::floatUnitBobNShade == 4 && flyUnit->getArmor()->canFloatBob())
-								penalty = getArrowBobForFrame((_animFrame + flyUnit->getId()) * (flyUnit->isSmallUnit() ? 0.5 : 0.4)) + 1;
+								shadePower = getArrowBobForFrame((_animFrame + flyUnit->getId()) * (flyUnit->isSmallUnit() ? 0.5 : 0.45)) + 1;
 
-							if (_shadeTileMap[tileIndex] < penalty)
-								_shadeTileMap[tileIndex] = penalty;
+							if (_shadeTileMap[tileIndex] < shadePower)
+								_shadeTileMap[tileIndex] = shadePower;
 						}
 					}
 				}
@@ -893,13 +893,12 @@ void Map::drawTerrain(Surface *surface)
 
 						if (_save->getTile(lightPos))
 						{
-							int distance = round(Position::distance(lightPos, pos));
-							int lightPower = radius - distance;
+							const int distance = round(Position::distance(lightPos, pos));
+							const int lightPower = radius - distance;
+							const int tileIndex = _save->getTileIndex(lightPos);
 
-							int tIdx = _save->getTileIndex(lightPos);
-
-							if (_flashTileMap[tIdx] < lightPower)
-								_flashTileMap[tIdx] = lightPower;
+							if (_flashTileMap[tileIndex] < lightPower)
+								_flashTileMap[tileIndex] = lightPower;
 						}
 					}
 				}
@@ -914,7 +913,7 @@ void Map::drawTerrain(Surface *surface)
 				const int currentFrame = std::max(0, (explosion->isBig() || explosion->isHit()) ? explosion->getCurrentFrame() : explosion->getCurrentFrame() - 6);
 				const int explFrames = std::max(explosion->getFrames(), explosion->isBig() ? explosion->EXPLODE_FRAMES : (explosion->isHit() ? explosion->HIT_FRAMES : explosion->BULLET_FRAMES));
 				const int animStep = (currentFrame % explFrames) / 2;
-				int radius = std::max(0, (explosion->isBig() ? explFrames + 2 : explFrames / 2) - animStep);
+				const int radius = std::max(0, (explosion->isBig() ? explFrames + 2 : explFrames / 2) - animStep);
 
 				handleLight(radius, expTilePos);			
 			}
@@ -928,7 +927,7 @@ void Map::drawTerrain(Surface *surface)
 			if (ammoGlow || isFlare)
 			{
 				const Position projTilePos = _projectile->getPosition().toTile();
-				int radius = isFlare ? (int)(_projectile->getItem()->getRules()->getPower() * 0.25) : _projectile->getAmmo()->getRules()->getFlashRadius();
+				const int radius = isFlare ? (int)(_projectile->getItem()->getRules()->getPower() * 0.25) : _projectile->getAmmo()->getRules()->getFlashRadius();
 				handleLight(radius, projTilePos);
 			}
 		}
@@ -952,7 +951,7 @@ void Map::drawTerrain(Surface *surface)
 				}
 				case O_WESTWALL: case O_NORTHWALL:
 				{	// let do not shade tall walls (TODO: compromise, perhaps, will adjust it for thin walls only)
-					needShade = !tile->getMapData(tp)->getLoftID(11); 
+					needShade = !tile->getMapData(tp)->getLoftID(11);
 				}
 			}
 			if (needShade)

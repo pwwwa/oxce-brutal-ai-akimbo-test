@@ -551,12 +551,10 @@ void ExplosionBState::explode()
 					chainFrame -= Explosion::EXPLODE_FRAMES;
 				}
 
-				Explosion* chainExplosion = new Explosion(explPos, chainFrame, 0, true, false, -1);
-				_parent->getMap()->getExplosions()->push_back(chainExplosion);
+				_parent->getMap()->getExplosions()->push_back(new Explosion(explPos, chainFrame, 0, true, false, -1));
 
 				if (_parent->getMap()->getExplosions()->size() == 1)
 					_parent->playSound(chainPower <= 80 ? Mod::SMALL_EXPLOSION : Mod::LARGE_EXPLOSION);
-
 			}
 
 			t = save->getTileEngine()->checkForTerrainExplosions();
