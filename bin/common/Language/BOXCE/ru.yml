@@ -132,7 +132,7 @@ ru:
   STR_DIAG_TERRAIN_MELEE_DESC: "Атака объектов ландшафта по диагонали в ближнем бою.{NEWLINE}Требует включения опции {ALT}terrainMeleeExtended{ALT}.{NEWLINE}{ALT}Alt+клик{ALT} - принудительно бить текущую и соседние клетки."
   # Floating unit Bobbing and Shade
   STR_FLOAT_UNIT_BOB_N_SHADE: "Покачивание и тень парящих юнитов"
-  STR_FLOAT_UNIT_BOB_N_SHADE_DESC: "Опции: {ALT}0>{ALT}Отключено, {ALT}1>{ALT} Покачивание; {ALT}2>{ALT} Отбрасывание тени; {NEWLINE}{ALT}3>{ALT} Покачивание и тень; {ALT}4>{ALT} Покачивание и динамическая тень."
+  STR_FLOAT_UNIT_BOB_N_SHADE_DESC: "Опции: {ALT}0>{ALT} Отключено, {ALT}1>{ALT} Покачивание; {ALT}2>{ALT} Отбрасывание тени; {NEWLINE}{ALT}3>{ALT} Покачивание и тень; {ALT}4>{ALT} Покачивание и динамическая тень."
   
   #Morale attack success info
   STR_MORALE_ATTACK_SUCCESS_NOTIFY: "Оповещение об успешн. псих. атаке"

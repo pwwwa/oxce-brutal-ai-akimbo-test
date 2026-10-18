@@ -390,37 +390,7 @@ void ExplosionBState::init()
  * If the list is empty, this state is finished and the actual calculations take place.
  */
 void ExplosionBState::think()
-{
-	if (_parent->getMap()->getExplosions()->empty())
-	{
-		explode();
-
-		if (_parent->getMap()->getExplosions()->empty())
-		{
-			if (Options::singleBoom)
-				_parent->popState();
-			return;
-		}
-	}
-
-	for (auto iter = _parent->getMap()->getExplosions()->begin(); iter != _parent->getMap()->getExplosions()->end();)
-	{
-		Explosion* explosion = (*iter);
-		if (!explosion->animate())
-		{
-			delete explosion;
-			iter = _parent->getMap()->getExplosions()->erase(iter);
-		}
-		else
-		{
-			++iter;
-		}
-	}
-}
-
-/** /
-void ExplosionBState::think()
-{
+ {
 	if (!_parent->getMap()->getBlastFlash())
 	{
 		if (_parent->getMap()->getExplosions()->empty())
@@ -446,7 +416,6 @@ void ExplosionBState::think()
 		}
 	}
 }
-/**/
 
 /**
  * Explosions cannot be cancelled.
@@ -554,15 +523,23 @@ void ExplosionBState::explode()
 				_parent->getMap()->getExplosions()->push_back(new Explosion(explPos, chainFrame, 0, true, false, -1));
 
 				if (_parent->getMap()->getExplosions()->size() == 1)
+				{
 					_parent->playSound(chainPower <= 80 ? Mod::SMALL_EXPLOSION : Mod::LARGE_EXPLOSION);
+				}
 			}
 
 			t = save->getTileEngine()->checkForTerrainExplosions();
 		}
-		_parent->setStateInterval(std::max(1, 60 /** / BattlescapeState::DEFAULT_ANIM_SPEED /2 /**/));
+		_parent->setStateInterval(std::max(1, BattlescapeState::DEFAULT_ANIM_SPEED /2));
 
-		if (_parent->getMap()->getExplosions()->size() > 1)
+		if (_parent->getMap()->getExplosions()->empty())
+		{
+			_parent->popState();
+		}
+		else if (_parent->getMap()->getExplosions()->size() > 1)
+		{
 			_parent->playSound(Mod::LARGE_EXPLOSION);
+		}
 	}
 	else
 	{
