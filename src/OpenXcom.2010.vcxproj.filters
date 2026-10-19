@@ -2791,6 +2791,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\res\windows\openxcom.ico" />
+    <None Include="redme.md" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\libs\rapidyaml\ryml.natvis">
