@@ -1075,10 +1075,10 @@ bool Projectile::move()
 	const bool isRangeEvent = _ammo && _ammo->getRules()->getMaxRangeEvent();
 	auto canFly = [&]()
 	{
-		return !_save->getBattleGame()->getPiercePower() ||
-				_save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_EMPTY ||
-		      ( _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_UNIT &&
-				_save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->isPierced()/** / isOutThresholdExceed() /**/);
+		const VoxelType& voxel = _save->getTileEngine()->voxelCheck(getPosition(), _action.actor);
+
+		return !_save->getBattleGame()->getPiercePower() || voxel == V_EMPTY ||
+			   ( voxel == V_UNIT && _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->isPierced() );
 	};
 
 	for ( int i = 0; i < _speed && (!isPierce || canFly()); ++i )

@@ -1015,7 +1015,6 @@ void ProjectileFlyBState::think()
 									{
 										projectileHitUnit(proj->getPosition(offset));
 									}
-									//Explosion *explosion = new Explosion(proj->getPosition(offset), _ammo->getRules()->getHitAnimation(), 0, false, false, _ammo->getRules()->getHitAnimationFrames());
 									int power = 0;
 									if (_action.weapon->getRules()->getIgnoreAmmoPower())
 									{
