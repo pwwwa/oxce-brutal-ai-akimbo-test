@@ -75,10 +75,10 @@ void ScannerView::draw()
 						t->getUnit()->setScannedTurn(_game->getSavedGame()->getSavedBattle()->getTurn());
 						if (frame > 5) frame = 5;
 						surface = set->getFrame(frame + _frame);
-						int cX = Clamp<Sint8>(x, -9, 9);
-						int cY = Clamp<Sint8>(y, -9, 9);
+						const int cX = Clamp(x, -9, 9);
+						const int cY = Clamp(y, -9, 9);
 						//surface->blitNShade(this, ((9+cX)*8)-4, ((9+cY)*8)-4, (_action->actor->getPosition().z == t->getPosition().z || _frame == 0) ? 0 : 4);
-						surface->blitNShade(this, ((9+cX)*8)-4, ((9+cY)*8)-4, (_unit->getPosition().z == t->getPosition().z) ? 0 : _frame * 4);
+						surface->blitNShade(this, ((9 + cX) * 8) - 4, ((9 + cY) * 8) - 4, (_unit->getPosition().z != t->getPosition().z) && isScanAll ? _frame * 4 : 0);
 					}
 				}
 			}
