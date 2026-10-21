@@ -481,38 +481,45 @@ void ExplosionBState::explode()
 		_parent->getSave()->removeItem(_attack.damage_item);
 	}
 
+	// check for terrain explosions
+	Tile* t = save->getTileEngine()->checkForTerrainExplosions();
+
 	if (Options::singleBoom)
 	{
-		Tile* t = save->getTileEngine()->checkForTerrainExplosions();
+		int boomSound = Mod::SMALL_EXPLOSION;
 		while (t)
 		{
-			Position p = t->getPosition().toVoxel() + Position(8, 8, 0);
-			int chainPower = t->getExplosive();
-			int chainRadius = chainPower / 10;
+			Position hitPos = t->getPosition().toVoxel() + Position(8, 8, 0);
+			int explPower = t->getExplosive();
+			int explRadius = explPower / 10;
 
-			ItemDamageType chainDT;
+			ItemDamageType dT;
 			switch (t->getExplosiveType())
 			{
-				case 0:	 chainDT = DT_HE;    break;
-				case 5:	 chainDT = DT_IN;    break;
-				case 6:	 chainDT = DT_STUN;  break;
-				default: chainDT = DT_SMOKE;
+			case 0:	 dT = DT_HE;	break;
+			case 5:	 dT = DT_IN;	break;
+			case 6:  dT = DT_STUN;  break;
+			default: dT = DT_SMOKE;
 			}
-			t->setExplosive(0, chainDT, true);
+
+			t->setExplosive(0, dT, true);
 
 			// Phisics: apply damage handling right now
-			save->getTileEngine()->explode(BattleActionAttack{BA_NONE, _attack.attacker}, p, chainPower, _parent->getMod()->getDamageType(chainDT), chainRadius, true);
-			_parent->checkForCasualties(_parent->getMod()->getDamageType(chainDT), _attack, false, true);
+			save->getTileEngine()->explode(BattleActionAttack{BA_NONE, _attack.attacker}, hitPos, explPower, _parent->getMod()->getDamageType(dT), explRadius, true);
+			_parent->checkForCasualties(_parent->getMod()->getDamageType(dT), _attack, false, true);
 
 			// Graphics: create explosions and push it to Map list
-			int chainLimit = std::max(1, chainPower / 5);
-			for (int i = 0; i < chainLimit; i++)
+			int animLimit = std::max(1, explPower / 10);				// -> 2x less anims (was /5)
+			int frameDelay = 0;
+			int counter = std::max(1, explPower / 25);
+
+			for (int i = 0; i < animLimit; i++)
 			{
-				int X = RNG::generate(-chainPower / 2, chainPower / 2);
-				int Y = RNG::generate(-chainPower / 2, chainPower / 2);
-				Position explPos = p;
-				explPos.x += X;
-				explPos.y += Y;
+				int X = RNG::generate(-explPower / 4, explPower / 4);	// /2
+				int Y = RNG::generate(-explPower / 4, explPower / 4);	// /2
+				Position animPos = hitPos;
+				animPos.x += X;
+				animPos.y += Y;
 
 				int chainFrame = Mod::EXPLOSION_OFFSET;
 				if (_parent->getDepth() > 0)
@@ -520,33 +527,33 @@ void ExplosionBState::explode()
 					chainFrame -= Explosion::EXPLODE_FRAMES;
 				}
 
-				_parent->getMap()->getExplosions()->push_back(new Explosion(explPos, chainFrame, 0, true, false, -1));
+				_parent->getMap()->getExplosions()->push_back(new Explosion(animPos, chainFrame, frameDelay, true, false, -1));
 
-				if (_parent->getMap()->getExplosions()->size() == 1)
+				if (i > 0 && i % counter == 0)
 				{
-					_parent->playSound(chainPower <= 80 ? Mod::SMALL_EXPLOSION : Mod::LARGE_EXPLOSION);
+					frameDelay++;
 				}
 			}
 
+			if (explPower > 80) boomSound = Mod ::LARGE_EXPLOSION;
+
 			t = save->getTileEngine()->checkForTerrainExplosions();
 		}
-		_parent->setStateInterval(std::max(1, BattlescapeState::DEFAULT_ANIM_SPEED /2));
 
 		if (_parent->getMap()->getExplosions()->empty())
 		{
 			_parent->popState();
 		}
-		else if (_parent->getMap()->getExplosions()->size() > 1)
+		else
 		{
-			_parent->playSound(Mod::LARGE_EXPLOSION);
+			_parent->playSound(boomSound);
+			_parent->setStateInterval(std::max(1, BattlescapeState::DEFAULT_ANIM_SPEED / 2));
 		}
 	}
 	else
 	{
 		_parent->popState();
 
-		// check for terrain explosions
-		Tile *t = save->getTileEngine()->checkForTerrainExplosions();
 		if (t)
 		{
 			Position p = t->getPosition().toVoxel();
@@ -567,6 +574,5 @@ void ExplosionBState::explode()
 		_parent->spawnNewItem(_attack, _before.toTile());
 	}
 }
-/**/
 
 }
