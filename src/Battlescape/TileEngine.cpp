@@ -5995,8 +5995,8 @@ bool TileEngine::validMeleeRange(Position pos, int direction, BattleUnit *attack
 	{
 		for (int y = 0; y < size; ++y)
 		{
-			Tile *origin = _save->getTile(Position(pos + Position(x, y, 0)));
-			Tile *targetTile = _save->getTile(Position(pos + Position(x, y, 0) + p));
+			Tile *origin (_save->getTile(Position(pos + Position(x, y, 0))));
+			Tile *targetTile (_save->getTile(Position(pos + Position(x, y, 0) + p)));
 
 			if (targetTile && origin)
 			{
@@ -6113,7 +6113,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 	Pathfinding::directionToVector(direction, &p);
 	Tile* originTile = _save->getTile(pos);
 
-	if (originTile && originTile->getTerrainLevel(action->actor) <= -16 && !_save->isAltPressed(true))
+	if (originTile && originTile->getTerrainLevel(action->actor) <= -16 && !_save->isCtrlPressed(true))
 	{
 		// if we are on the upper part of stairs, target one tile above. pWWWa: let leave at the same tile altitude with pressed Alt (if there are need to hit stair under feet).
 		pos += Position(0, 0, 1);
@@ -6194,7 +6194,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			MapData* obj = tt->getMapData(tp);
 			if (obj)
 			{
-				if (!(Options::diagTerrainMelee && tt->getSavedGame()->isAltPressed(true))) // Forced hit terrain melee (helper) 
+				if (!(Options::diagTerrainMelee && tt->getSavedGame()->isCtrlPressed(true))) // Forced hit terrain melee (helper) 
 				{
 					if (dir > -1 && tp == O_OBJECT)
 					{
@@ -6309,7 +6309,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			return true;
 		}
 
-		if (_save->isAltPressed(true))
+		if (_save->isCtrlPressed(true))
 		{ // Forced terrain melee helper. Suitable for non-proper tile configuration aiming (etc. objecs part in floor tile "slot")
 			if (setTarget(neighbouringTile, O_NORTHWALL, action) ||
 				setTarget(neighbouringTile, O_WESTWALL, action)  ||
