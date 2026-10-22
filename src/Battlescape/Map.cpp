@@ -2572,9 +2572,8 @@ void Map::animate(bool redraw)
 	}
 
 	// animate tiles
-	if (!_save->isShiftPressed() /** / !Mod::DESYNC_TILE_ANIMATION /**/)
+	if (!Mod::DESYNC_TILE_ANIMATION)
 	{
-
 		for (int i = 0; i < _save->getMapSizeXYZ(); ++i)
 		{
 			_save->getTile(i)->animate();
