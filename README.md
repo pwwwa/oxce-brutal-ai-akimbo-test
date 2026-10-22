@@ -72,7 +72,7 @@ Possible ammo ruleset properties:
 --------------------------------------------------------------------------------------------------
 
 
-3) Melee mechanic adjustment
+3) Melee+ mechanic adjustment
 
 - big unit wrong side issue fix;
 - fixed misses to units at higher terrain (16+), small or kneel units at some "straw" tiles.
@@ -89,7 +89,17 @@ Could be activated at Options->Advanced -> BOXCE -> BattleScape section. Of cour
 3.2) Forced Melee to Floor feature.
 
 This feature allows to use a melee weapon to attack an unconscious unit located directly beneath your unit feet. Note: enabling the `extendedTerrainMelee` option allows to attack terrain objects located beneath your feet (e.g. for clearing beneath unit space from terrain staff or for breaching a hole in the floor).
-Usage: stay at target tile and Ctrl+click to melee weapon.
+Usage: stay at target tile and Alt+click to melee weapon.
+
+3.3) Continious melee hits serie feature.
+
+Shift+click allow to apply serie of hits - continuing until the target falls or the attacker runs out of Action Points (TU) or proper points.
+
+3.4) Medikit targeting control.
+
+It is possible to force what target will be applied for medikit:
+Shift+click -> forced self targeting;
+Ctrl+click -> forced in front of unit targeting.
 
 ---------------------------------------------------------------------------------------------------
 
@@ -212,7 +222,12 @@ Supports new ruleset extraSprites objects:
 
 Perform one big single explosion instead of default OXC blasting serie for terrain.
 Locates at Options->Advanced->BOXCE->Battlescape->Single big boom.
-  
+
+10.8) Asynchronous map tiles animation ruleset constant.
+
+Adds a slight delay before the animation for tiles begins, which makes the animation of adjacent objects of the same type appear more varied.
+
+
 ===================================================================================================
 
 

@@ -492,6 +492,7 @@ public:
 	static bool EXTENDED_EXPERIENCE_AWARD_SYSTEM;
 	static bool EXTENDED_FORCE_SPAWN;
 	static int EXTENDED_SMOKE_OFFSET;
+	static bool DESYNC_TILE_ANIMATION;
 
     // Hit chances lookup tables config
     static const int distanceRows = 40;

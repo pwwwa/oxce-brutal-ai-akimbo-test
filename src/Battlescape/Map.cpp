@@ -844,7 +844,8 @@ void Map::drawTerrain(Surface *surface)
 							if (checkTile)
 							{
 
-								if ( (checkTile->getMapData(O_FLOOR) && !checkTile->getMapData(O_FLOOR)->isNoFloor()) || checkTile->getMapData(O_OBJECT) || checkTile->getOverlappingUnit(_save)) ///  checkTile->getSprite(O_OBJECT)
+								if ( (checkTile->getMapData(O_FLOOR) && !checkTile->getMapData(O_FLOOR)->isNoFloor()) ||
+									  checkTile->getMapData(O_OBJECT) || checkTile->getOverlappingUnit(_save) )
 								{
 									targetTileZ = z;
 									break;
@@ -904,9 +905,9 @@ void Map::drawTerrain(Surface *surface)
 				}
 			}
 		};
-		// Explosion Flash'n'Light
+		
 		if (_explosionInFOV && !_explosions.empty())
-		{
+		{	// Explosion Flash'n'Light
 			for (const auto* explosion : _explosions)
 			{
 				const Position expTilePos = explosion->getPosition().toTile();
@@ -918,9 +919,9 @@ void Map::drawTerrain(Surface *surface)
 				handleLight(radius, expTilePos);			
 			}
 		}
-		// Projectile light. thowing flares are included. Should to add any throwing items too ?
+		
 		if (Options::dynamicFlash > 1 && _projectile && _projectileInFOV)
-		{
+		{	// Projectile light. thowing flares are included. Should to add any throwing items too ?
 			bool ammoGlow = _projectile->getAmmo() && _projectile->getAmmo()->getRules()->getFlashRadius();
 			bool isFlare = _projectile->getItem() && _projectile->getItem()->getRules()->getBattleType() == BT_FLARE;
 
@@ -932,15 +933,11 @@ void Map::drawTerrain(Surface *surface)
 			}
 		}
 	}
-
 	
-/**/
-	// pWWWa: Unified Light'n'Shade "lambada"
 	auto applyLight = [&](int& shadeValue, int& obstacleValue, TilePart tp)
-	{
-		// "Shadow of the city" (c)
+	{	// pWWWa: Unified Light'n'Shade "lambada"
 		if (Options::floatUnitBobNShade > 1)
-		{
+		{	// "Shadow of the city" (c)
 			bool needShade = true;
 			switch (tp)
 			{
@@ -957,10 +954,9 @@ void Map::drawTerrain(Surface *surface)
 			if (needShade)
 				shadeValue = std::min(16, shadeValue + _shadeTileMap[_save->getTileIndex(mapPosition)]);
 		}
-
-		// "Give me delight" (c)
+		
 		if ((Options::dynamicFlash && _explosionInFOV) || (Options::dynamicFlash > 1 && _projectileInFOV))
-		{
+		{	// "Give me delight" (c)
 			shadeValue = std::max(0, shadeValue - _flashTileMap[_save->getTileIndex(mapPosition)]);
 			if (tp == O_FLOOR)
 				obstacleValue = std::max(0, obstacleValue - _flashTileMap[_save->getTileIndex(mapPosition)]);
@@ -2576,9 +2572,37 @@ void Map::animate(bool redraw)
 	}
 
 	// animate tiles
-	for (int i = 0; i < _save->getMapSizeXYZ(); ++i)
+	if (!_save->isShiftPressed() /** / !Mod::DESYNC_TILE_ANIMATION /**/)
 	{
-		_save->getTile(i)->animate();
+
+		for (int i = 0; i < _save->getMapSizeXYZ(); ++i)
+		{
+			_save->getTile(i)->animate();
+		}
+	}
+	else
+	{
+		static std::vector<int> tileStartTimers {};
+		int mapSize = _save->getMapSizeXYZ();
+
+		if (tileStartTimers.size() != mapSize)
+		{
+			tileStartTimers.assign(mapSize, 0);
+			for (int i = 0; i < mapSize; ++i)
+			{
+				tileStartTimers[i] = i % 16;
+			}
+		}
+
+		for (int i = 0; i < mapSize; ++i)
+		{
+			if (tileStartTimers[i] > 0)
+			{
+				tileStartTimers[i]--;
+				continue;
+			}
+			_save->getTile(i)->animate();
+		}
 	}
 
 	// animate vapor

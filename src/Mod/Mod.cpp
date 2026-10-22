@@ -204,6 +204,7 @@ int Mod::EXTENDED_UNDERWATER_THROW_FACTOR;
 bool Mod::EXTENDED_EXPERIENCE_AWARD_SYSTEM;
 bool Mod::EXTENDED_FORCE_SPAWN;
 int Mod::EXTENDED_SMOKE_OFFSET;
+bool Mod::DESYNC_TILE_ANIMATION;
 
 extern std::string OXCE_CURRENCY_SYMBOL;
 
@@ -324,6 +325,7 @@ void Mod::resetGlobalStatics()
 	EXTENDED_SMOKE_OFFSET = 0;
 
 	OXCE_CURRENCY_SYMBOL = "$";
+	DESYNC_TILE_ANIMATION = false;
 }
 
 /**
@@ -2778,6 +2780,7 @@ void Mod::loadConstants(const YAML::YamlNodeReader &reader)
 	reader.tryRead("extendedSmokeOffset", EXTENDED_SMOKE_OFFSET);
 
 	reader.tryRead("extendedCurrencySymbol", OXCE_CURRENCY_SYMBOL);
+	reader.tryRead("desyncTileAnimation", DESYNC_TILE_ANIMATION);
 }
 
 /**
