@@ -374,7 +374,7 @@ void ActionMenuState::handleAction()
 						(weapon->getAllowTargetNeutralGround() && bu->getOriginalFaction() == FACTION_NEUTRAL) ||
 						(weapon->getAllowTargetHostileGround() && bu->getOriginalFaction() == FACTION_HOSTILE))
 					{
-						targetUnit = bu;
+						targetUnit = !_game->isCtrlPressed(true) && !_game->isShiftPressed(true) ? bu : 0;
 						break; // loop finished
 					}
 				}
@@ -394,7 +394,7 @@ void ActionMenuState::handleAction()
 							(weapon->getAllowTargetNeutralStanding() && tile->getUnit()->getOriginalFaction() == FACTION_NEUTRAL) ||
 							(weapon->getAllowTargetHostileStanding() && tile->getUnit()->getOriginalFaction() == FACTION_HOSTILE))
 						{
-							targetUnit = tile->getUnit();
+							targetUnit = !_game->isShiftPressed(true) ? tile->getUnit() : 0;
 						}
 					}
 				}
@@ -403,6 +403,8 @@ void ActionMenuState::handleAction()
 			{
 				targetUnit = _action->actor;
 			}
+
+
 			if (targetUnit)
 			{
 				_game->popState();
@@ -503,18 +505,17 @@ void ActionMenuState::handleAction()
 			{
 				//nothing
 			}
-			else if (_game->isCtrlPressed(true) && _game->getSavedGame()->getSavedBattle()->getSide() == FACTION_PLAYER && _action->actor->getFaction() == FACTION_PLAYER && !_action->actor->getTile()->hasNoFloor())
+			else if (_game->isAltPressed(true) && _game->getSavedGame()->getSavedBattle()->getSide() == FACTION_PLAYER && _action->actor->getFaction() == FACTION_PLAYER && !_action->actor->getTile()->hasNoFloor())
 			{ // ForcedMelleeToFloor: Let pass target tile coordinates directly to MeleeAttackBState
-
 				_action->target = _action->actor->getPosition();
 
 				if (_action->actor->isBigUnit())
 				{ // reassign target tile for big unit by their part in dependence of their facing direction
 					switch (_action->actor->getDirection())
 					{
-					case 1: case 2: _action->target = _action->actor->getPosition() + Position(1, 0, 0); break; // NE & E -> 2nd part
-					case 3:	case 4:	_action->target = _action->actor->getPosition() + Position(1, 1, 0); break; // SE & S -> 3rd part 
-					case 5:	case 6:	_action->target = _action->actor->getPosition() + Position(0, 1, 0);		// SW & W -> 4rd part
+						case 1: case 2: _action->target = _action->actor->getPosition() + Position(1, 0, 0); break; // NE & E -> 2nd part
+						case 3:	case 4:	_action->target = _action->actor->getPosition() + Position(1, 1, 0); break; // SE & S -> 3rd part 
+						case 5:	case 6:	_action->target = _action->actor->getPosition() + Position(0, 1, 0);		// SW & W -> 4rd part
 					}
 				}
 			}

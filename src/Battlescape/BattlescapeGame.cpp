@@ -79,11 +79,11 @@ void BattleActionCost::updateTU()
 		if (type == BA_AKIMBOSHOT && actor->isAkimbo())
 		{
 			Time = std::max(actor->getActionTUs(type, weapon).Time, actor->getActionTUs(type, actor->getOppositeHandWeapon()).Time);
-			Energy += actor->getActionTUs(type, actor->getOppositeHandWeapon()).Energy;
-			Morale += actor->getActionTUs(type, actor->getOppositeHandWeapon()).Morale;
-			Health += actor->getActionTUs(type, actor->getOppositeHandWeapon()).Health;
-			Stun   += actor->getActionTUs(type, actor->getOppositeHandWeapon()).Stun;
-			Mana   += actor->getActionTUs(type, actor->getOppositeHandWeapon()).Mana;
+			Energy = actor->getActionTUs(type, weapon).Energy + actor->getActionTUs(type, actor->getOppositeHandWeapon()).Energy;
+			Morale = actor->getActionTUs(type, weapon).Morale + actor->getActionTUs(type, actor->getOppositeHandWeapon()).Morale;
+			Health = actor->getActionTUs(type, weapon).Health + actor->getActionTUs(type, actor->getOppositeHandWeapon()).Health;
+			Stun   = actor->getActionTUs(type, weapon).Stun + actor->getActionTUs(type, actor->getOppositeHandWeapon()).Stun;
+			Mana   = actor->getActionTUs(type, weapon).Mana + actor->getActionTUs(type, actor->getOppositeHandWeapon()).Mana;
 		}
 		else
 		{

@@ -4038,8 +4038,11 @@ void BattlescapeState::txtTooltipInExtra(Action *action, bool leftHand, bool spe
 						(weaponRule->getAllowTargetNeutralGround() && bu->getOriginalFaction() == FACTION_NEUTRAL) ||
 						(weaponRule->getAllowTargetHostileGround() && bu->getOriginalFaction() == FACTION_HOSTILE))
 					{
-						targetUnit = bu;
-						onGround = true;
+						if (!_game->isCtrlPressed(true) && !_game->isShiftPressed(true))
+						{
+							targetUnit = bu;
+							onGround = true;
+						}
 					}
 				}
 			}
@@ -4061,7 +4064,7 @@ void BattlescapeState::txtTooltipInExtra(Action *action, bool leftHand, bool spe
 							(weaponRule->getAllowTargetNeutralStanding() && tile->getUnit()->getOriginalFaction() == FACTION_NEUTRAL) ||
 							(weaponRule->getAllowTargetHostileStanding() && tile->getUnit()->getOriginalFaction() == FACTION_HOSTILE))
 						{
-							targetUnit = tile->getUnit();
+							targetUnit = !_game->isShiftPressed(true) ? tile->getUnit() : 0;
 						}
 					}
 				}
