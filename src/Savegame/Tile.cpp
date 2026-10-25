@@ -1137,7 +1137,7 @@ int Tile::getTerrainLevel(const BattleUnit *unit) const
 	int lowLevel = 24;
 
 	for (int x = 0; x < 2; ++x)
-	{ 
+	{
 		for (int y = 0; y < 2; ++y)
 		{
 			int curLevel = _save->getTile(unitPos + Position(x, y, 0))->_cache.terrainLevel;

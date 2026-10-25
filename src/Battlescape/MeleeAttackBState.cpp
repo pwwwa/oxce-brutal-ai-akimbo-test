@@ -233,7 +233,10 @@ void MeleeAttackBState::think()
 void MeleeAttackBState::performMeleeAttack(int terrainMeleeTilePart)
 {
 	// sdend TU and go on or get out here
-	if (!_action.spendTU(&_action.result)) return;
+	if (!_action.spendTU(&_action.result))
+	{
+		return;
+	}
 		
 	// set the soldier in an aiming position
 	_unit->aim(true);
@@ -244,7 +247,6 @@ void MeleeAttackBState::performMeleeAttack(int terrainMeleeTilePart)
 
 	if (_target && _target != _unit)
 	{
-		
 		if (_parent->getTileEngine()->voxelCheck(_voxel, _unit) != V_UNIT)
 		{ // pWWWa: Missed to unit, really ? Recheck tile's vertical axis and find any high victim's piece.
 			for (int z = 24; z >= 0; --z)

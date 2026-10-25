@@ -767,11 +767,11 @@ void Map::drawUnit(UnitSprite &unitSprite, Tile *unitTile, Tile *currTile, Posit
 	{
 		if (Options::floatUnitBobNShade > 1)
 		{
-			int penalty = _shadeTileMap[_save->getTileIndex(unitTile->getPosition())];
+			int castShade = _shadeTileMap[_save->getTileIndex(unitTile->getPosition())];
 
-			if (penalty)
+			if (castShade)
 			{
-				shade =  std::min(15, shade + penalty);
+				shade = std::min(15, shade + castShade);
 			}
 		}
 
@@ -864,8 +864,7 @@ void Map::drawTerrain(Surface *surface)
 							if (Options::floatUnitBobNShade == 4 && flyUnit->getArmor()->canFloatBob())
 								shadePower = getArrowBobForFrame((_animFrame + flyUnit->getId()) * (flyUnit->isSmallUnit() ? 0.5 : 0.45)) + 1;
 
-							if (_shadeTileMap[tileIndex] < shadePower)
-								_shadeTileMap[tileIndex] = shadePower;
+							if (_shadeTileMap[tileIndex] < shadePower) _shadeTileMap[tileIndex] = shadePower;
 						}
 					}
 				}
@@ -898,8 +897,7 @@ void Map::drawTerrain(Surface *surface)
 							const int lightPower = radius - distance;
 							const int tileIndex = _save->getTileIndex(lightPos);
 
-							if (_flashTileMap[tileIndex] < lightPower)
-								_flashTileMap[tileIndex] = lightPower;
+							if (_flashTileMap[tileIndex] < lightPower) _flashTileMap[tileIndex] = lightPower;
 						}
 					}
 				}
@@ -922,8 +920,8 @@ void Map::drawTerrain(Surface *surface)
 		
 		if (Options::dynamicFlash > 1 && _projectile && _projectileInFOV)
 		{	// Projectile light. thowing flares are included. Should to add any throwing items too ?
-			bool ammoGlow = _projectile->getAmmo() && _projectile->getAmmo()->getRules()->getFlashRadius();
-			bool isFlare = _projectile->getItem() && _projectile->getItem()->getRules()->getBattleType() == BT_FLARE;
+			const bool ammoGlow = _projectile->getAmmo() && _projectile->getAmmo()->getRules()->getFlashRadius();
+			const bool isFlare = _projectile->getItem() && _projectile->getItem()->getRules()->getBattleType() == BT_FLARE;
 
 			if (ammoGlow || isFlare)
 			{
@@ -936,6 +934,11 @@ void Map::drawTerrain(Surface *surface)
 	
 	auto applyLight = [&](int& shadeValue, int& obstacleValue, TilePart tp)
 	{	// pWWWa: Unified Light'n'Shade "lambada"
+		if (!tile->isDiscovered(tp))
+		{
+			return;
+		}
+
 		if (Options::floatUnitBobNShade > 1)
 		{	// "Shadow of the city" (c)
 			bool needShade = true;
