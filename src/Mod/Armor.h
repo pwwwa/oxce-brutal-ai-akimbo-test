@@ -506,12 +506,13 @@ public:
 	int getFloatHeight() const;
 	/// Gets a unit's offset for melee attacks.
 	int getMeleeOriginVoxelVerticalOffset() const { return _meleeOriginVoxelVerticalOffset; }
-	/// Can this unit bob in floating state, if floatUnitBobNShade is enabled?
-	bool canFloatBob() const { return _canFloatBob; }
+
 	/// Gets the armor type group.
 	int getGroup() const { return _group; }
 	/// Get the list weight for this armor.
 	int getListOrder() const { return _listOrder; }
+	/// Can this unit bob in floating state, if floatUnitBobNShade is enabled?
+	bool canFloatBob() const { return _canFloatBob; }
 };
 
 }

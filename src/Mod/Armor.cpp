@@ -263,6 +263,7 @@ void Armor::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript &pa
 	loadBoolNullable(_allowsSneaking, reader["allowsSneaking"]);
 	loadBoolNullable(_allowsKneeling, reader["allowsKneeling"]);
 	loadBoolNullable(_allowsMoving, reader["allowsMoving"]);
+	reader.tryRead("canFloatBob", _canFloatBob);
 	reader.tryRead("isPilotArmor", _isPilotArmor);
 	reader.tryRead("allowTwoMainWeapons", _allowTwoMainWeapons);
 	reader.tryRead("instantWoundRecovery", _instantWoundRecovery);
@@ -272,7 +273,6 @@ void Armor::load(const YAML::YamlNodeReader& node, Mod *mod, const ModScript &pa
 	reader.tryRead("meleeOriginVoxelVerticalOffset", _meleeOriginVoxelVerticalOffset);
 	reader.tryRead("group", _group);
 	reader.tryRead("listOrder", _listOrder);
-	reader.tryRead("canFloatBob", _canFloatBob);
 }
 
 /**
