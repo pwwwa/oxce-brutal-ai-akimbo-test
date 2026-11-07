@@ -4910,13 +4910,13 @@ VoxelType TileEngine::calculateLineVoxel(Position origin, Position target, bool 
  * @param excludeUnit Excludes this unit in the collision detection.
  * @param onlyVisible Skip invisible units? used in FPS view.
  * @param excludeAllBut [Optional] The only unit to be considered for ray hits.
- * @return out of map (5).
+ * @return object (5).
  */
 VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target, bool storeTrajectory, std::vector<Position> *trajectory, BattleUnit *excludeUnit, BattleUnit *excludeAllBut, bool onlyVisible)
 {
-	bool excludeAllUnits = _save->isBeforeGame() ? true : false; // don't start unit spotting before pre-game inventory stuff (large units on the craftInventory tile will cause a crash if they're "spotted")
-	int rand = (int)RNG::generate(0, 1) ? -1 : 1;				 // trajectory position shifter for avoiding of passing thru 2 walls corner 
-	bool isUnit = false;
+	const bool excludeAllUnits = _save->isBeforeGame() ? true : false; // don't start unit spotting before pre-game inventory stuff (large units on the craftInventory tile will cause a crash if they're "spotted")
+	const int rand = RNG::generate(0, 1) ? -1 : 1;					   // trajectory position shifter for avoiding of passing thru 2 walls corner 
+
 	calculateLineHelper(origin,target,
 		[&](Position point)
 		{
@@ -4924,7 +4924,7 @@ VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target,
 			{				
 				trajectory->push_back(point + Position(rand, -rand, 0));
 			}
-			isUnit = voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut) == V_UNIT;
+
 			if (voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut) == V_OUTOFBOUNDS)
 			{
 				if (trajectory)
@@ -4936,20 +4936,18 @@ VoxelType TileEngine::calculatePierceLineVoxel(Position origin, Position target,
 			return false;
 		},
 		[&](Position point)
-		{	
-			isUnit = isUnit ? true : voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut) == V_UNIT;
-			//check for xy diagonal intermediate voxel step	
+		{	//check for xy diagonal intermediate voxel step	
 			if (voxelCheck(point, excludeUnit, excludeAllUnits, onlyVisible, excludeAllBut) == V_OUTOFBOUNDS)
 			{
 				if (trajectory)
-				{ // store the position of impact
+				{	// store the position of impact
 					trajectory->push_back(point + Position(rand, -rand, 0));
 				}
 				return true;
 			}
 			return false;
 		});
-	return isUnit ? V_UNIT : V_OBJECT; // pWWWa: test variant for better "accuracy deviation" result 
+	return V_OBJECT; // pWWWa: test variant for better "accuracy deviation" result
 }
 
 /**
@@ -6096,7 +6094,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 		}
 	}
 
-	int direction = action->actor->getDirection();
+	const int direction = action->actor->getDirection();
 
 	if (direction < 0 || direction > 7)
 	{	// only horisontal direction are allowed
@@ -6112,8 +6110,9 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 	Position p;
 	Pathfinding::directionToVector(direction, &p);
 	Tile* originTile = _save->getTile(pos);
+	const bool isForced = _save->isCtrlPressed(true);
 
-	if (originTile && originTile->getTerrainLevel(action->actor) <= -16 && !_save->isCtrlPressed(true))
+	if (originTile && originTile->getTerrainLevel(action->actor) <= -16 && !isForced)
 	{
 		// if we are on the upper part of stairs, target one tile above. pWWWa: let leave at the same tile altitude with pressed Alt (if there are need to hit stair under feet).
 		pos += Position(0, 0, 1);
@@ -6180,42 +6179,44 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 
 	if (originTile && neighbouringTile)
 	{
-		auto setTarget = [](Tile* tt, TilePart tp, BattleAction* aa, int dir = -1) -> bool
+		auto setTarget = [&](Tile* tt, TilePart tp, BattleAction* aa, int dir = -1) -> bool
 		{
-			Position origin = tt->getSavedGame()->getTileEngine()->getSightOriginVoxel(aa->actor, tt);
+			Position origin = getSightOriginVoxel(aa->actor, tt);
 			Position target = tt->getPosition().toVoxel() + voxelTileCenter;
 
-			if (aa->actor->getDirection() % 2 && !(tt->getSavedGame()->getTileEngine()->canTargetTile(&origin, tt, tp, &target, aa->actor, false) ||
-													 tt->getSavedGame()->getTileEngine()->canTargetTile(&origin, tt, O_FLOOR, &target, aa->actor, false)))
+			if ( aa->actor->getDirection() % 2 && !(canTargetTile(&origin, tt, tp, &target, aa->actor, false) || canTargetTile(&origin, tt, O_FLOOR, &target, aa->actor, false)) )
 			{ // is tile reachable (more predictable targeting queue at diagonals)
+				return false;
+			}
+
+			if (tt->isUfoDoorOpen(tp))
+			{ // Do not hit opened doors
 				return false;
 			}
 				
 			MapData* obj = tt->getMapData(tp);
 			if (obj)
 			{
-				if (!(Options::diagTerrainMelee && tt->getSavedGame()->isCtrlPressed(true))) // Forced hit terrain melee (helper) 
+				if (dir > -1 && tp == O_OBJECT)
 				{
-					if (dir > -1 && tp == O_OBJECT)
-					{
-						auto bigWall = obj->getBigWall();
-						if (dir == 0 /*north*/ && bigWall != Pathfinding::BIGWALLNORTH && bigWall != Pathfinding::BIGWALLWESTANDNORTH) return false;
-						if (dir == 2 /*east */ && bigWall != Pathfinding::BIGWALLEAST && bigWall != Pathfinding::BIGWALLEASTANDSOUTH)  return false;
-						if (dir == 4 /*south*/ && bigWall != Pathfinding::BIGWALLSOUTH && bigWall != Pathfinding::BIGWALLEASTANDSOUTH) return false;
-						if (dir == 6 /*west */ && bigWall != Pathfinding::BIGWALLWEST && bigWall != Pathfinding::BIGWALLWESTANDNORTH)  return false;
-						if (dir == 1 /*NW   */ && bigWall != Pathfinding::BIGWALLNWSE)												   return false;
-						if (dir == 3 /*NE   */ && bigWall != Pathfinding::BIGWALLNESW && bigWall != Pathfinding::BIGWALLEASTANDSOUTH)  return false;
-						if (dir == 5 /*SE   */ && bigWall != Pathfinding::BIGWALLNWSE)												   return false;
-						if (dir == 7 /*SW   */ && bigWall != Pathfinding::BIGWALLNESW && bigWall != Pathfinding::BIGWALLWESTANDNORTH)  return false;
-					}
-					if (tp != O_OBJECT && !obj->isDoor() && !obj->isUFODoor() && tt->getTUCost(tp, MT_WALK) != Pathfinding::INVALID_MOVE_COST)
-					{
-						// it is possible to walk through this (rubble) wall... no need to attack it
-						return false;
-					}
+					auto bigWall = obj->getBigWall();
+					if (dir == 0 /*north*/ && bigWall != Pathfinding::BIGWALLNORTH && bigWall != Pathfinding::BIGWALLWESTANDNORTH) return false;
+					if (dir == 2 /*east */ && bigWall != Pathfinding::BIGWALLEAST && bigWall != Pathfinding::BIGWALLEASTANDSOUTH)  return false;
+					if (dir == 4 /*south*/ && bigWall != Pathfinding::BIGWALLSOUTH && bigWall != Pathfinding::BIGWALLEASTANDSOUTH) return false;
+					if (dir == 6 /*west */ && bigWall != Pathfinding::BIGWALLWEST && bigWall != Pathfinding::BIGWALLWESTANDNORTH)  return false;
+					if (dir == 1 /*NW   */ && bigWall != Pathfinding::BIGWALLNWSE)												   return false;
+					if (dir == 3 /*NE   */ && bigWall != Pathfinding::BIGWALLNESW && bigWall != Pathfinding::BIGWALLEASTANDSOUTH)  return false;
+					if (dir == 5 /*SE   */ && bigWall != Pathfinding::BIGWALLNWSE)												   return false;
+					if (dir == 7 /*SW   */ && bigWall != Pathfinding::BIGWALLNESW && bigWall != Pathfinding::BIGWALLWESTANDNORTH)  return false;
 				}
+				if (tp != O_OBJECT && !isForced && !obj->isDoor() && !obj->isUFODoor() && tt->getTUCost(tp, MT_WALK) != Pathfinding::INVALID_MOVE_COST)
+				{
+					// it is possible to walk through this (rubble) wall... no need to attack it
+					return false;
+				}
+
 				bool isHighEnough = false;
-				for (int i = Mod::EXTENDED_TERRAIN_MELEE; i < 12; ++i)
+				for (int i = isForced ? 0 :Mod::EXTENDED_TERRAIN_MELEE ; i < 12; ++i) // pWWWa: 0 is 1-st LOFT. 1 means that thin tp will be ignored for hitting (no good)
 				{
 					if (obj->getLoftID(i) > 0)
 					{
@@ -6235,8 +6236,7 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 
 		if (setTarget(originTile, O_OBJECT, action, direction) ||
 			setTarget(originTile2, O_OBJECT, action, direction))
-		{
-			// All directions: target the object (marked as big wall) on the current tile
+		{	// All directions: target the object (marked as big wall) on the current tile
 			return true;
 		}
 
@@ -6308,11 +6308,9 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 			return true;
 		}
 
-		if (_save->isCtrlPressed(true))
+		if (isForced)
 		{ // Forced terrain melee helper. Suitable for non-proper tile configuration aiming (etc. objecs part in floor tile "slot")
-			if (setTarget(neighbouringTile, O_NORTHWALL, action) ||
-				setTarget(neighbouringTile, O_WESTWALL, action)  ||
-				setTarget(neighbouringTile, O_FLOOR, action))
+			if (setTarget(neighbouringTile, O_FLOOR, action))
 			return true;
 
 			if (direction % 2)

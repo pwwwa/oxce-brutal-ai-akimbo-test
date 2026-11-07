@@ -144,15 +144,13 @@ void MeleeAttackBState::init()
 	\********************************/
 	if (_target == _unit)
 	{
-		// Check presence of any alive unit under feet and apply their height (it is 0 usually, but let check)
 		if (_target->getTile()->getTopItem() && _target->getTile()->getTopItem()->getUnit() && _target->getTile()->getTopItem()->getUnit()->getStatus() == STATUS_UNCONSCIOUS)
-		{ 
+		{	// Check presence of any alive unit under feet and apply their height (it is 0 usually, but let check)
 			_target = _target->getTile()->getTopItem()->getUnit();
 			_voxel.z = _target->getPosition().toVoxel().z;
 		}
 		else if (Mod::EXTENDED_TERRAIN_MELEE <= 0 || (!_action.weapon->getRules()->getDamageType()->ToTile || !_action.weapon->getRules()->getMeleeType()->ToTile))
-		{
-			// Do not allow to dig terrain without activated Terrain Melee feature or for not suitable items for this
+		{	// Do not allow to dig terrain without activated Terrain Melee feature or for not suitable items for this
 			_action.result = "STR_THERE_IS_NO_ONE_THERE";
 			_parent->getCurrentAction()->type = BA_NONE; // stucking cursor fix, hello to BattlescapeGame
 			_parent->popState();
@@ -232,9 +230,8 @@ void MeleeAttackBState::think()
  */
 void MeleeAttackBState::performMeleeAttack(int terrainMeleeTilePart)
 {
-	// sdend TU and go on or get out here
 	if (!_action.spendTU(&_action.result))
-	{
+	{	// sdend TU and go on or get out here
 		return;
 	}
 		
@@ -268,18 +265,16 @@ void MeleeAttackBState::performMeleeAttack(int terrainMeleeTilePart)
 		difference.y = Clamp<Sint16>(difference.y, -1, 1);
 		difference.z = Clamp<Sint16>(difference.z, -1, 1);
 
-		// pWWWa: shift the damage voxel inside of victim's voxel space to the closest possible attacker's location
 		while (_parent->getTileEngine()->voxelCheck((_voxel + difference), _unit) == V_UNIT &&
 			  (_voxel.x != attackerPos.x || _voxel.y != attackerPos.y || _voxel.z != attackerPos.z))
-		{
+		{	// pWWWa: shift the damage voxel inside of victim's voxel space to the closest possible attacker's location
 			_voxel += difference;
 		}
 	}
 	else if (_target == _unit || terrainMeleeTilePart == 4)
 	{
-		// pWWWa: handling of miss during of hitting some floor terrain
 		while (_voxel.z > _action.target.toVoxel().z && _parent->getTileEngine()->voxelCheck(_voxel, _unit) == V_EMPTY)
-		{
+		{	// pWWWa: handling of miss during of hitting some floor terrain
 			--_voxel.z;
 		}
 	}

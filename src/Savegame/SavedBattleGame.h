@@ -25,6 +25,7 @@
 #include "Tile.h"
 #include "../Mod/AlienDeployment.h"
 #include "../Mod/RuleCraft.h"
+#include "../fmath.h"
 
 namespace OpenXcom
 {
@@ -257,7 +258,7 @@ public:
 	 */
 	inline int getTileIndex(Position pos) const
 	{
-		return pos.z * _mapsize_y * _mapsize_x + pos.y * _mapsize_x + pos.x;
+		return (Clamp<Sint16>(pos.z, 0, _mapsize_z - 1) * _mapsize_y + Clamp<Sint16>(pos.y, 0, _mapsize_y - 1)) * _mapsize_x + Clamp<Sint16>(pos.x, 0, _mapsize_x - 1);
 	}
 
 	/// Converts a tile index to its coordinates.

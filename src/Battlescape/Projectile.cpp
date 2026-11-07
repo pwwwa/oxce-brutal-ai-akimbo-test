@@ -1077,8 +1077,9 @@ bool Projectile::move()
 	{
 		const VoxelType& voxel = _save->getTileEngine()->voxelCheck(getPosition(), _action.actor);
 
-		return !_save->getBattleGame()->getPiercePower() || voxel == V_EMPTY ||
-			   ( voxel == V_UNIT && _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->isPierced() );
+		return !_save->getBattleGame()->getPiercePower() ||
+				voxel == V_EMPTY						 ||
+			   (voxel == V_UNIT && _save->getTile(getPosition().toTile())->getOverlappingUnit(_save)->isPierced());
 	};
 
 	for ( int i = 0; i < _speed && (!isPierce || canFly()); ++i )
@@ -1086,7 +1087,7 @@ bool Projectile::move()
 		_position++;
 		if ( _position == _trajectory.size() || isPierce &&
 		   (!_save->getBattleGame()->getPiercePower() || _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_OUTOFBOUNDS) )
-		{ // pWWWa: stop pierceType projectile, if it drained their pierce power or crossed map edge, need position step back too for stuck avoiding in some cases
+		{	// pWWWa: stop pierceType projectile, if it drained their pierce power or crossed map edge, need position step back too for stuck avoiding in some cases
 			_position--;
 			return false;
 		}
@@ -1094,7 +1095,7 @@ bool Projectile::move()
 		if ( isRangeEvent && ( _ammo->getRules()->isOutOfRange(_action.actor->distance3dToPositionSq(getPosition().toTile())) ||
 							  (_action.type == BA_LAUNCH && _action.waypoints.size() == 1 &&
 			 _action.actor->distance3dToPositionSq(getPosition().toTile()) > _action.actor->distance3dToPositionSq(_action.target)) ) )
-		{ // pWWWa: stop projectile with ammo maxRangeEvent flag, if it passed maxRange distance or guided missile reached last waypoint
+		{	// pWWWa: stop projectile with ammo maxRangeEvent flag, if it passed maxRange distance or guided missile reached last waypoint
 			return false;
 		}
 
@@ -1176,7 +1177,6 @@ BattleItem* Projectile::getItem() const
  */
 void Projectile::skipTrajectory()
 {
-
 	while (move() && _save->getTileEngine()->voxelCheck(getPosition(), _action.actor) == V_EMPTY)
 		;
 }

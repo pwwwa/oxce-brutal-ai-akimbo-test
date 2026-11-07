@@ -165,9 +165,8 @@ void ProjectileFlyBState::init()
 	case BA_AKIMBOSHOT:
 		if (_unit->isAkimbo())
 		{	
-			// pWWWa: Define primary'n'secondary weapon for further akimbo weapon switching process
 			if (weapon == _unit->getLeftHandWeapon())
-			{
+			{	// pWWWa: Define primary'n'secondary weapon for further akimbo weapon switching process
 				_weaponAct = _unit->getLeftHandWeapon();
 				_weaponOp = _unit->getRightHandWeapon();
 			}
@@ -176,9 +175,9 @@ void ProjectileFlyBState::init()
 				_weaponAct = _unit->getRightHandWeapon();
 				_weaponOp = _unit->getLeftHandWeapon();
 			}
-			// pWWWa: Do not allow to fire when any weapon in hands is out of range
+			
 			if (_weaponAct->getRules()->isOutOfRange(distanceSq) || _weaponOp->getRules()->isOutOfRange(distanceSq))
-			{
+			{	// pWWWa: Do not allow to fire when any weapon in hands is out of range
 				_action.result = "STR_OUT_OF_RANGE";
 				_parent->popState();
 				return;
@@ -484,26 +483,24 @@ bool ProjectileFlyBState::createNewProjectile()
 	{	
 		BattleItem* ammoAct = _weaponAct ? _weaponAct->getAmmoForAction(_action.type, _unit->getFaction() != _parent->getSave()->getSide() ? nullptr : &_action.result) : 0;
 
-		// Prevent switching to "primary hand", if it has no weapon / no ammo
 		if (!_weaponAct || !ammoAct || ammoAct->getAmmoQuantity() == 0)
-		{
+		{	// Prevent switching to "primary hand", if it has no weapon / no ammo
 			_action.actWeaponCounter = _action.actWeaponShotQnty;
 		}
 
-		// Prevent switching to opposite hand, if it has no weapon / no ammo
 		if (!_weaponOp || !_ammoOp || _ammoOp->getAmmoQuantity() == 0)
-		{
+		{	// Prevent switching to opposite hand, if it has no weapon / no ammo
 			_action.opWeaponCounter = _action.opWeaponShotQnty;
 		}
-		// All shots are done or impossible - stop shooting and let pass further handling to think() function
+
 		if (_action.actWeaponCounter >= _action.actWeaponShotQnty && _action.opWeaponCounter >= _action.opWeaponShotQnty)
-		{
+		{	// All shots are done or impossible - stop shooting and let pass further handling to think() function
 			return false;
 		}
-		// Proper Hand/weapon switching mechanic (and ammo too) for further shot
+
 		if ( _action.actWeaponCounter < _action.actWeaponShotQnty &&
 			(_action.actWeaponCounter == _action.opWeaponCounter || _action.opWeaponCounter >= _action.opWeaponShotQnty) )
-		{
+		{	// Proper hand-weapon switching mechanic (and ammo too) for further shot
 			++_action.actWeaponCounter;
 			_action.weapon = _weaponAct;
 			_ammo = ammoAct;
@@ -530,8 +527,8 @@ bool ProjectileFlyBState::createNewProjectile()
 			_parent->setPiercePower(_ammo->getRules()->getPiercePowerCap());
 		}
 
-		for (BattleUnit* bu : *_parent->getSave()->getUnits())
-		{ // refresh pierced mark for units
+		for (BattleUnit *bu : *_parent->getSave()->getUnits())
+		{	// refresh pierced mark for units
 			bu->setPiercedState(false);
 		}
 	}
@@ -782,53 +779,40 @@ void ProjectileFlyBState::think()
 		\***********************************/
 		if (_ammo && _ammo->getRules()->getPierceType() && !_ammo->getRules()->getShotgunPellets() && _parent->getMap()->getProjectile())
 		{
-			Projectile* bullet = _parent->getMap()->getProjectile();
-			_projectileImpact = _parent->getTileEngine()->voxelCheck(bullet->getPosition(), _unit);
-			Tile* tile = _parent->getSave()->getTile(bullet->getPosition().toTile());
-			BattleUnit* victim = tile->getOverlappingUnit(_parent->getSave());
-			const auto tp = static_cast<TilePart>(_projectileImpact);
-			auto dmgAOE = _ammo->getRules()->getPierceAOEDamageType();
-			auto dmgType = _ammo->getRules()->getDamageType()->isDirect()
-				         ? _ammo->getRules()->getDamageType()
-				         : _parent->getMod()->getDamageType(dmgAOE);
+			Projectile *bullet = _parent->getMap()->getProjectile();
+			Tile *tile		   = _parent->getSave()->getTile(bullet->getPosition().toTile());
+			BattleUnit *victim = tile->getOverlappingUnit(_parent->getSave());
+			_projectileImpact  = _parent->getTileEngine()->voxelCheck(bullet->getPosition(), _unit);
+			auto dmgType	   = _ammo->getRules()->getDamageType()->isDirect()
+							   ? _ammo->getRules()->getDamageType()
+							   : _parent->getMod()->getDamageType(_ammo->getRules()->getPierceAOEDamageType());
 
 			if (_projectileImpact > V_EMPTY && _projectileImpact < V_OUTOFBOUNDS && !(_projectileImpact == V_UNIT && victim->isPierced() /** / isOutThresholdExceed() /**/) && _parent->getPiercePower())
-			{ // Projectile faces something "tasty" on their way. Let prepare to hit
-				int power = 0;
-				if (_action.weapon->getRules()->getIgnoreAmmoPower())
-				{ // borrowed from shotgun section
-					power = _action.weapon->getRules()->getPowerBonus(attack) - _action.weapon->getRules()->getPowerRangeReduction(bullet->getDistance());
-				}
-				else
-				{
-					power = _ammo->getRules()->getPowerBonus(attack) - _ammo->getRules()->getPowerRangeReduction(bullet->getDistance());
-				}
+			{	// Projectile faces something "tasty" on their way. Let prepare to hit
+				int power = _action.weapon->getRules()->getIgnoreAmmoPower()
+						  ? _action.weapon->getRules()->getPowerBonus(attack) - _action.weapon->getRules()->getPowerRangeReduction(bullet->getDistance())
+						  : _ammo->getRules()->getPowerBonus(attack) - _ammo->getRules()->getPowerRangeReduction(bullet->getDistance());
 
 				int piercePowerDercement = 0;
 				if (_projectileImpact == V_UNIT)
-				{ // ternary used for avoiding possible zero devision (etc. damage modifier == 0)
-					piercePowerDercement = ( victim->getArmor()->getArmor(SIDE_FRONT) *
-											 _ammo->getRules()->getDamageType()->ArmorEffectiveness +
-											 victim->getHealth() ) / ( victim->getArmor()->getDamageModifier(dmgType->ResistType)
-																     ? std::fminf(1, victim->getArmor()->getDamageModifier(dmgType->ResistType))
-																     : 1 );
+				{	// ternary used for avoiding possible zero devision (etc. damage modifier == 0)
+					int maxArmor = std::max({victim->getArmor(SIDE_FRONT), victim->getArmor(SIDE_REAR), victim->getArmor(SIDE_LEFT), victim->getArmor(SIDE_RIGHT)});
+
+					piercePowerDercement = (maxArmor * _ammo->getRules()->getDamageType()->ArmorEffectiveness + victim->getHealth()) /
+						                   (victim->getArmor()->getDamageModifier(dmgType->ResistType) ? victim->getArmor()->getDamageModifier(dmgType->ResistType) : 1); // std::fminf(1, victim->getArmor()->getDamageModifier(dmgType->ResistType))
 				}
 				else
-				{ // same zero divide avoidance method
-					piercePowerDercement = tile->getMapData(tp)->getArmor() / (dmgType->ToTile ? dmgType->ToTile : 1);
+				{	// same zero divide avoidance method
+					piercePowerDercement = tile->getMapData((TilePart)_projectileImpact)->getArmor() / (dmgType->ToTile ? dmgType->ToTile : 1);
 				}
 				// hit processing
-				_parent->getSave()->getTileEngine()->hit(attack,
-														 bullet->getPosition(),
-														 (_ammo->getRules()->getPierceType() == 2)
-														   ? power
-														   : std::min(_parent->getPiercePower(), power),
-														 dmgType);
+				const int finalPower = (_ammo->getRules()->getPierceType() == 2) ? power : std::min(_parent->getPiercePower(), power);
+				_parent->getSave()->getTileEngine()->hit(attack, bullet->getPosition(), finalPower, dmgType);
 
 				_parent->setPiercePower(_parent->getPiercePower() - piercePowerDercement);
 					
 				if (_projectileImpact == V_UNIT)
-				{ // let arrange further handling of impacted units
+				{	// let arrange further handling of impacted units
 					if (!_parent->areAllEnemiesNeutralized()) projectileHitUnit(bullet->getPosition());
 					_parent->checkForCasualties(dmgType, attack);
 					_parent->getSave()->reviveUnconsciousUnits(true);
@@ -836,8 +820,8 @@ void ProjectileFlyBState::think()
 					_parent->setStateInterval(BattlescapeState::DEFAULT_ANIM_SPEED / 5); // Alt solution: _parent->setStateInterval(50/3)
 				}
 				else
-				{ // let arrange further handling of impacted HE terrain objects with queued dummy EBS
-					if(tile->getSavedGame()->getTileEngine()->checkForTerrainExplosions())
+				{	// let arrange further handling of impacted HE terrain objects with queued dummy EBS
+					if (_parent->getSave()->getTileEngine()->checkForTerrainExplosions())
 						_parent->statePushNext(new ExplosionBState(_parent, bullet->getLastPositions(), BattleActionAttack{BA_NONE, attack.attacker}, tile, false, 0, 0));
 				}
 			}
@@ -1033,7 +1017,7 @@ void ProjectileFlyBState::think()
 									else
 									{	// handle direct hit
 										_parent->getSave()->getTileEngine()->hit(attack, proj->getPosition(offset), power, _ammo->getRules()->getDamageType());
-										_parent->playSound(_ammo->getRules()->getHitSound());
+										_parent->playSound(_ammo->getRules()->getHitSound(), proj->getPosition(offset));
 									}
 								}
 							}

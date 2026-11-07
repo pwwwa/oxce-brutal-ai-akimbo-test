@@ -452,6 +452,7 @@ void ExplosionBState::explode()
 			optValue(sound, _attack.damage_item->getRules()->getMeleeHitSound());
 		}
 		_parent->playSound(sound, _center.toTile());
+		_hit = false;
 	}
 
 	if (_tile)
@@ -487,13 +488,14 @@ void ExplosionBState::explode()
 	if (Options::singleBoom)
 	{
 		int boomSound = Mod::SMALL_EXPLOSION;
+		ItemDamageType dT = DT_NONE;
+
 		while (t)
 		{
 			Position hitPos = t->getPosition().toVoxel() + Position(8, 8, 0);
 			int explPower = t->getExplosive();
 			int explRadius = explPower / 10;
 
-			ItemDamageType dT;
 			switch (t->getExplosiveType())
 			{
 			case 0:	 dT = DT_HE;	break;
@@ -506,7 +508,6 @@ void ExplosionBState::explode()
 
 			// Phisics: apply damage handling right now
 			save->getTileEngine()->explode(BattleActionAttack{BA_NONE, _attack.attacker}, hitPos, explPower, _parent->getMod()->getDamageType(dT), explRadius, true);
-			_parent->checkForCasualties(_parent->getMod()->getDamageType(dT), _attack, false, true);
 
 			// Graphics: create explosions and push it to Map list
 			int animLimit = std::max(1, explPower / 10);				// -> 2x less anims (was /5)

@@ -105,7 +105,7 @@ namespace OpenXcom
  * @param visibleMapHeight Current visible map height.
  */
 Map::Map(Game *game, int width, int height, int x, int y, int visibleMapHeight) : InteractiveSurface(width, height, x, y),
-	_game(game), _isTFTD(false), _arrow(0), _anyIndicator(false), _isAltPressed(false), _isCtrlPressed(false),
+	_game(game), _isTFTD(false), _arrow(0), _altArrow(0), _scanArrow(0), _anyIndicator(false), _isAltPressed(false), _isCtrlPressed(false),
 	_selectorX(0), _selectorY(0), _mouseX(0), _mouseY(0), _cursorType(CT_NORMAL), _cursorSize(1), _animFrame(0),
 	_projectile(0), _followProjectile(true), _projectileInFOV(false), _explosionInFOV(false), _launch(false), _visibleMapHeight(visibleMapHeight),
 	_unitDying(false), _smoothingEngaged(false), _flashScreen(false), _bgColor(15), _projectileSet(0), _showObstacles(false), _showInfoOnCursor(false)
@@ -262,44 +262,31 @@ Map::~Map()
  */
 void Map::init()
 {
-	// pWWWa: unhardcode arrow unit pointer. Weird method, but didn't want to touch destructor (until)
-	Surface *altArrow = _game->getMod()->getSurface("arrow", false);
-
-	if (altArrow)
-	{
-		_arrow = new Surface(altArrow->getWidth(), altArrow->getHeight());
-		_arrow->setPalette(this->getPalette());
-		_arrow->lock();
-
-		for (int y = 0; y < altArrow->getHeight(); ++y)
-			for (int x = 0; x < altArrow->getWidth(); ++x)
-				_arrow->setPixel(x, y, altArrow->getPixel(x, y));
-		_arrow->unlock();
-	}
-	else	 
 	// load the tiny arrow into a surface
-	{
-
-		int f = Palette::blockOffset(1); // yellow
-		int b = 15;                      // black
-		int pixels[81] = {0, 0, b, b, b, b, b, 0, 0,
-						  0, 0, b, f, f, f, b, 0, 0,
-						  0, 0, b, f, f, f, b, 0, 0,
-						  b, b, b, f, f, f, b, b, b,
-						  b, f, f, f, f, f, f, f, b,
-						  0, b, f, f, f, f, f, b, 0,
-						  0, 0, b, f, f, f, b, 0, 0,
-						  0, 0, 0, b, f, b, 0, 0, 0,
-						  0, 0, 0, 0, b, 0, 0, 0, 0};
+	int f = Palette::blockOffset(1); // yellow
+	int b = 15; // black
+	int pixels[81] = {0, 0, b, b, b, b, b, 0, 0,
+					  0, 0, b, f, f, f, b, 0, 0,
+					  0, 0, b, f, f, f, b, 0, 0,
+					  b, b, b, f, f, f, b, b, b,
+					  b, f, f, f, f, f, f, f, b,
+					  0, b, f, f, f, f, f, b, 0,
+					  0, 0, b, f, f, f, b, 0, 0,
+					  0, 0, 0, b, f, b, 0, 0, 0,
+					  0, 0, 0, 0, b, 0, 0, 0, 0 };
 
 		_arrow = new Surface(9, 9);
 		_arrow->setPalette(this->getPalette());
 		_arrow->lock();
-		for (int y = 0; y < 9; ++y)
+	for (int y = 0; y < 9;++y)
 			for (int x = 0; x < 9; ++x)
-				_arrow->setPixel(x, y, pixels[x + (y * 9)]);
+			_arrow->setPixel(x, y, pixels[x+(y*9)]);
 		_arrow->unlock();
-	}
+
+	// pWWWa: unhardcode arrow images for unit selection and for scanner spotting
+	_altArrow = _game->getMod()->getSurface("arrow", false) ? _game->getMod()->getSurface("arrow", false) : _arrow;
+	_scanArrow = _game->getMod()->getSurface("scanArrow", false) ? _game->getMod()->getSurface("scanArrow", false) : _arrow;
+
 	_projectile = 0;
 	if (_save->getDepth() == 0)
 	{
@@ -312,6 +299,23 @@ void Map::init()
 
 	_shadeTileMap.assign(_save->getMapSizeXYZ(), 0);
 	_flashTileMap.assign(_save->getMapSizeXYZ(), 0);
+
+	if (Mod::DESYNC_TILE_ANIMATION)
+	{ // pWWWa: desync tile animation
+		int mapSize = _save->getMapSizeXYZ();
+		for (int i = 0; i < mapSize; ++i)
+		{
+			Tile* tile = _save->getTile(i);
+			if (tile)
+			{
+				int startOffset = i % 8;
+				for (int step = 0; step < startOffset; ++step)
+				{
+					tile->animate();
+				}
+			}
+		}
+	}
 }
 
 /**
@@ -2201,8 +2205,8 @@ void Map::drawTerrain(Surface *surface)
 	}
 
 	int arrowShade = Options::altArrowScheme ? getArrowBobForFrame(_animFrame) : 0;
-
 	auto* selectedUnit = _save->getSelectedUnit();
+
 	if (selectedUnit && (_save->getSide() == FACTION_PLAYER || _save->getDebugMode()) && selectedUnit->getPosition().z <= _camera->getViewLevel())
 	{
 		_camera->convertMapToScreen(selectedUnit->getPosition(), &screenPosition);
@@ -2219,18 +2223,13 @@ void Map::drawTerrain(Surface *surface)
 		}
 		if (this->getCursorType() != CT_NONE)
 		{
-			_arrow->blitNShade(surface, screenPosition.x + offset.x + (_spriteWidth / 2) - (_arrow->getWidth() / 2), screenPosition.y + offset.y - _arrow->getHeight() + getArrowBobForFrame(_animFrame), arrowShade);
+			_altArrow->blitNShade(surface, screenPosition.x + offset.x + (_spriteWidth / 2) - (_altArrow->getWidth() / 2), screenPosition.y + offset.y - _altArrow->getHeight() + getArrowBobForFrame(_animFrame), arrowShade);
 		}
 	}
 
 	// Draw motion scanner arrows
 	if (_isAltPressed && _save->getSide() == FACTION_PLAYER && this->getCursorType() != CT_NONE)
 	{
-		// pWWWa: alt scanner arrow image injection
-		Surface* scanArrow = _game->getMod()->getSurface("scanArrow", false);
-
-		if (!scanArrow)	scanArrow = _arrow;
-
 		for (auto* myUnit : *_save->getUnits())
 		{
 			arrowShade = (Options::altArrowScheme) ? getArrowBobForFrame(_animFrame) + (myUnit->getPosition().z == _camera->getViewLevel() ? 0 : 6) : 0;
@@ -2255,10 +2254,10 @@ void Map::drawTerrain(Surface *surface)
 						{
 							offset.y -= 2;
 						}
-						scanArrow->blitNShade(
+						_scanArrow->blitNShade(
 							surface,
-							screenPosition.x + offset.x + (_spriteWidth / 2) - (_arrow->getWidth() / 2),
-							screenPosition.y + offset.y - _arrow->getHeight() + getArrowBobForFrame(_animFrame),
+							screenPosition.x + offset.x + (_spriteWidth / 2) - (_scanArrow->getWidth() / 2),
+							screenPosition.y + offset.y - _scanArrow->getHeight() + getArrowBobForFrame(_animFrame),
 							arrowShade, false, 3);
 					}
 				}
@@ -2280,10 +2279,10 @@ void Map::drawTerrain(Surface *surface)
 						offset.y -= 2;
 					}
 
-					scanArrow->blitNShade(
+					_scanArrow->blitNShade(
 						surface,
-						screenPosition.x + offset.x + (_spriteWidth / 2) - (_arrow->getWidth() / 2),
-						screenPosition.y + offset.y - _arrow->getHeight() + getArrowBobForFrame(_animFrame),
+						screenPosition.x + offset.x + (_spriteWidth / 2) - (_scanArrow->getWidth() / 2),
+						screenPosition.y + offset.y - _scanArrow->getHeight() + getArrowBobForFrame(_animFrame),
 						arrowShade);
 				}
 			}
@@ -2575,36 +2574,9 @@ void Map::animate(bool redraw)
 	}
 
 	// animate tiles
-	if (!Mod::DESYNC_TILE_ANIMATION)
+	for (int i = 0; i < _save->getMapSizeXYZ(); ++i)
 	{
-		for (int i = 0; i < _save->getMapSizeXYZ(); ++i)
-		{
-			_save->getTile(i)->animate();
-		}
-	}
-	else
-	{
-		static std::vector<int> tileStartTimers {};
-		int mapSize = _save->getMapSizeXYZ();
-
-		if (tileStartTimers.size() != mapSize)
-		{
-			tileStartTimers.assign(mapSize, 0);
-			for (int i = 0; i < mapSize; ++i)
-			{
-				tileStartTimers[i] = i % 16;
-			}
-		}
-
-		for (int i = 0; i < mapSize; ++i)
-		{
-			if (tileStartTimers[i] > 0)
-			{
-				tileStartTimers[i]--;
-				continue;
-			}
-			_save->getTile(i)->animate();
-		}
+		_save->getTile(i)->animate();
 	}
 
 	// animate vapor
