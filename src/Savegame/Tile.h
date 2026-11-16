@@ -221,7 +221,6 @@ public:
 
 	/**
 	 * Gets the height of the terrain (dirt/stairs/etc.) on this tile.
-	 * @param *optional*: unit, if is big - check actual terrain height.
 	 * @return the height in voxels (more negative values are higher, e.g. -8 = lower stairs, -16 = higher stairs)
 	 */
 	int getTerrainLevel() const

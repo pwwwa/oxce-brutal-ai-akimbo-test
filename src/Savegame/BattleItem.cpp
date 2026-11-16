@@ -452,20 +452,13 @@ bool BattleItem::spendBullet(int spendPerShot)
 
 void BattleItem::spendHealingItemUse(BattleMediKitAction mediKitAction)
 {
-	if (mediKitAction == BMA_PAINKILLER)
+	switch (mediKitAction)
 	{
-		setPainKillerQuantity(getPainKillerQuantity() - 1);
-	}
-	else if (mediKitAction == BMA_STIMULANT)
-	{
-		setStimulantQuantity(getStimulantQuantity() - 1);
-	}
-	else if (mediKitAction == BMA_HEAL)
-	{
-		setHealQuantity(getHealQuantity() - 1);
+		case BMA_PAINKILLER: setPainKillerQuantity(getPainKillerQuantity() - 1); break;
+		case BMA_STIMULANT:	 setStimulantQuantity(getStimulantQuantity() - 1);	 break;
+		case BMA_HEAL:		 setHealQuantity(getHealQuantity() - 1);
 	}
 }
-
 
 /**
  * Check if owner is removed from game.
@@ -763,10 +756,10 @@ bool BattleItem::haveAnyAmmo() const
 	}
 	else
 	{
-		return getAmmoForAction(BA_AIMEDSHOT) ||
-			getAmmoForAction(BA_AUTOSHOT) ||
-			   getAmmoForAction(BA_SNAPSHOT) ||
-			getAmmoForAction(BA_AKIMBOSHOT);
+		return getAmmoForAction(BA_AIMEDSHOT)  ||
+			   getAmmoForAction(BA_AUTOSHOT)   ||
+			   getAmmoForAction(BA_SNAPSHOT)   ||
+			   getAmmoForAction(BA_AKIMBOSHOT);
 	}
 }
 
