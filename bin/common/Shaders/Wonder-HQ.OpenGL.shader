@@ -81,7 +81,7 @@ fragment: |
     
     // SMOOTHING STRENGTH (0.0 to 1.0)
     // 0.0 = pure pixel art, 0.5 = moderate, 1.0 = full smoothing, default = 0.8
-    #define SMOOTHING_STRENGTH 0.2
+    #define SMOOTHING_STRENGTH 0.5
     
     // BLOOM INTENSITY (0.0 to 2.0)
     // 0.0 = no bloom, 0.5 = subtle, 1.0 = strong, default = 0.5
@@ -93,7 +93,7 @@ fragment: |
     
     // SCANLINE THICKNESS (0.3 to 0.8)
     // Lower = thinner lines, Higher = thicker lines, default = 0.65
-    #define SCANLINE_THICKNESS 0.3
+    #define SCANLINE_THICKNESS 0.65
     
     // SCANLINE SOFTNESS (0.05 to 0.4)
     // Lower = sharper edges, Higher = softer edges, default = 0.1

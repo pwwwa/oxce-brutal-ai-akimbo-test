@@ -483,7 +483,7 @@ void ExplosionBState::explode()
 	}
 
 	// check for terrain explosions
-	Tile* t = save->getTileEngine()->checkForTerrainExplosions();
+	Tile *t = save->getTileEngine()->checkForTerrainExplosions();
 
 	if (Options::singleBoom)
 	{
