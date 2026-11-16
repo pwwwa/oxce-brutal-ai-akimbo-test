@@ -506,16 +506,16 @@ void ActionMenuState::handleAction()
 				//nothing
 			}
 			else if (_game->isAltPressed(true) && _game->getSavedGame()->getSavedBattle()->getSide() == FACTION_PLAYER && _action->actor->getFaction() == FACTION_PLAYER && !_action->actor->getTile()->hasNoFloor())
-			{ // ForcedMelleeToFloor: Let pass target tile coordinates directly to MeleeAttackBState
+			{ // pWWWa: ForcedMelleeToFloor: Let pass target tile coordinates directly to MeleeAttackBState. TODO: perhaps need replace it to TileEngine::validMeleeRange & validTerrainMeleeRange ?
 				_action->target = _action->actor->getPosition();
 
 				if (_action->actor->isBigUnit())
-				{ // reassign target tile for big unit by their part in dependence of their facing direction
+				{ // adjust target tile for big unit by their part in dependence of their facing direction
 					switch (_action->actor->getDirection())
 					{
-						case 1: case 2: _action->target = _action->actor->getPosition() + Position(1, 0, 0); break; // NE & E -> 2nd part
-						case 3:	case 4:	_action->target = _action->actor->getPosition() + Position(1, 1, 0); break; // SE & S -> 3rd part 
-						case 5:	case 6:	_action->target = _action->actor->getPosition() + Position(0, 1, 0);		// SW & W -> 4rd part
+						case 1: case 2: _action->target += Position(1, 0, 0); break; // NE & E -> 2nd part
+						case 3:	case 4:	_action->target += Position(1, 1, 0); break; // SE & S -> 3rd part 
+						case 5:	case 6:	_action->target += Position(0, 1, 0);		 // SW & W -> 4rd part
 					}
 				}
 			}

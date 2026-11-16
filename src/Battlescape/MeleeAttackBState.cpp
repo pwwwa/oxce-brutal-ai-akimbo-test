@@ -144,9 +144,10 @@ void MeleeAttackBState::init()
 	\********************************/
 	if (_target == _unit)
 	{
-		if (_target->getTile()->getTopItem() && _target->getTile()->getTopItem()->getUnit() && _target->getTile()->getTopItem()->getUnit()->getStatus() == STATUS_UNCONSCIOUS)
+		Tile *hitPos = _parent->getSave()->getTile(_action.target);
+		if (hitPos->getTopItem() && hitPos->getTopItem()->getUnit() && hitPos->getTopItem()->getUnit()->getStatus() == STATUS_UNCONSCIOUS)
 		{	// Check presence of any alive unit under feet and apply their height (it is 0 usually, but let check)
-			_target = _target->getTile()->getTopItem()->getUnit();
+			_target = hitPos->getTopItem()->getUnit();
 			_voxel.z = _target->getPosition().toVoxel().z;
 		}
 		else if (Mod::EXTENDED_TERRAIN_MELEE <= 0 || (!_action.weapon->getRules()->getDamageType()->ToTile || !_action.weapon->getRules()->getMeleeType()->ToTile))
@@ -234,7 +235,6 @@ void MeleeAttackBState::performMeleeAttack(int terrainMeleeTilePart)
 	{	// sdend TU and go on or get out here
 		return;
 	}
-		
 	// set the soldier in an aiming position
 	_unit->aim(true);
 
@@ -244,30 +244,35 @@ void MeleeAttackBState::performMeleeAttack(int terrainMeleeTilePart)
 
 	if (_target && _target != _unit)
 	{
+		const int attackerHeight = -_parent->getSave()->getTile(_unit->getPosition())->getTerrainLevel(_unit) + (_unit->getHeight() / 2) + _unit->getFloatHeight();
+
 		if (_parent->getTileEngine()->voxelCheck(_voxel, _unit) != V_UNIT)
-		{ // pWWWa: Missed to unit, really ? Recheck tile's vertical axis and find any high victim's piece.
+		{	// pWWWa: Missed to unit -> recheck verical axis and find the most closest height to ataccker height hit position.
 			for (int z = 24; z >= 0; --z)
 			{
-				if (_parent->getTileEngine()->voxelCheck(_action.target.toVoxel() + Position(8, 8, z), _unit) == V_UNIT)
+				_voxel = _action.target.toVoxel() + Position(8, 8, z);
+				if (_parent->getTileEngine()->voxelCheck(_voxel, _unit) == V_UNIT)
 				{
-					_voxel = _action.target.toVoxel() + Position(8, 8, z);
+					if (_voxel.z > attackerHeight && _parent->getTileEngine()->voxelCheck(_voxel - Position(0, 0, 1), _unit) == V_UNIT)
+					{	// pWWWa: Damage voxel can be aligned more to attacker height center in victim voxel space
+						continue;
+					}
 					break;
 				}
 			}
 		}
 		// Offset the damage voxel to attacker's direction, so that the target knows which side the attack came from
-		const int attackerHeight = -_parent->getSave()->getTile(_unit->getPosition())->getTerrainLevel(_unit) + (_unit->getHeight() /2) + _unit->getFloatHeight();
 		const Position attackerPos = _unit->getPositionVexels() + Position(0, 0, attackerHeight);
-		Position difference = !_target ? _unit->getPosition() - _action.target : attackerPos - _voxel;
+		Position difference = attackerPos - _voxel;
 
 		// pWWWa: Make "one step shifting" vector for further offset processing
 		difference.x = Clamp<Sint16>(difference.x, -1, 1);
 		difference.y = Clamp<Sint16>(difference.y, -1, 1);
-		difference.z = Clamp<Sint16>(difference.z, -1, 1);
+		difference.z = 0;
 
 		while (_parent->getTileEngine()->voxelCheck((_voxel + difference), _unit) == V_UNIT &&
-			  (_voxel.x != attackerPos.x || _voxel.y != attackerPos.y || _voxel.z != attackerPos.z))
-		{	// pWWWa: shift the damage voxel inside of victim's voxel space to the closest possible attacker's location
+			   (_voxel.x != attackerPos.x || _voxel.y != attackerPos.y))
+		{	// pWWWa: Shift damage voxel horizontaly to the closest possible attacker's location inside of victim's voxel space
 			_voxel += difference;
 		}
 	}
