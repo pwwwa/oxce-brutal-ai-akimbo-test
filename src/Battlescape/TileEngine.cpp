@@ -6177,20 +6177,19 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 				neighbouringTile3 = _save->getTile(pos + Position(0, -1, 0));
 	}
 
-	if (originTile && neighbouringTile)
+	if (originTile)
 	{
 		auto setTarget = [&](Tile* tt, TilePart tp, BattleAction* aa, int dir = -1) -> bool
 		{
-			Position origin = getSightOriginVoxel(aa->actor, tt);
-			Position target = tt->getPosition().toVoxel() + voxelTileCenter;
-
-			if ( aa->actor->getDirection() % 2 && !(canTargetTile(&origin, tt, tp, &target, aa->actor, false) || canTargetTile(&origin, tt, O_FLOOR, &target, aa->actor, false)) )
-			{ // is tile reachable (more predictable targeting queue at diagonals)
+			if (!tt || tt->isUfoDoorOpen(tp))
+			{	// Avoid the void and do not hit opened doors
 				return false;
 			}
 
-			if (tt->isUfoDoorOpen(tp))
-			{ // Do not hit opened doors
+			Position origin = getSightOriginVoxel(aa->actor, tt);
+			Position target = tt->getPosition().toVoxel() + voxelTileCenter;
+			if (!canTargetTile(&origin, tt, tp, &target, aa->actor, false) && !canTargetTile(&origin, tt, O_FLOOR, &target, aa->actor, false))
+			{	// is tile reachable (more predictable targeting queue at diagonals)
 				return false;
 			}
 				
@@ -6200,16 +6199,16 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 				if (dir > -1 && tp == O_OBJECT)
 				{
 					auto bigWall = obj->getBigWall();
-					if (dir == 0 /*north*/ && bigWall != Pathfinding::BIGWALLNORTH && bigWall != Pathfinding::BIGWALLWESTANDNORTH) return false;
-					if (dir == 2 /*east */ && bigWall != Pathfinding::BIGWALLEAST && bigWall != Pathfinding::BIGWALLEASTANDSOUTH)  return false;
-					if (dir == 4 /*south*/ && bigWall != Pathfinding::BIGWALLSOUTH && bigWall != Pathfinding::BIGWALLEASTANDSOUTH) return false;
-					if (dir == 6 /*west */ && bigWall != Pathfinding::BIGWALLWEST && bigWall != Pathfinding::BIGWALLWESTANDNORTH)  return false;
-					if (dir == 1 /*NW   */ && bigWall != Pathfinding::BIGWALLNWSE)												   return false;
-					if (dir == 3 /*NE   */ && bigWall != Pathfinding::BIGWALLNESW && bigWall != Pathfinding::BIGWALLEASTANDSOUTH)  return false;
-					if (dir == 5 /*SE   */ && bigWall != Pathfinding::BIGWALLNWSE)												   return false;
-					if (dir == 7 /*SW   */ && bigWall != Pathfinding::BIGWALLNESW && bigWall != Pathfinding::BIGWALLWESTANDNORTH)  return false;
+					if (dir == 0 /*north*/ && bigWall != Pathfinding::BIGWALLNORTH && bigWall != Pathfinding::BIGWALLWESTANDNORTH)  return false;
+					if (dir == 2 /*east */ && bigWall != Pathfinding::BIGWALLEAST  && bigWall != Pathfinding::BIGWALLEASTANDSOUTH)  return false;
+					if (dir == 4 /*south*/ && bigWall != Pathfinding::BIGWALLSOUTH && bigWall != Pathfinding::BIGWALLEASTANDSOUTH)  return false;
+					if (dir == 6 /*west */ && bigWall != Pathfinding::BIGWALLWEST  && bigWall != Pathfinding::BIGWALLWESTANDNORTH)  return false;
+					if (dir == 1 /*NW   */ && bigWall != Pathfinding::BIGWALLNWSE)	 											    return false;
+					if (dir == 3 /*NE   */ && bigWall != Pathfinding::BIGWALLNESW  && bigWall != Pathfinding::BIGWALLEASTANDSOUTH)  return false;
+					if (dir == 5 /*SE   */ && bigWall != Pathfinding::BIGWALLNWSE)												    return false;
+					if (dir == 7 /*SW   */ && bigWall != Pathfinding::BIGWALLNESW  && bigWall != Pathfinding::BIGWALLWESTANDNORTH)  return false;
 				}
-				if (tp != O_OBJECT && !isForced && !obj->isDoor() && !obj->isUFODoor() && tt->getTUCost(tp, MT_WALK) != Pathfinding::INVALID_MOVE_COST)
+				if (!isForced && tp != O_OBJECT && !obj->isDoor() && !obj->isUFODoor() && tt->getTUCost(tp, MT_WALK) != Pathfinding::INVALID_MOVE_COST)
 				{
 					// it is possible to walk through this (rubble) wall... no need to attack it
 					return false;
@@ -6304,17 +6303,19 @@ bool TileEngine::validTerrainMeleeRange(BattleAction* action)
 
 		if (setTarget(neighbouringTile, O_OBJECT, action) ||
 			setTarget(neighbouringTile2, O_OBJECT, action) && size && !(direction % 2))
-		{ // All directions: target the object on the neighbouring tile  + big unit's second part at non-diagonal direction included
+		{	// All directions: target the object on the neighbouring tile  + big unit's second part at non-diagonal direction included
 			return true;
 		}
 
 		if (isForced)
-		{ // Forced terrain melee helper. Suitable for non-proper tile configuration aiming (etc. objecs part in floor tile "slot")
-			if (setTarget(neighbouringTile, O_FLOOR, action))
+		{	// Forced terrain melee helper. Suitable for non-proper tile configuration aiming (etc. objecs part in floor tile "slot")
+			if (setTarget(neighbouringTile, O_FLOOR, action)	 ||
+				setTarget(neighbouringTile, O_NORTHWALL, action) ||
+				setTarget(neighbouringTile, O_WESTWALL, action))
 			return true;
 
 			if (direction % 2)
-			{ // Diagonal object tp aiming
+			{	// Diagonal object tp aiming
 				if (setTarget(neighbouringTile2, O_OBJECT, action) ||
 					setTarget(neighbouringTile3, O_OBJECT, action))
 				return true;
