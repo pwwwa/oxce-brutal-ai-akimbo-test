@@ -24,7 +24,6 @@
 #include "../Savegame/BattleItem.h"
 #include "../Savegame/Soldier.h"
 #include "../Savegame/SavedBattleGame.h"
-#include "BattlescapeGame.h"
 #include "../Mod/RuleInventory.h"
 #include "../Mod/Mod.h"
 #include "../Engine/Exception.h"
@@ -369,11 +368,7 @@ void UnitSprite::drawRoutine0()
 	const int offXAiming = 0;
 	const int soldierHeight = 22;
 
-	// pWWWa: OXCE strafe animation fix (hack)
-	BattlescapeGame* battlegame = const_cast<BattlescapeGame*>(_save->getBattleGame());
-	const bool isStrafe = battlegame->getCurrentAction()->strafe && _unit->getFaceDirection() > -1 && (_unit->getStatus() == STATUS_WALKING || _unit->getStatus() == STATUS_FLYING);
-	const int unitDir = isStrafe ? _unit->getFaceDirection() : _unit->getDirection();
-
+	const int unitDir = getUnitFacing();
 	const int walkPhase = _unit->getWalkingPhase();
 
 	if (_unit->getStatus() == STATUS_COLLAPSING)
@@ -674,11 +669,7 @@ void UnitSprite::drawRoutine1()
 		return;
 	}
 
-	// pWWWa: OXCE strafe animation fix (hack)
-	BattlescapeGame* battlegame = const_cast<BattlescapeGame*>(_save->getBattleGame());
-	const bool isStrafe = battlegame->getCurrentAction()->strafe && _unit->getFaceDirection() > -1 && (_unit->getStatus() == STATUS_WALKING || _unit->getStatus() == STATUS_FLYING);
-	const int unitDir = isStrafe ? _unit->getFaceDirection() : _unit->getDirection();
-
+	const int unitDir = getUnitFacing();
 	const int walkPhase = _unit->getWalkingPhase();
 
 	selectUnit(leftArm, larm, unitDir);
@@ -702,7 +693,7 @@ void UnitSprite::drawRoutine1()
 		// draw handob item
 		if (_unit->getStatus() == STATUS_AIMING && _itemR->getRules()->isTwoHanded())
 		{
-			int dir = (_unit->getDirection() + 2)%8;
+			int dir = (getUnitFacing() + 2)%8;
 			selectItem(itemR, _itemR, dir);
 			itemR.offX = (offX[unitDir]);
 			itemR.offY = (offY[unitDir]);
@@ -829,7 +820,7 @@ void UnitSprite::drawRoutine2()
 	}
 
 	// draw the tank itself
-	selectUnit(s, hoverTank + (_part * 8), _unit->getDirection());
+	selectUnit(s, hoverTank + (_part * 8), getUnitFacing());
 	blitBody(s);
 
 	// draw the turret, together with the last part
@@ -841,8 +832,8 @@ void UnitSprite::drawRoutine2()
 		int turretOffsetY = -4;
 		if (hoverTank)
 		{
-			turretOffsetX += offX[_unit->getDirection()];
-			turretOffsetY += offy[_unit->getDirection()];
+			turretOffsetX += offX[getUnitFacing()];
+			turretOffsetY += offy[getUnitFacing()];
 		}
 		t.offX = (turretOffsetX);
 		t.offY = (turretOffsetY);
@@ -877,7 +868,7 @@ void UnitSprite::drawRoutine3()
 		}
 	}
 
-	selectUnit(s, (_part * 8), _unit->getDirection());
+	selectUnit(s, (_part * 8), getUnitFacing());
 
 	blitBody(s);
 
@@ -930,10 +921,7 @@ void UnitSprite::drawRoutine4()
 		die = 148;
 	}
 
-	// pWWWa: OXCE strafe animation fix (hack)
-	BattlescapeGame* battlegame = const_cast<BattlescapeGame*>(_save->getBattleGame());
-	const bool isStrafe = battlegame->getCurrentAction()->strafe && _unit->getFaceDirection() > -1 && (_unit->getStatus() == STATUS_WALKING || _unit->getStatus() == STATUS_FLYING);
-	const int unitDir = isStrafe ? _unit->getFaceDirection() : _unit->getDirection();
+	const int unitDir = getUnitFacing();
 
 	if (_unit->getStatus() == STATUS_COLLAPSING)
 	{
@@ -1038,11 +1026,11 @@ void UnitSprite::drawRoutine5()
 
 	if (_unit->getStatus() == STATUS_WALKING)
 	{
-		selectUnit(s, 32 + (_part * 4), (_unit->getDirection() * 16) + ((_unit->getWalkingPhase() / 2) % 4));
+		selectUnit(s, 32 + (_part * 4), (getUnitFacing() * 16) + ((_unit->getWalkingPhase() / 2) % 4));
 	}
 	else
 	{
-		selectUnit(s, 0 + (_part * 8), _unit->getDirection());
+		selectUnit(s, 0 + (_part * 8), getUnitFacing());
 	}
 
 	blitBody(s);
@@ -1078,10 +1066,7 @@ void UnitSprite::drawRoutine6()
 		return;
 	}
 
-	// pWWWa: OXCE strafe animation fix (hack)
-	BattlescapeGame* battlegame = const_cast<BattlescapeGame*>(_save->getBattleGame());
-	const bool isStrafe = battlegame->getCurrentAction()->strafe && _unit->getFaceDirection() > -1 && (_unit->getStatus() == STATUS_WALKING || _unit->getStatus() == STATUS_FLYING);
-	const int unitDir = isStrafe ? _unit->getFaceDirection() : _unit->getDirection();
+	const int unitDir = getUnitFacing();
 	const int walkPhase = _unit->getWalkingPhase();
 
 	selectUnit(torso, Torso, unitDir);
@@ -1256,11 +1241,7 @@ void UnitSprite::drawRoutine7()
 		return;
 	}
 
-	// pWWWa: OXCE strafe animation fix (hack)
-	BattlescapeGame* battlegame = const_cast<BattlescapeGame*>(_save->getBattleGame());
-	const bool isStrafe = battlegame->getCurrentAction()->strafe && _unit->getFaceDirection() > -1 && (_unit->getStatus() == STATUS_WALKING || _unit->getStatus() == STATUS_FLYING);
-	const int unitDir = isStrafe ? _unit->getFaceDirection() : _unit->getDirection();
-
+	const int unitDir = getUnitFacing();
 	const int walkPhase = _unit->getWalkingPhase();
 
 	selectUnit(torso, Torso, unitDir);
@@ -1366,7 +1347,7 @@ void UnitSprite::drawRoutine11()
 	}
 
 	Part s{ BODYPART_LARGE_TORSO + _part };
-	selectUnit(s, body + (_part * 4), 16 * _unit->getDirection() + animFrame);
+	selectUnit(s, body + (_part * 4), 16 * getUnitFacing() + animFrame);
 	s.offY = (4);
 	blitBody(s);
 
@@ -1376,11 +1357,11 @@ void UnitSprite::drawRoutine11()
 	{
 		Part t{ BODYPART_LARGE_TURRET };
 		selectUnit(t, 256 + (turret * 8), _unit->getTurretDirection());
-		t.offX = (offTurretX[_unit->getDirection()]);
+		t.offX = (offTurretX[getUnitFacing()]);
 		if (_part == 3)
-			t.offY = (offTurretYBelow[_unit->getDirection()]);
+			t.offY = (offTurretYBelow[getUnitFacing()]);
 		else
-			t.offY = (offTurretYAbove[_unit->getDirection()]);
+			t.offY = (offTurretYAbove[getUnitFacing()]);
 		blitBody(t);
 	}
 
@@ -1436,18 +1417,13 @@ void UnitSprite::drawRoutine19()
 		blitBody(coll);
 		return;
 	}
-	else if (_unit->getStatus() == STATUS_WALKING || _unit->getStatus() == STATUS_FLYING)
+	else if (_unit->getStatus() == STATUS_WALKING)
 	{
-
-		// pWWWa: OXCE strafe animation fix (hack)
-		BattlescapeGame* battlegame = const_cast<BattlescapeGame*>(_save->getBattleGame());
-		const bool isStrafe = battlegame->getCurrentAction()->strafe && _unit->getFaceDirection() > -1;
-
-		selectUnit(s, move, isStrafe ? _unit->getFaceDirection() : _unit->getDirection());
+		selectUnit(s, move, getUnitFacing());
 	}
 	else
 	{
-		selectUnit(s, stand, _unit->getDirection());
+		selectUnit(s, stand, getUnitFacing());
 	}
 
 	blitBody(s);
@@ -1462,11 +1438,11 @@ void UnitSprite::drawRoutine20()
 
 	if (_unit->getStatus() == STATUS_WALKING)
 	{
-		selectUnit(s, (_part * 5), (_unit->getWalkingPhase()/2%4) + 5 * (4 * _unit->getDirection()));
+		selectUnit(s, (_part * 5), (_unit->getWalkingPhase()/2%4) + 5 * (4 * getUnitFacing()));
 	}
 	else
 	{
-		selectUnit(s, (_part * 5), 5 * (4 * _unit->getDirection()));
+		selectUnit(s, (_part * 5), 5 * (4 * getUnitFacing()));
 	}
 
 	blitBody(s);
@@ -1479,7 +1455,7 @@ void UnitSprite::drawRoutine21()
 {
 	Part s{ BODYPART_LARGE_TORSO + _part };
 
-	selectUnit(s, (_part * 4), (_unit->getDirection() * 16) + (_animationFrame % 4));
+	selectUnit(s, (_part * 4), (getUnitFacing() * 16) + (_animationFrame % 4));
 
 	blitBody(s);
 }
@@ -1508,6 +1484,18 @@ void UnitSprite::sortRifles()
 			_itemR = 0;
 		}
 	}
+}
+
+/**
+ * Get unit proper unit facing direction
+ * @returns face direction if unit is strafing
+ */
+
+int UnitSprite::getUnitFacing() const
+{
+	BattlescapeGame *battlegame = const_cast<BattlescapeGame*>(_save->getBattleGame());
+	const bool isStrafe = battlegame->getCurrentAction()->strafe && _unit->getFaceDirection() > -1 && (_unit->getStatus() == STATUS_WALKING || _unit->getStatus() == STATUS_FLYING);
+	return isStrafe ? _unit->getFaceDirection() : _unit->getDirection();
 }
 
 } //namespace OpenXcom

@@ -19,6 +19,7 @@
  */
 #include "../Engine/Surface.h"
 #include "../Engine/Script.h"
+#include "BattlescapeGame.h"
 
 namespace OpenXcom
 {
@@ -28,6 +29,7 @@ class BattleItem;
 class SavedBattleGame;
 class SurfaceSet;
 class Mod;
+class BattlescapeGame;
 
 /**
  * A class that renders a specific unit, given its render rules
@@ -107,7 +109,9 @@ private:
 	void blitItem(Part& item);
 	/// Blit body sprite.
 	void blitBody(Part& body);
-public:
+	/// Get unit proper facing direction during strafing
+	int getUnitFacing() const;
+  public:
 	/// Creates a new UnitSprite at the specified position and size.
 	UnitSprite(Surface* dest, const Mod* mod, const SavedBattleGame* save, int frame, bool helmet, int red, int blue);
 	/// Cleans up the UnitSprite.
