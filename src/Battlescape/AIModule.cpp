@@ -6753,7 +6753,7 @@ bool AIModule::hasTileSight(Position from, Position to)
 		return false;
 	if (tile->getTerrainLevel() * -1 + _unit->getHeight() - 24 > 0)
 		to.z += 1;
-	if (_save->getTileEngine()->calculateLineTile(from, to, trajectory, 10) > 0)
+	if (!_save->getTile(from) || !_save->getTile(to) || _save->getTileEngine()->calculateLineTile(from, to, trajectory, 10) > 0)
 		result = false;
 	_save->getTileEngine()->setVisibilityCache(from, to, result);
 	// Set visibility cache for each position in the trajectory
