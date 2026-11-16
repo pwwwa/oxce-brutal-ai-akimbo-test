@@ -64,11 +64,19 @@ private:
 	static const int SPECIAL_BUTTONS_MAX = 3;
 	int _posSpecialActions[SPECIAL_BUTTONS_MAX];
 
+	/** /
 	static const int VISIBLE_MAX = 10;
 	std::string _txtVisibleUnitTooltip[VISIBLE_MAX+2];
 	InteractiveSurface *_btnVisibleUnit[VISIBLE_MAX];
 	NumberText *_numVisibleUnit[VISIBLE_MAX];
 	BattleUnit *_visibleUnit[VISIBLE_MAX];
+	/**/
+	int _visibleMax = 10;
+	std::vector<std::string> _txtVisibleUnitTooltip {};
+	std::vector<InteractiveSurface*> _btnVisibleUnit {};
+	std::vector<NumberText*> _numVisibleUnit {};
+	std::vector<BattleUnit*> _visibleUnit {};
+	/**/
 
 	WarningMessage *_warning;
 	Text *_txtName;

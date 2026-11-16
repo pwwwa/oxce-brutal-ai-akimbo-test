@@ -587,6 +587,7 @@ void createAdvancedOptionsOTHER()
 
 	// OTHER options Battlescape
 
+	_info.push_back(OptionInfo(OPTION_OTHER, "altSpottedUnits", &altSpottedUnits, false, "STR_ALT_SPOTTED_UNITS", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "dynamicFlash", &dynamicFlash, 0, "STR_DYNAMIC_FLASH", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "floatUnitBobNShade", &floatUnitBobNShade, 0, "STR_FLOAT_UNIT_BOB_N_SHADE", "STR_BATTLESCAPE"));
 	_info.push_back(OptionInfo(OPTION_OTHER, "animateIndicators", &animateIndicators, 0, "STR_ANIMATE_INDICATORS", "STR_BATTLESCAPE"));

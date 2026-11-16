@@ -218,7 +218,7 @@ OPT SDLKey keyReadyMedikit;
 OPT SDLKey keyClearLeftHand;
 
 // pWWWa: Akimbo stuff
-OPT bool noMultiHitHE, altArrowScheme, singleBoom;
+OPT bool noMultiHitHE, altArrowScheme, singleBoom, altSpottedUnits;
 OPT int moraleAttackSuccessNotify, akimboMod, oxceNumpadMove, floatUnitBobNShade, animateIndicators, dynamicFlash;
 OPT SDLKey keyBattleActionItem6, keyBattleReserveAkimbo, keyAddBattleScale, keySubBattleScale;
 

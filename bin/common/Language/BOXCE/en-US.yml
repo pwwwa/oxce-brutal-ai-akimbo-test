@@ -188,3 +188,8 @@ en-US:
   # Single boom
   STR_SINGLE_BOOM: "Single big boom"
   STR_SINGLE_BOOM_DESC: "Perform one big single explosion instead of blasting serie for terrain."
+  
+  # Spotted unit indicators
+  STR_ALT_SPOTTED_UNITS: "Altered spotted units markers"
+  STR_ALT_SPOTTED_UNITS_DESC: "The number of markers corresponds to game screen scale.{NEWLINE}The {ALT}1st{ALT} marker will be taken by the most hopeless case among the wounded friendly units."
+  STR_CENTER_ON_ENEMY_X: "Center on Enemy"

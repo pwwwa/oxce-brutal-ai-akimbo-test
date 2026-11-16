@@ -186,3 +186,8 @@ ru:
   # Single boom
   STR_SINGLE_BOOM: "Один большой бум"
   STR_SINGLE_BOOM_DESC: "Осуществлять один мощный взрыв вместо серии взрывов на местности."
+  
+  # Spotted unit indicators
+  STR_ALT_SPOTTED_UNITS: "Иные метки обнаруженных юнитов"
+  STR_ALT_SPOTTED_UNITS_DESC: "Количество меток соответствует масштабу игрового экрана.{NEWLINE}{ALT}1-ю{ALT} метку занимает самый безнадёжный среди раненых дружественных юнитов."
+  STR_CENTER_ON_ENEMY_X: "Центр на противнике"

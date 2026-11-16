@@ -108,8 +108,6 @@ BattlescapeState::BattlescapeState() :
 {
 	_save = _game->getSavedGame()->getSavedBattle();
 
-	std::fill_n(_visibleUnit, 10, (BattleUnit*)(0));
-
 	const int screenWidth = Options::baseXResolution;
 	const int screenHeight = Options::baseYResolution;
 	const int iconsWidth = _game->getMod()->getInterface("battlescape")->getElement("icons")->w;
@@ -186,12 +184,20 @@ BattlescapeState::BattlescapeState() :
 	_numTwoHandedIndicatorRight = new NumberText(10, 5, x + 308, y + 46);
 	const int visibleUnitX = _game->getMod()->getInterface("battlescape")->getElement("visibleUnits")->x;
 	const int visibleUnitY = _game->getMod()->getInterface("battlescape")->getElement("visibleUnits")->y;
-	for (int i = 0; i < VISIBLE_MAX; ++i)
+
+	_visibleMax = !Options::altSpottedUnits ? 10 : (visibleMapHeight - 4) / 13;
+
+	_txtVisibleUnitTooltip.resize(_visibleMax + 2);
+	_btnVisibleUnit.resize(_visibleMax, nullptr);
+	_numVisibleUnit.resize(_visibleMax, nullptr);
+	_visibleUnit.resize(_visibleMax, nullptr);
+
+	for (int i = 0; i < _visibleMax; ++i)
 	{
 		_btnVisibleUnit[i] = new InteractiveSurface(15, 12, x + visibleUnitX, y + visibleUnitY - (i * 13));
-		_numVisibleUnit[i] = new NumberText(15, 12, _btnVisibleUnit[i]->getX() + 6 , _btnVisibleUnit[i]->getY() + 4);
+		_numVisibleUnit[i] = new NumberText(15, 12, _btnVisibleUnit[i]->getX() + (i < 9 ? 6 : 4), _btnVisibleUnit[i]->getY() + 4);
 	}
-	_numVisibleUnit[9]->setX(_numVisibleUnit[9]->getX() - 2); // center number 10
+
 	_warning = new WarningMessage(224, 24, x + 48, y + 32);
 	_btnLaunch = new BattlescapeButton(32, 24, screenWidth - 32, 0); // we need screenWidth, because that is independent of the black bars on the screen
 	_btnLaunch->setVisible(false);
@@ -289,7 +295,7 @@ BattlescapeState::BattlescapeState() :
 		tftdIcons->blitNShade(icons, 48, 176);
 	}
 
-	// Add in custom reserve akimbo button
+	// pWWWa: add custom reserve akimbo button
 	add(_btnReserveAkimbo, "akimboReserveIco", "battlescape", _icons);
 	_btnReserveAkimbo->setVisible(false);
 	if (_game->getMod()->getSurfaceSet("akimboReserveIco", false) && Options::akimboMod > 1)
@@ -384,7 +390,7 @@ BattlescapeState::BattlescapeState() :
 	}
 	add(_numTwoHandedIndicatorLeft, "numTwoHandedIndicatorLeft", "battlescape", _icons);
 	add(_numTwoHandedIndicatorRight, "numTwoHandedIndicatorRight", "battlescape", _icons);
-	for (int i = 0; i < VISIBLE_MAX; ++i)
+	for (int i = 0; i < _visibleMax; ++i)
 	{
 		add(_btnVisibleUnit[i]);
 		add(_numVisibleUnit[i]);
@@ -649,13 +655,20 @@ BattlescapeState::BattlescapeState() :
 						Options::keyBattleCenterEnemy8,
 						Options::keyBattleCenterEnemy9,
 						Options::keyBattleCenterEnemy10};
-	for (int i = 0; i < VISIBLE_MAX; ++i)
+	for (int i = 0; i < _visibleMax; ++i)
 	{
 		std::ostringstream tooltip;
 		_btnVisibleUnit[i]->onMouseClick((ActionHandler)&BattlescapeState::btnVisibleUnitClick);
 		_btnVisibleUnit[i]->onMouseClick((ActionHandler)&BattlescapeState::btnVisibleUnitClick, SDL_BUTTON_RIGHT);
 		_btnVisibleUnit[i]->onKeyboardPress((ActionHandler)&BattlescapeState::btnVisibleUnitClick, buttons[i]);
-		tooltip << "STR_CENTER_ON_ENEMY_" << (i+1);
+		if (i < 10)
+		{
+			tooltip << "STR_CENTER_ON_ENEMY_" << (i + 1);
+		}
+		else
+		{
+			tooltip << "STR_CENTER_ON_ENEMY_X"; // pWWWa: dummy string. TODO: pass proper unit number to actual tooltip text (.arg() method ?)
+		}
 		_txtVisibleUnitTooltip[i] = tooltip.str();
 		_btnVisibleUnit[i]->setTooltip(_txtVisibleUnitTooltip[i]);
 		_btnVisibleUnit[i]->onMouseIn((ActionHandler)&BattlescapeState::txtTooltipIn);
@@ -663,8 +676,8 @@ BattlescapeState::BattlescapeState() :
 		_numVisibleUnit[i]->setColor(_indicatorTextColor);
 		_numVisibleUnit[i]->setValue(i+1);
 	}
-	_txtVisibleUnitTooltip[VISIBLE_MAX] = "STR_CENTER_ON_WOUNDED_FRIEND";
-	_txtVisibleUnitTooltip[VISIBLE_MAX+1] = "STR_CENTER_ON_DIZZY_FRIEND";
+	_txtVisibleUnitTooltip[_visibleMax] = "STR_CENTER_ON_WOUNDED_FRIEND";
+	_txtVisibleUnitTooltip[_visibleMax + 1] = "STR_CENTER_ON_DIZZY_FRIEND";
 
 	_warning->setColor(_game->getMod()->getInterface("battlescape")->getElement("warning")->color2);
 	_warning->setTextColor(_game->getMod()->getInterface("battlescape")->getElement("warning")->color);
@@ -1679,7 +1692,7 @@ void BattlescapeState::btnVisibleUnitClick(Action *action)
 	int btnID = -1;
 
 	// got to find out which button was pressed
-	for (int i = 0; i < VISIBLE_MAX && btnID == -1; ++i)
+	for (int i = 0; i < _visibleMax && btnID == -1; ++i)
 	{
 		if (action->getSender() == _btnVisibleUnit[i])
 		{
@@ -2157,7 +2170,7 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 {
 	BattleUnit *battleUnit = _save->getSelectedUnit();
 
-	for (int i = 0; i < VISIBLE_MAX; ++i)
+	for (int i = 0; i < _visibleMax; ++i)
 	{
 		_btnVisibleUnit[i]->setVisible(false);
 		_numVisibleUnit[i]->setVisible(false);
@@ -2329,10 +2342,45 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 	}
 
 	// go through all units visible to the selected soldier (or other unit, e.g. mind-controlled enemy)
+
 	int j = 0;
+	BattleUnit *sosUnit = nullptr;
+
+	if (Options::altSpottedUnits)
+	{
+
+		int minHP = 0;
+		bool isFirst = true;
+
+		for (BattleUnit* bu : *_save->getUnits())
+		{
+			if (bu->getFaction() == battleUnit->getFaction() && bu->getStatus() != STATUS_DEAD && !bu->isOut() && bu->indicatorsAreEnabled() && bu->getFatalWounds() > 0)
+			{
+				int currentHP = bu->getHealth() - bu->getFatalWounds();
+
+				if (isFirst || currentHP < minHP)
+				{
+					isFirst = false;
+					minHP = currentHP;
+					sosUnit = bu;
+				}
+			}
+		}
+
+		if (sosUnit)
+		{
+			_btnVisibleUnit[0]->setTooltip(_txtVisibleUnitTooltip[_visibleMax]); // Синий тултип раненого
+			_btnVisibleUnit[0]->setVisible(true);
+			_numVisibleUnit[0]->setVisible(true);
+			_visibleUnit[0] = sosUnit;
+			j = 1;
+		}
+	}
+
 	for (auto* bu : *battleUnit->getVisibleUnits())
 	{
-		if (j >= VISIBLE_MAX) break; // loop finished
+		if (bu == sosUnit) continue;
+		if (j >= _visibleMax) break; // loop finished
 		_btnVisibleUnit[j]->setTooltip(_txtVisibleUnitTooltip[j]);
 		_btnVisibleUnit[j]->setVisible(true);
 		_numVisibleUnit[j]->setVisible(true);
@@ -2346,7 +2394,7 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 	// go through all units on the map
 	for (auto* bu : *_save->getUnits())
 	{
-		if (j >= VISIBLE_MAX) break; // loop finished
+		if (j >= _visibleMax) break; // loop finished
 		// check if they are hostile and visible (by any friendly unit)
 		if (bu->getOriginalFaction() == FACTION_HOSTILE && !bu->isOut() && bu->getVisible())
 		{
@@ -2354,7 +2402,7 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 			// check if they are not already shown (e.g. because we see them directly)
 			for (auto* bu2 : *battleUnit->getVisibleUnits())
 			{
-				if (bu->getId() == bu2->getId())
+				if (bu->getId() == bu2->getId() || bu == sosUnit)
 				{
 					alreadyShown = true;
 				}
@@ -2377,12 +2425,13 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 		// go through all wounded units under player's control (incl. unconscious)
 		for (auto* bu : *_save->getUnits())
 		{
-			if (j >= VISIBLE_MAX) break; // loop finished
+			if (bu == sosUnit) continue;
+			if (j >= _visibleMax) break; // loop finished
 			if (bu->getFaction() == FACTION_PLAYER && bu->getStatus() != STATUS_DEAD && !bu->isIgnored() && bu->indicatorsAreEnabled())
 			{
 				if (bu->getFatalWounds() > 0 || (Options::oxceShowBurningAsWounded && bu->getFire() > 0))
 				{
-					_btnVisibleUnit[j]->setTooltip(_txtVisibleUnitTooltip[VISIBLE_MAX]);
+					_btnVisibleUnit[j]->setTooltip(_txtVisibleUnitTooltip[_visibleMax]);
 					_btnVisibleUnit[j]->setVisible(true);
 					_numVisibleUnit[j]->setVisible(true);
 					_visibleUnit[j] = bu;
@@ -2399,10 +2448,11 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 		// first show all stunned allies with negative health regen (usually caused by high stun level)
 		for (auto* bu : *_save->getUnits())
 		{
-			if (j >= VISIBLE_MAX) break; // loop finished
+			if (bu == sosUnit) continue;
+			if (j >= _visibleMax) break; // loop finished
 			if (bu->getOriginalFaction() == FACTION_PLAYER && bu->getStatus() == STATUS_UNCONSCIOUS && bu->hasNegativeHealthRegen() && bu->indicatorsAreEnabled())
 			{
-				_btnVisibleUnit[j]->setTooltip(_txtVisibleUnitTooltip[VISIBLE_MAX + 1]);
+				_btnVisibleUnit[j]->setTooltip(_txtVisibleUnitTooltip[_visibleMax + 1]);
 				_btnVisibleUnit[j]->setVisible(true);
 				_numVisibleUnit[j]->setVisible(true);
 				_visibleUnit[j] = bu;
@@ -2413,12 +2463,13 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 		// then show all standing units under player's control with high stun level
 		for (auto* bu : *_save->getUnits())
 		{
-			if (j >= VISIBLE_MAX) break; // loop finished
+			if (bu == sosUnit) continue;
+			if (j >= _visibleMax) break; // loop finished
 			if (bu->getFaction() == FACTION_PLAYER && !(bu->isOut()) && bu->getHealth() > 0 && bu->indicatorsAreEnabled())
 			{
 				if (bu->getStunlevel() * 100 / bu->getHealth() >= 75)
 				{
-					_btnVisibleUnit[j]->setTooltip(_txtVisibleUnitTooltip[VISIBLE_MAX+1]);
+					_btnVisibleUnit[j]->setTooltip(_txtVisibleUnitTooltip[_visibleMax + 1]);
 					_btnVisibleUnit[j]->setVisible(true);
 					_numVisibleUnit[j]->setVisible(true);
 					_visibleUnit[j] = bu;
@@ -2498,12 +2549,17 @@ void BattlescapeState::blinkVisibleUnitButtons()
 {
 	static int delta = 1, color = 32;
 
-	for (int i = 0; i < VISIBLE_MAX;  ++i)
+	for (int i = 0; i < _visibleMax; ++i)
 	{
 		if (_btnVisibleUnit[i]->getVisible() == true)
 		{
 			_btnVisibleUnit[i]->drawRect(0, 0, 15, 12, 15);
-			int bgColor = i < _numberOfDirectlyVisibleUnits ? color : i < _numberOfEnemiesTotal ? _indicatorGreen : i < _numberOfEnemiesTotalPlusWounded ? _indicatorBlue : _indicatorPurple;
+			int bgColor = i < _numberOfDirectlyVisibleUnits ? color	: i < _numberOfEnemiesTotal ? _indicatorGreen : i < _numberOfEnemiesTotalPlusWounded ? _indicatorBlue : _indicatorPurple;
+
+			if (i == 0 && _btnVisibleUnit[0]->getTooltip() == _txtVisibleUnitTooltip[_visibleMax] && _visibleUnit[0]->getFatalWounds() > 0)
+			{
+				bgColor = _indicatorBlue;
+			}
 			_btnVisibleUnit[i]->drawRect(1, 1, 13, 10, bgColor);
 		}
 	}
@@ -3215,7 +3271,9 @@ inline void BattlescapeState::handle(Action *action)
 					saveVoxelView();
 				}
 
-				// pWWWa: Battlescape scale switcher
+				/************************************\
+				* BATTLESCAPE SCALE SWITCHER HOTKEYS * 
+				\************************************/
 				if (!isBusy() && ( (key == Options::keyAddBattleScale && Options::battlescapeScale <= 10 && Options::battlescapeScale != 0) || 
 								   (key == Options::keySubBattleScale && Options::battlescapeScale >=  0 && Options::battlescapeScale != 5) ) )
 				{
@@ -3255,15 +3313,13 @@ inline void BattlescapeState::handle(Action *action)
 					Options::updateOptions();
 					_game->getScreen()->resetDisplay(false);
 
-					// pWWWa: restart BSS with pressed CTRL if something went wrong (borrowed & adjusted)
 					if (ctrlPressed)
-					{
+					{	// pWWWa: restart BSS with pressed CTRL if something went wrong (borrowed & adjusted)
 						_game->popState(); // clear current state (no memory leak)
 						BattlescapeState *bs = new BattlescapeState;
 						_game->pushState(bs);
 						_game->getSavedGame()->getSavedBattle()->setBattleState(bs);
-						// Try to reactivate the touch buttons
-						bs->toggleTouchButtons(false, true);
+						bs->toggleTouchButtons(false, true);// Try to reactivate the touch buttons
 					}
 				}
 
@@ -3281,18 +3337,18 @@ inline void BattlescapeState::handle(Action *action)
 							switch (key)
 							{
 								case SDLK_KP8:
-									numpadDir = facing;
-									break; // forward
+												numpadDir = facing;
+												break; // forward
 								case SDLK_KP5:
-									numpadDir = (facing + 4) % 8;
-									break; // backward
+												numpadDir = (facing + 4) % 8;
+												break; // backward
 								case SDLK_KP4:
-									numpadDir = (facing - 1 + 8) % 8;
-									turnDelta = -1;
-									break; // turn left
+												numpadDir = (facing - 1 + 8) % 8;
+												turnDelta = -1;
+												break; // turn left
 								case SDLK_KP6:
-									numpadDir = (facing + 1) % 8;
-									turnDelta = 1; // turn right
+												numpadDir = (facing + 1) % 8;
+												turnDelta = 1; // turn right
 							}
 							if (numpadDir >= 0)
 							{
@@ -3936,7 +3992,7 @@ void BattlescapeState::btnReserveKneelClick(Action *action)
 {
 	if (allowButtons())
 	{
-		SDL_Event ev;
+		SDL_Event ev {};
 		ev.type = SDL_MOUSEBUTTONDOWN;
 		ev.button.button = SDL_BUTTON_LEFT;
 		Action a = Action(&ev, 0.0, 0.0, 0, 0);
@@ -3961,7 +4017,7 @@ void BattlescapeState::btnZeroTUsClick(Action *action)
 {
 	if (allowButtons())
 	{
-		SDL_Event ev;
+		SDL_Event ev {};
 		ev.type = SDL_MOUSEBUTTONDOWN;
 		ev.button.button = SDL_BUTTON_LEFT;
 		Action a = Action(&ev, 0.0, 0.0, 0, 0);
@@ -4039,7 +4095,7 @@ void BattlescapeState::txtTooltipInExtra(Action *action, bool leftHand, bool spe
 						(weaponRule->getAllowTargetHostileGround() && bu->getOriginalFaction() == FACTION_HOSTILE))
 					{
 						if (!_game->isCtrlPressed(true) && !_game->isShiftPressed(true))
-						{
+						{	// pWWWa: medikit hotkey target priority control: nothing is pressed -> let look to the ground
 							targetUnit = bu;
 							onGround = true;
 						}
@@ -4063,7 +4119,7 @@ void BattlescapeState::txtTooltipInExtra(Action *action, bool leftHand, bool spe
 						if ((weaponRule->getAllowTargetFriendStanding() && tile->getUnit()->getOriginalFaction() == FACTION_PLAYER) ||
 							(weaponRule->getAllowTargetNeutralStanding() && tile->getUnit()->getOriginalFaction() == FACTION_NEUTRAL) ||
 							(weaponRule->getAllowTargetHostileStanding() && tile->getUnit()->getOriginalFaction() == FACTION_HOSTILE))
-						{
+						{	// pWWWa: medikit hotkey target priority control: shift is not pressed ->  let look to front unit
 							targetUnit = !_game->isShiftPressed(true) ? tile->getUnit() : 0;
 						}
 					}
@@ -4259,7 +4315,7 @@ void BattlescapeState::resize(int &dX, int &dY)
 	}
 
 	if (Options::battlescapeScale > SCALE_2X)
-	{
+	{ //pWWWa: Handle relative scalers only, but not absolute
 		Options::baseXResolution = std::max(Screen::ORIGINAL_WIDTH, Options::displayWidth / divisor);
 		Options::baseYResolution = std::max(Screen::ORIGINAL_HEIGHT, (int)(Options::displayHeight / pixelRatioY / divisor));
 	}
@@ -4295,6 +4351,81 @@ void BattlescapeState::resize(int &dX, int &dY)
 		pos += dX;
 	}
 
+	if (Options::altSpottedUnits)
+	{
+		const int iconsHeight = _game->getMod()->getInterface("battlescape")->getElement("icons")->h;
+		const int visibleUnitX = _game->getMod()->getInterface("battlescape")->getElement("visibleUnits")->x;
+		const int visibleUnitY = _game->getMod()->getInterface("battlescape")->getElement("visibleUnits")->y;
+
+		int startYOnScreen = Options::baseYResolution - iconsHeight;
+		int availableHeight = startYOnScreen - 4;
+		int newMax = availableHeight / 13;
+
+		// if (newMax < 10) newMax = 10;
+
+		int oldMax = (int)_btnVisibleUnit.size();
+
+		if (newMax > oldMax)
+		{
+			_btnVisibleUnit.resize(newMax, nullptr);
+			_numVisibleUnit.resize(newMax, nullptr);
+			_visibleUnit.resize(newMax, nullptr);
+			_txtVisibleUnitTooltip.resize(newMax + 2);
+
+			int baseX = Options::baseXResolution / 2 - _game->getMod()->getInterface("battlescape")->getElement("icons")->w / 2;
+			int baseY = Options::baseYResolution - iconsHeight;
+
+			for (int i = oldMax; i < newMax; ++i)
+			{
+				int xPos = baseX + visibleUnitX;
+				int yPos = baseY + visibleUnitY - (i * 13);
+
+				_btnVisibleUnit[i] = new InteractiveSurface(15, 12, xPos, yPos);
+				_numVisibleUnit[i] = new NumberText(15, 12, xPos + 6, yPos + 4);
+
+				if (i >= 9)
+					_numVisibleUnit[i]->setX(_numVisibleUnit[i]->getX() - 2);
+
+				this->add(_btnVisibleUnit[i]);
+				this->add(_numVisibleUnit[i]);
+
+				std::ostringstream tooltip;
+				if (i < 10)
+				{
+					tooltip << "STR_CENTER_ON_ENEMY_" << (i + 1);
+				}
+				else
+				{
+					tooltip << "STR_CENTER_ON_ENEMY_X"; // pWWWa: dummy string. TODO: pass proper unit number to actual tooltip text (.arg() method ?)
+				}
+				_txtVisibleUnitTooltip[i] = tooltip.str();
+				_btnVisibleUnit[i]->setTooltip(_txtVisibleUnitTooltip[i]);
+
+				_btnVisibleUnit[i]->onMouseClick((ActionHandler)&BattlescapeState::btnVisibleUnitClick);
+				_btnVisibleUnit[i]->onMouseClick((ActionHandler)&BattlescapeState::btnVisibleUnitClick, SDL_BUTTON_RIGHT);
+				_btnVisibleUnit[i]->onMouseIn((ActionHandler)&BattlescapeState::txtTooltipIn);
+				_btnVisibleUnit[i]->onMouseOut((ActionHandler)&BattlescapeState::txtTooltipOut);
+
+				_numVisibleUnit[i]->setPalette(_palette);
+				_numVisibleUnit[i]->setColor(_indicatorTextColor);
+				_numVisibleUnit[i]->setValue(i + 1);
+
+				_btnVisibleUnit[i]->setVisible(false);
+				_numVisibleUnit[i]->setVisible(false);
+			}
+			_txtVisibleUnitTooltip[newMax] = "STR_CENTER_ON_WOUNDED_FRIEND";
+			_txtVisibleUnitTooltip[newMax + 1] = "STR_CENTER_ON_DIZZY_FRIEND";
+		}
+
+		_visibleMax = newMax;
+
+		for (size_t i = _visibleMax; i < _btnVisibleUnit.size(); ++i)
+		{
+			_btnVisibleUnit[i]->setVisible(false);
+			_numVisibleUnit[i]->setVisible(false);
+		}
+		updateSoldierInfo(false);
+	}
 }
 
 /**
