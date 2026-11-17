@@ -1493,6 +1493,10 @@ void UnitSprite::sortRifles()
 
 int UnitSprite::getUnitFacing() const
 {
+	if (_unit->getStatus() == STATUS_STANDING)
+	{
+		return _unit->getDirection();
+	}
 	BattlescapeGame *battlegame = const_cast<BattlescapeGame*>(_save->getBattleGame());
 	const bool isStrafe = battlegame->getCurrentAction()->strafe && _unit->getFaceDirection() > -1 && (_unit->getStatus() == STATUS_WALKING || _unit->getStatus() == STATUS_FLYING);
 	return isStrafe ? _unit->getFaceDirection() : _unit->getDirection();
