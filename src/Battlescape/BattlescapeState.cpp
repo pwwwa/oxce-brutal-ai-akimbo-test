@@ -660,9 +660,10 @@ BattlescapeState::BattlescapeState() :
 		std::ostringstream tooltip;
 		_btnVisibleUnit[i]->onMouseClick((ActionHandler)&BattlescapeState::btnVisibleUnitClick);
 		_btnVisibleUnit[i]->onMouseClick((ActionHandler)&BattlescapeState::btnVisibleUnitClick, SDL_BUTTON_RIGHT);
-		_btnVisibleUnit[i]->onKeyboardPress((ActionHandler)&BattlescapeState::btnVisibleUnitClick, buttons[i]);
+
 		if (i < 10)
 		{
+			_btnVisibleUnit[i]->onKeyboardPress((ActionHandler)&BattlescapeState::btnVisibleUnitClick, buttons[i]);
 			tooltip << "STR_CENTER_ON_ENEMY_" << (i + 1);
 		}
 		else
@@ -2182,15 +2183,11 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 	_rankTiny->setVisible(playableUnit);
 	_numTimeUnits->setVisible(playableUnit);
 	_barTimeUnits->setVisible(playableUnit);
-	_barTimeUnits->setVisible(playableUnit);
 	_numEnergy->setVisible(playableUnit);
-	_barEnergy->setVisible(playableUnit);
 	_barEnergy->setVisible(playableUnit);
 	_numHealth->setVisible(playableUnit);
 	_barHealth->setVisible(playableUnit);
-	_barHealth->setVisible(playableUnit);
 	_numMorale->setVisible(playableUnit);
-	_barMorale->setVisible(playableUnit);
 	_barMorale->setVisible(playableUnit);
 	if (_manaBarVisible)
 	{
@@ -2344,17 +2341,16 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 	// go through all units visible to the selected soldier (or other unit, e.g. mind-controlled enemy)
 
 	int j = 0;
-	BattleUnit *sosUnit = nullptr;
 
 	if (Options::altSpottedUnits)
 	{
-
+		BattleUnit* sosUnit = nullptr;
 		int minHP = 0;
 		bool isFirst = true;
 
 		for (BattleUnit* bu : *_save->getUnits())
 		{
-			if (bu->getFaction() == battleUnit->getFaction() && bu->getStatus() != STATUS_DEAD && !bu->isOut() && bu->indicatorsAreEnabled() && bu->getFatalWounds() > 0)
+			if (bu->getFaction() == battleUnit->getFaction() && bu->getStatus() != STATUS_DEAD && !bu->isIgnored() && bu->indicatorsAreEnabled() && bu->getFatalWounds() > 0)
 			{
 				int currentHP = bu->getHealth() - bu->getFatalWounds();
 
@@ -2369,7 +2365,7 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 
 		if (sosUnit)
 		{
-			_btnVisibleUnit[0]->setTooltip(_txtVisibleUnitTooltip[_visibleMax]); // Синий тултип раненого
+			_btnVisibleUnit[0]->setTooltip(_txtVisibleUnitTooltip[_visibleMax]);
 			_btnVisibleUnit[0]->setVisible(true);
 			_numVisibleUnit[0]->setVisible(true);
 			_visibleUnit[0] = sosUnit;
@@ -2379,7 +2375,7 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 
 	for (auto* bu : *battleUnit->getVisibleUnits())
 	{
-		if (bu == sosUnit) continue;
+		if (bu == _visibleUnit[0]) continue;
 		if (j >= _visibleMax) break; // loop finished
 		_btnVisibleUnit[j]->setTooltip(_txtVisibleUnitTooltip[j]);
 		_btnVisibleUnit[j]->setVisible(true);
@@ -2402,7 +2398,7 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 			// check if they are not already shown (e.g. because we see them directly)
 			for (auto* bu2 : *battleUnit->getVisibleUnits())
 			{
-				if (bu->getId() == bu2->getId() || bu == sosUnit)
+				if (bu->getId() == bu2->getId() || bu == _visibleUnit[0])
 				{
 					alreadyShown = true;
 				}
@@ -2425,7 +2421,7 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 		// go through all wounded units under player's control (incl. unconscious)
 		for (auto* bu : *_save->getUnits())
 		{
-			if (bu == sosUnit) continue;
+			if (bu == _visibleUnit[0]) continue;
 			if (j >= _visibleMax) break; // loop finished
 			if (bu->getFaction() == FACTION_PLAYER && bu->getStatus() != STATUS_DEAD && !bu->isIgnored() && bu->indicatorsAreEnabled())
 			{
@@ -2448,7 +2444,7 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 		// first show all stunned allies with negative health regen (usually caused by high stun level)
 		for (auto* bu : *_save->getUnits())
 		{
-			if (bu == sosUnit) continue;
+			if (bu == _visibleUnit[0]) continue;
 			if (j >= _visibleMax) break; // loop finished
 			if (bu->getOriginalFaction() == FACTION_PLAYER && bu->getStatus() == STATUS_UNCONSCIOUS && bu->hasNegativeHealthRegen() && bu->indicatorsAreEnabled())
 			{
@@ -2463,7 +2459,7 @@ void BattlescapeState::updateSoldierInfo(bool checkFOV)
 		// then show all standing units under player's control with high stun level
 		for (auto* bu : *_save->getUnits())
 		{
-			if (bu == sosUnit) continue;
+			if (bu == _visibleUnit[0]) continue;
 			if (j >= _visibleMax) break; // loop finished
 			if (bu->getFaction() == FACTION_PLAYER && !(bu->isOut()) && bu->getHealth() > 0 && bu->indicatorsAreEnabled())
 			{
@@ -4356,48 +4352,37 @@ void BattlescapeState::resize(int &dX, int &dY)
 		const int iconsHeight = _game->getMod()->getInterface("battlescape")->getElement("icons")->h;
 		const int visibleUnitX = _game->getMod()->getInterface("battlescape")->getElement("visibleUnits")->x;
 		const int visibleUnitY = _game->getMod()->getInterface("battlescape")->getElement("visibleUnits")->y;
+		const int scapeArea = Options::baseYResolution - iconsHeight;
 
-		int startYOnScreen = Options::baseYResolution - iconsHeight;
-		int availableHeight = startYOnScreen - 4;
-		int newMax = availableHeight / 13;
+		_visibleMax = (scapeArea - 4) / 13;
 
-		// if (newMax < 10) newMax = 10;
+		const int oldMax = (int)_btnVisibleUnit.size();
 
-		int oldMax = (int)_btnVisibleUnit.size();
-
-		if (newMax > oldMax)
+		if (_visibleMax > oldMax)
 		{
-			_btnVisibleUnit.resize(newMax, nullptr);
-			_numVisibleUnit.resize(newMax, nullptr);
-			_visibleUnit.resize(newMax, nullptr);
-			_txtVisibleUnitTooltip.resize(newMax + 2);
+			_btnVisibleUnit.resize(_visibleMax, nullptr);
+			_numVisibleUnit.resize(_visibleMax, nullptr);
+			_visibleUnit.resize(_visibleMax, nullptr);
+			_txtVisibleUnitTooltip.resize(_visibleMax + 2);
 
-			int baseX = Options::baseXResolution / 2 - _game->getMod()->getInterface("battlescape")->getElement("icons")->w / 2;
-			int baseY = Options::baseYResolution - iconsHeight;
+			const int baseX = Options::baseXResolution / 2 - _game->getMod()->getInterface("battlescape")->getElement("icons")->w / 2;
+			const int baseY = Options::baseYResolution - iconsHeight;
 
-			for (int i = oldMax; i < newMax; ++i)
+			for (int i = oldMax; i < _visibleMax; ++i)
 			{
-				int xPos = baseX + visibleUnitX;
-				int yPos = baseY + visibleUnitY - (i * 13);
+				const int xPos = baseX + visibleUnitX;
+				const int yPos = baseY + visibleUnitY - (i * 13);
 
 				_btnVisibleUnit[i] = new InteractiveSurface(15, 12, xPos, yPos);
-				_numVisibleUnit[i] = new NumberText(15, 12, xPos + 6, yPos + 4);
-
-				if (i >= 9)
-					_numVisibleUnit[i]->setX(_numVisibleUnit[i]->getX() - 2);
-
-				this->add(_btnVisibleUnit[i]);
-				this->add(_numVisibleUnit[i]);
+				_numVisibleUnit[i] = new NumberText(15, 12, xPos + (i < 9 ? 6 : 4), yPos + 4);
+				add(_btnVisibleUnit[i]);
+				add(_numVisibleUnit[i]);
 
 				std::ostringstream tooltip;
 				if (i < 10)
-				{
 					tooltip << "STR_CENTER_ON_ENEMY_" << (i + 1);
-				}
 				else
-				{
 					tooltip << "STR_CENTER_ON_ENEMY_X"; // pWWWa: dummy string. TODO: pass proper unit number to actual tooltip text (.arg() method ?)
-				}
 				_txtVisibleUnitTooltip[i] = tooltip.str();
 				_btnVisibleUnit[i]->setTooltip(_txtVisibleUnitTooltip[i]);
 
@@ -4405,21 +4390,17 @@ void BattlescapeState::resize(int &dX, int &dY)
 				_btnVisibleUnit[i]->onMouseClick((ActionHandler)&BattlescapeState::btnVisibleUnitClick, SDL_BUTTON_RIGHT);
 				_btnVisibleUnit[i]->onMouseIn((ActionHandler)&BattlescapeState::txtTooltipIn);
 				_btnVisibleUnit[i]->onMouseOut((ActionHandler)&BattlescapeState::txtTooltipOut);
-
 				_numVisibleUnit[i]->setPalette(_palette);
 				_numVisibleUnit[i]->setColor(_indicatorTextColor);
 				_numVisibleUnit[i]->setValue(i + 1);
-
 				_btnVisibleUnit[i]->setVisible(false);
 				_numVisibleUnit[i]->setVisible(false);
 			}
-			_txtVisibleUnitTooltip[newMax] = "STR_CENTER_ON_WOUNDED_FRIEND";
-			_txtVisibleUnitTooltip[newMax + 1] = "STR_CENTER_ON_DIZZY_FRIEND";
 		}
+		_txtVisibleUnitTooltip[_visibleMax] = "STR_CENTER_ON_WOUNDED_FRIEND";
+		_txtVisibleUnitTooltip[_visibleMax + 1] = "STR_CENTER_ON_DIZZY_FRIEND";
 
-		_visibleMax = newMax;
-
-		for (size_t i = _visibleMax; i < _btnVisibleUnit.size(); ++i)
+		for (int i = _visibleMax; i < oldMax; ++i)
 		{
 			_btnVisibleUnit[i]->setVisible(false);
 			_numVisibleUnit[i]->setVisible(false);
