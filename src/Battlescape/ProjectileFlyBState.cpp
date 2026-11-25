@@ -722,10 +722,12 @@ void ProjectileFlyBState::deinit()
 void ProjectileFlyBState::think()
 {
 	/// checks if a weapon has any more shots to fire.
-	auto noMoreShotsToShoot = [this]() {
+	auto noMoreShotsToShoot = [this]()
+	{
 		 return _action.type != BA_AKIMBOSHOT
 			    ? (!_action.weapon->haveNextShotsForAction(_action.type, _action.autoShotCounter) || !_action.weapon->getAmmoForAction(_action.type))
-			    : ( _action.actWeaponCounter >= _action.actWeaponShotQnty && _action.opWeaponCounter >= _action.opWeaponShotQnty); };
+			    : ( _action.actWeaponCounter >= _action.actWeaponShotQnty && _action.opWeaponCounter >= _action.opWeaponShotQnty);
+	};
 
 	_parent->getSave()->getBattleState()->clearMouseScrollingState();
 	/* TODO refactoring : store the projectile in this state, instead of getting it from the map each time? */
@@ -787,19 +789,20 @@ void ProjectileFlyBState::think()
 							   ? _ammo->getRules()->getDamageType()
 							   : _parent->getMod()->getDamageType(_ammo->getRules()->getPierceAOEDamageType());
 
-			if (_projectileImpact > V_EMPTY && _projectileImpact < V_OUTOFBOUNDS && !(_projectileImpact == V_UNIT && victim->isPierced() /** / isOutThresholdExceed() /**/) && _parent->getPiercePower())
+			if (_projectileImpact > V_EMPTY && _projectileImpact < V_OUTOFBOUNDS && !(_projectileImpact == V_UNIT && victim->isPierced()) && _parent->getPiercePower())
 			{	// Projectile faces something "tasty" on their way. Let prepare to hit
-				int power = _action.weapon->getRules()->getIgnoreAmmoPower()
-						  ? _action.weapon->getRules()->getPowerBonus(attack) - _action.weapon->getRules()->getPowerRangeReduction(bullet->getDistance())
-						  : _ammo->getRules()->getPowerBonus(attack) - _ammo->getRules()->getPowerRangeReduction(bullet->getDistance());
+				const int power = _action.weapon->getRules()->getIgnoreAmmoPower()
+								? _action.weapon->getRules()->getPowerBonus(attack) - _action.weapon->getRules()->getPowerRangeReduction(bullet->getDistance())
+								: _ammo->getRules()->getPowerBonus(attack) - _ammo->getRules()->getPowerRangeReduction(bullet->getDistance());
 
 				int piercePowerDercement = 0;
+
 				if (_projectileImpact == V_UNIT)
 				{	// ternary used for avoiding possible zero devision (etc. damage modifier == 0)
-					int maxArmor = std::max({victim->getArmor(SIDE_FRONT), victim->getArmor(SIDE_REAR), victim->getArmor(SIDE_LEFT), victim->getArmor(SIDE_RIGHT)});
+					const int maxArmor = std::max({victim->getArmor(SIDE_FRONT), victim->getArmor(SIDE_REAR), victim->getArmor(SIDE_LEFT), victim->getArmor(SIDE_RIGHT)});
 
 					piercePowerDercement = (maxArmor * _ammo->getRules()->getDamageType()->ArmorEffectiveness + victim->getHealth()) /
-						                   (victim->getArmor()->getDamageModifier(dmgType->ResistType) ? victim->getArmor()->getDamageModifier(dmgType->ResistType) : 1); // std::fminf(1, victim->getArmor()->getDamageModifier(dmgType->ResistType))
+						                   (victim->getArmor()->getDamageModifier(dmgType->ResistType) ? victim->getArmor()->getDamageModifier(dmgType->ResistType) : 1);
 				}
 				else
 				{	// same zero divide avoidance method
@@ -808,9 +811,8 @@ void ProjectileFlyBState::think()
 				// hit processing
 				const int finalPower = (_ammo->getRules()->getPierceType() == 2) ? power : std::min(_parent->getPiercePower(), power);
 				_parent->getSave()->getTileEngine()->hit(attack, bullet->getPosition(), finalPower, dmgType);
-
 				_parent->setPiercePower(_parent->getPiercePower() - piercePowerDercement);
-					
+
 				if (_projectileImpact == V_UNIT)
 				{	// let arrange further handling of impacted units
 					if (!_parent->areAllEnemiesNeutralized()) projectileHitUnit(bullet->getPosition());
@@ -825,8 +827,8 @@ void ProjectileFlyBState::think()
 						_parent->statePushNext(new ExplosionBState(_parent, bullet->getLastPositions(), BattleActionAttack{BA_NONE, attack.attacker}, tile, false, 0, 0));
 				}
 			}
-			else 
-			{ // do not spawn hit animation at the end of map, blaster bomb can to continue their next waypoint journey 
+			else
+			{	// do not spawn hit animation at the end of map, blaster bomb can to continue their next waypoint journey 
 				_projectileImpact = _action.type == BA_LAUNCH && _action.waypoints.size() > 1 ? V_EMPTY : V_OUTOFBOUNDS;
 			}
 		}
@@ -838,8 +840,6 @@ void ProjectileFlyBState::think()
 		}
 		if (!_parent->getMap()->getProjectile()->move())
 		{
-			// impact !
-
 			/********************************\
 			* PROJECTILE RANGE EVENT SECTION *
 			\********************************/
@@ -856,7 +856,7 @@ void ProjectileFlyBState::think()
 					}
 				}
 			}
-			
+			// impact !
 			if (_action.type == BA_THROW)
 			{
 				_parent->getMap()->resetCameraSmoothing();

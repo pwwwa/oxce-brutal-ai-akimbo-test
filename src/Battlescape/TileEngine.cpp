@@ -5022,7 +5022,7 @@ int TileEngine::calculatePierceParabolaVoxel(Position origin, Position target, b
 	int result = V_EMPTY;
 	Position lastPosition = origin;
 	Position nextPosition = lastPosition;
-	int rand = (int)RNG::generate(0, 1) ? -1 : 1;
+	const int rand = RNG::generate(0, 1) ? -1 : 1;
 
 	if (storeTrajectory && trajectory)
 	{
